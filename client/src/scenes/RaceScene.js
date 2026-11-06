@@ -9,6 +9,9 @@ import { AvatarTextures } from '../entities/AvatarTextures.js';
 import { SKINS } from '../entities/skins.js';
 import { DebugOverlay } from '../ui/DebugOverlay.js';
 import { RoundOverlay } from '../ui/RoundOverlay.js';
+import { Toasts } from '../ui/Toasts.js';
+import { joinMessage } from '../systems/JoinMessage.js';
+import { CommandRouter } from '../systems/CommandRouter.js';
 import { AvatarCache, loadImageFromUrl } from '../core/AvatarCache.js';
 import { RaceCamera } from '../systems/RaceCamera.js';
 import { laneCenter, project } from '../systems/Projection.js';
@@ -34,7 +37,7 @@ export class RaceScene extends Phaser.Scene {
     this.camera = new RaceCamera();
     this.point = { x: 0, y: 0, s: 0 };
     this.dists = [];
-    this.views = [];
+    this.views = new Map(); // nhân vật -> hình
 
     // Tham số debug trên URL: ?players=N (người thật giả lập), ?start=N (xuất phát gần đích),
     // ?speed=N (chạy nhanh N lần), ?hold=result (dừng ở trạng thái đó sau 3 giây để xem), ?avatars=1 (thử avatar), ?perf=1 (in thời gian vẽ)
@@ -50,6 +53,7 @@ export class RaceScene extends Phaser.Scene {
     this.obstacleViews = new ObstacleViews(this, (x, y, s) => this.onHammerImpact(x, y, s));
     this.debug = new DebugOverlay(this);
     this.overlay = new RoundOverlay(this, this.avatars);
+    this.toasts = new Toasts(this);
 
     // Người thật giả lập cho tới khi có join thật (Task 8); không có thì toàn bot
     this.lobby = new Lobby({ botNames: STR.demoNames });
@@ -67,19 +71,41 @@ export class RaceScene extends Phaser.Scene {
       onEvent: (e) => this.onGameEvent(e),
     });
     this.manager.begin();
+
+    // Lệnh từ bình luận: chỉ `join` được xử lý ở đây (`s` dành cho camera cận ở task sau)
+    const bus = this.registry.get('bus');
+    if (bus) {
+      this.router = new CommandRouter(bus);
+      this.router.onCommand(({ command, user }) => command === 'join' && this.onJoin(user));
+    }
+  }
+
+  onJoin(user) {
+    this.toasts.show(joinMessage(this.manager.join(user), user.nickname));
   }
 
   onGameEvent(e) {
     if (e.type === 'round') this.buildViews();
+    else if (e.type === 'racer') this.swapView(e.added, e.removed);
     else if (e.type === 'hit') this.onRacerHit(e.racer);
   }
 
   // Lượt mới: dựng lại hình nhân vật theo đoàn đua mới và đặt camera về vạch xuất phát
   buildViews() {
     this.views.forEach((v) => v.destroy());
+    this.views.clear();
     this.racers = this.manager.racers;
-    this.views = this.racers.map((r) => new RacerView(this, r, this.avatars));
+    this.racers.forEach((r) => this.views.set(r, new RacerView(this, r, this.avatars)));
     this.camera.snap(this.collectDists());
+  }
+
+  // Người mới thế chỗ một bot trước lúc đua: đổi hình tương ứng
+  swapView(added, removed) {
+    if (removed) {
+      this.views.get(removed)?.destroy();
+      this.views.delete(removed);
+    }
+    this.views.set(added, new RacerView(this, added, this.avatars));
   }
 
   collectDists() {
@@ -103,6 +129,7 @@ export class RaceScene extends Phaser.Scene {
 
     this.placeViews();
     this.overlay.update(this.manager, dt);
+    this.toasts.update(dt);
     this.debug.setStatus(this.statusLine());
   }
 
@@ -118,7 +145,7 @@ export class RaceScene extends Phaser.Scene {
     const racing = m.state === 'race' || m.state === 'result';
     this.debug.begin();
     this.racers.forEach((r, i) => {
-      const view = this.views[i];
+      const view = this.views.get(r);
       project(laneCenter(r.lane), r.dist, this.camera, this.point);
       const { x, y, s } = this.point;
       // Ngoài tầm nhìn (quá xa hoặc đã ra sau camera) thì ẩn cho nhẹ

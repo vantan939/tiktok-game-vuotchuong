@@ -28,7 +28,7 @@ export class DemoSource {
   start() {
     // Mỗi người join lệch nhau để mô phỏng người xem vào dần
     this.users.forEach((u) => {
-      this.after(this.rand(0.3, CONFIG.demoJoinSpreadSeconds), () => this.chat(u, 'join'));
+      this.after(this.rand(CONFIG.demoFirstJoinSeconds, CONFIG.demoJoinSpreadSeconds), () => this.chat(u, 'join'));
     });
     this.loop(CONFIG.demoSComment, (u) => this.chat(u, 's'));
     this.loop(CONFIG.demoLike, (u) => this.like(u, 1 + Math.floor(this.random() * CONFIG.demoLikeMax)));

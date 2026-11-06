@@ -78,25 +78,59 @@ export class RaceManager {
   beginRound() {
     this.round++;
     const roster = this.shuffled(this.lobby.prepareRound());
-    this.racers = roster.map((user, i) => {
-      const racer = createRacer(user, {
-        index: i,
-        rng: this.rng,
-        cfg: this.cfg,
-        skinCount: this.skinCount,
-        stats: user.isBot ? undefined : this.lobby.statsFor(user.userId),
-      });
-      racer.isBot = user.isBot;
-      if (!user.isBot) this.lobby.rememberStats(user.userId, racer.stats);
-      racer.dist += this.startDist;
-      return racer;
-    });
+    this.racers = roster.map((user, i) => this.spawnRacer(user, i));
     this.field = generateObstacles(this.rng, this.cfg);
     this.ctx.field = this.field;
     this.result = null;
     rankRacers(this.racers, this.ranking);
     this.onEvent({ type: 'round', round: this.round });
     this.setState('wait');
+  }
+
+  spawnRacer(user, index) {
+    const racer = createRacer(user, {
+      index,
+      rng: this.rng,
+      cfg: this.cfg,
+      skinCount: this.skinCount,
+      stats: user.isBot ? undefined : this.lobby.statsFor(user.userId),
+    });
+    racer.isBot = user.isBot;
+    if (!user.isBot) this.lobby.rememberStats(user.userId, racer.stats);
+    racer.dist += this.startDist;
+    return racer;
+  }
+
+  /**
+   * Người xem gõ join. Chính sách khi lượt đang đua: người mới được giữ suất và vào đoàn đua từ LƯỢT SAU
+   * (late: true). Lý do: vào giữa lượt từ vạch xuất phát thì cả đoàn đã chạy xa, nhân vật mới
+   * nằm ngoài khung hình và camera phải zoom ra rất xa. Trước lúc đua (chờ, đếm ngược) và ở màn kết quả
+   * thì vào ngay: ở chờ/đếm ngược nhân vật thế chỗ một bot trên vạch xuất phát.
+   * Trả về { status: 'racing'|'queued'|'duplicate', late, queuePosition }.
+   */
+  join(user) {
+    const status = this.lobby.join(user);
+    if (status === 'duplicate') return { status, late: false, queuePosition: 0 };
+    if (status === 'queued') return { status, late: false, queuePosition: this.lobby.queuePosition(user.userId) };
+    if (this.state === 'wait' || this.state === 'countdown') this.seatBeforeRace(this.lobby.players.at(-1));
+    return { status, late: this.state === 'race', queuePosition: 0 };
+  }
+
+  // Đưa người mới lên vạch xuất phát: thế chỗ bot cuối đoàn, hoặc thêm hàng mới nếu không còn bot
+  seatBeforeRace(user) {
+    let at = this.racers.length - 1;
+    while (at >= 0 && !this.racers[at].isBot) at--;
+    const racer = this.spawnRacer(user, at >= 0 ? 0 : this.racers.length);
+    const removed = at >= 0 ? this.racers[at] : null;
+    if (removed) {
+      racer.dist = removed.dist;
+      racer.lane = racer.targetLane = removed.lane;
+      this.racers[at] = racer;
+    } else {
+      this.racers.push(racer);
+    }
+    rankRacers(this.racers, this.ranking);
+    this.onEvent({ type: 'racer', added: racer, removed });
   }
 
   // Xếp ngẫu nhiên vị trí xuất phát để không ai luôn đứng hàng đầu

@@ -4,9 +4,10 @@ import { applyWin } from './Racer.js';
 /**
  * Danh sách người chơi qua các lượt (logic thuần).
  * - players: người thật đang có suất trong đoàn đua, ở lại qua các lượt.
- * - queue: hàng đợi, vào theo thứ tự khi còn chỗ (tối đa maxPlayers người thật).
+ * - queue: hàng đợi theo thứ tự vào, chỉ được đưa lên đường ở lượt mới (prepareRound).
  * - Thiếu người thì thêm bot cho đủ botFillTo, bot được tạo mới mỗi lượt.
- * join luôn vào hàng đợi; đầu mỗi lượt prepareRound() mới xếp người từ hàng đợi vào chỗ trống.
+ * join: còn suất và hàng đợi đang trống thì vào đoàn đua ngay, ngược lại xếp cuối hàng đợi
+ * (hàng đợi trống mới được vào thẳng để không ai chen ngang người đã xếp hàng).
  */
 export class Lobby {
   constructor({ cfg = CONFIG, rng = Math.random, botNames = [] } = {}) {
@@ -23,11 +24,21 @@ export class Lobby {
     return this.players.some((p) => p.userId === userId) || this.queue.some((p) => p.userId === userId);
   }
 
-  /** Thêm người vào hàng đợi. Trả về 'queued' hoặc 'duplicate' (đã có, không cho join hai lần). */
+  /** Trả về 'racing' (có suất trong đoàn đua), 'queued' (xếp hàng đợi) hoặc 'duplicate' (đã có, không cho join hai lần). */
   join(user) {
     if (!user?.userId || this.has(user.userId)) return 'duplicate';
-    this.queue.push({ userId: user.userId, nickname: user.nickname, avatarUrl: user.avatarUrl ?? '', isBot: false });
+    const entry = { userId: user.userId, nickname: user.nickname, avatarUrl: user.avatarUrl ?? '', isBot: false };
+    if (this.players.length < this.cfg.maxPlayers && !this.queue.length) {
+      this.players.push(entry);
+      return 'racing';
+    }
+    this.queue.push(entry);
     return 'queued';
+  }
+
+  /** Vị trí của người trong hàng đợi (1 là đầu hàng), 0 nếu không đang xếp hàng. */
+  queuePosition(userId) {
+    return this.queue.findIndex((p) => p.userId === userId) + 1;
   }
 
   /** Người thật rời đi (mất kết nối, bị loại khỏi danh sách...). Suất trống sẽ nhường cho hàng đợi. */

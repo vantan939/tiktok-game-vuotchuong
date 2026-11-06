@@ -111,6 +111,7 @@ export const CONFIG = {
 
   // Chế độ demo (?demo=1). Các khoảng [min, max] tính bằng giây
   demoUserCount: 40,
+  demoFirstJoinSeconds: 1.5, // chờ game khởi động xong mới có người join đầu tiên
   demoJoinSpreadSeconds: 20,
   demoWarmupSeconds: 2,
   demoSComment: [2, 5],

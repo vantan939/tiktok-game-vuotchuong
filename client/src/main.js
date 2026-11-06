@@ -22,7 +22,7 @@ if (params.get('demo') === '1') {
   new WebSocketSource(bus).start();
 }
 
-const game = new Phaser.Game({
+new Phaser.Game({
   type: Phaser.AUTO,
   parent: 'game',
   width: CONFIG.width,
@@ -35,5 +35,6 @@ const game = new Phaser.Game({
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
   scene: [RaceScene],
+  // Gắn EventBus trước khi scene đầu tiên chạy create()
+  callbacks: { preBoot: (game) => game.registry.set('bus', bus) },
 });
-game.registry.set('bus', bus);

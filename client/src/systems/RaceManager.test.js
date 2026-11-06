@@ -3,6 +3,9 @@ import assert from 'node:assert/strict';
 import { CONFIG } from '../config.js';
 import { Lobby } from './Lobby.js';
 import { RaceManager } from './RaceManager.js';
+import { EventBus } from '../core/EventBus.js';
+import { CommandRouter } from './CommandRouter.js';
+import { joinMessage, shortName } from './JoinMessage.js';
 
 function seeded(seed = 1) {
   let s = seed;
@@ -31,9 +34,9 @@ function runUntil(manager, cond, maxSeconds = 2000, dt = 1 / 30) {
   assert.ok(cond(), 'điều kiện không đạt trong thời gian cho phép');
 }
 
-test('Lobby: join vào hàng đợi, không cho join hai lần', () => {
+test('Lobby: join vào đoàn đua, không cho join hai lần', () => {
   const lobby = new Lobby({ botNames: NAMES });
-  assert.equal(lobby.join(user(1)), 'queued');
+  assert.equal(lobby.join(user(1)), 'racing', 'còn suất thì vào đoàn đua');
   assert.equal(lobby.join(user(1)), 'duplicate');
   lobby.prepareRound();
   assert.equal(lobby.join(user(1)), 'duplicate', 'đã có trong đoàn đua cũng không join lại');
@@ -167,4 +170,104 @@ test('RaceManager: chạy liên tục 10 lượt không cần can thiệp, mỗi
   const ends = events.filter((e) => e.type === 'end');
   assert.equal(ends.length, 10);
   assert.ok(ends.every((e) => e.result.winner && e.result.top.length === 10));
+});
+
+// Gửi lệnh join qua đường thật: EventBus → CommandRouter → RaceManager.join
+function joinViaBus(manager, count, { start = 0, text = 'join' } = {}) {
+  const bus = new EventBus();
+  let t = 0;
+  const router = new CommandRouter(bus, () => t);
+  const results = [];
+  router.onCommand(({ command, user: u }) => {
+    if (command === 'join') results.push({ user: u, ...manager.join(u) });
+  });
+  for (let i = start; i < start + count; i++) {
+    t += 10;
+    bus.emit({ type: 'chat', userId: `u${i}`, nickname: `Người${i}`, avatarUrl: '', text: i % 2 ? text.toUpperCase() : `${text} ` });
+  }
+  return results;
+}
+
+test('Task 8: 45 lệnh join thì có 30 người đua và 15 người xếp hàng đúng thứ tự', () => {
+  const { lobby, manager } = setup();
+  manager.begin();
+  const results = joinViaBus(manager, 45);
+
+  assert.equal(results.filter((r) => r.status === 'racing').length, 30);
+  assert.equal(results.filter((r) => r.status === 'queued').length, 15);
+  assert.deepEqual(results.slice(30).map((r) => r.queuePosition), Array.from({ length: 15 }, (_, i) => i + 1), 'vị trí hàng đợi 1 đến 15');
+
+  const racing = manager.racers.filter((r) => !r.isBot);
+  assert.equal(racing.length, 30);
+  assert.equal(manager.racers.length, 30);
+  assert.equal(manager.racers.filter((r) => r.isBot).length, 0, 'đủ 30 người thật thì không còn bot');
+  assert.deepEqual(racing.map((r) => r.userId).sort(), Array.from({ length: 30 }, (_, i) => `u${i}`).sort());
+  assert.deepEqual(lobby.queue.map((p) => p.userId), Array.from({ length: 15 }, (_, i) => `u${i + 30}`), 'đúng thứ tự vào');
+});
+
+test('Task 8: hàng đợi chỉ lên đường ở lượt mới, theo đúng thứ tự', () => {
+  const { lobby, manager } = setup();
+  manager.begin();
+  joinViaBus(manager, 45);
+  runUntil(manager, () => manager.round === 2);
+  assert.equal(lobby.queue.length, 15, 'đoàn đua còn đủ 30 người cũ nên hàng đợi chưa được lên');
+
+  // 3 người rời đi: lượt tới 3 người đầu hàng đợi lên đường
+  ['u2', 'u9', 'u11'].forEach((id) => lobby.leave(id));
+  assert.equal(manager.racers.length, 30, 'lượt đang chạy không bị ảnh hưởng');
+  runUntil(manager, () => manager.round === 3);
+  const ids = manager.racers.map((r) => r.userId);
+  assert.deepEqual(['u30', 'u31', 'u32'].filter((id) => ids.includes(id)), ['u30', 'u31', 'u32']);
+  assert.ok(!ids.includes('u33'));
+  assert.deepEqual(lobby.queue.map((p) => p.userId)[0], 'u33');
+});
+
+test('Task 8: join hai lần thì báo đã tham gia, không thêm người, kể cả người đang xếp hàng', () => {
+  const { lobby, manager } = setup();
+  manager.begin();
+  joinViaBus(manager, 31);
+  const again = joinViaBus(manager, 1, { start: 0 })[0];
+  assert.equal(again.status, 'duplicate');
+  const queuedAgain = joinViaBus(manager, 1, { start: 30 })[0];
+  assert.equal(queuedAgain.status, 'duplicate');
+  assert.equal(lobby.queue.length, 1);
+  assert.equal(manager.racers.filter((r) => !r.isBot).length, 30);
+});
+
+test('Task 8: chính sách vào giữa lượt: giữ suất, vào đoàn đua từ lượt sau', () => {
+  const { lobby, manager } = setup();
+  manager.begin();
+  runUntil(manager, () => manager.state === 'race');
+  const before = manager.racers.map((r) => r.userId);
+  const [res] = joinViaBus(manager, 1);
+  assert.equal(res.status, 'racing');
+  assert.equal(res.late, true);
+  assert.deepEqual(manager.racers.map((r) => r.userId), before, 'đoàn đua đang chạy không đổi');
+  assert.equal(joinMessage(res, 'A').text, 'A vào đua ở lượt sau');
+
+  runUntil(manager, () => manager.round === 2);
+  assert.ok(manager.racers.some((r) => r.userId === 'u0'), 'lượt sau có mặt');
+  assert.equal(lobby.queue.length, 0);
+});
+
+test('Task 8: join trước lúc đua thì thế chỗ bot ngay trên vạch xuất phát', () => {
+  const { manager, events } = setup();
+  manager.begin();
+  const bot = manager.racers.filter((r) => r.isBot).at(-1);
+  const [res] = joinViaBus(manager, 1);
+  assert.equal(res.late, false);
+  const added = events.find((e) => e.type === 'racer');
+  assert.equal(added.removed, bot);
+  assert.equal(added.added.userId, 'u0');
+  assert.equal(added.added.dist, bot.dist);
+  assert.equal(manager.racers.length, 30);
+  assert.ok(!manager.racers.includes(bot));
+});
+
+test('joinMessage: đúng ba thông báo và cắt tên quá dài', () => {
+  assert.equal(joinMessage({ status: 'racing', late: false }, 'Lan').text, 'Lan vào đua');
+  assert.equal(joinMessage({ status: 'queued' }, 'Lan').text, 'Lan vào hàng đợi');
+  assert.equal(joinMessage({ status: 'duplicate' }, 'Lan').text, 'Lan đã tham gia rồi');
+  assert.equal(shortName('Nguyễn Thị Hồng Nhung Xinh Đẹp Quá Trời'), 'Nguyễn Thị Hồng N…');
+  assert.equal(shortName('Ngắn'), 'Ngắn');
 });

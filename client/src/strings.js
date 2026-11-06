@@ -3,6 +3,12 @@ export const STR = {
   title: 'Đại Chiến Vượt Chướng Ngại',
   finish: 'ĐÍCH',
 
+  // Thông báo tham gia
+  joinRacing: (name) => `${name} vào đua`,
+  joinRacingNext: (name) => `${name} vào đua ở lượt sau`,
+  joinQueued: (name) => `${name} vào hàng đợi`,
+  joinDuplicate: (name) => `${name} đã tham gia rồi`,
+
   // Vòng lặp lượt đua
   round: (n) => `LƯỢT ${n}`,
   getReady: 'Chuẩn bị...',
