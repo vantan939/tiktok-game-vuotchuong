@@ -4,13 +4,20 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Đại Chiến Vượt Chướng Ngại</title>
+    <!-- Font Baloo 2 (Google Fonts, giấy phép OFL): dày, bo tròn, có đủ dấu tiếng Việt -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&display=swap" rel="stylesheet" />
     <style>
       html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
       #game { width: 100vw; height: 100vh; }
+      /* Màn chờ trong lúc nạp font và atlas */
+      #boot { position: fixed; inset: 0; display: grid; place-items: center; background: linear-gradient(#1d6bff, #6cb8ff); color: #fff; font: 800 44px/1.2 'Baloo 2', 'Segoe UI', sans-serif; text-shadow: 0 4px 0 #0f2a8a; z-index: 20; }
     </style>
   </head>
   <body>
     <div id="game"></div>
+    <div id="boot">Đang tải...</div>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

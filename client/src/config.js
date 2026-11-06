@@ -49,7 +49,7 @@ export const CONFIG = {
   // Camera cận (lệnh s)
   maxCloseCams: 4,
   closeCamSeconds: 30,      // tự tắt sau bấy lâu để không chiếm chỗ; 0 = không tự tắt
-  closeCamWindow: { x: 781, y: 975, w: 289, h: 172, gap: 12 }, // cửa sổ đầu tiên (px khung 1080x1920), các cửa sổ sau xếp dọc xuống
+  closeCamWindow: { x: 754, y: 975, w: 316, h: 172, gap: 12 }, // cửa sổ đầu tiên (px khung 1080x1920), các cửa sổ sau xếp dọc xuống
   closeCamFocal: 55,        // nhỏ = zoom gần
   closeCamBackScale: 0.8,   // tỉ lệ phối cảnh của nhân vật được theo dõi
   closeCamHorizon: 0.3,     // chân trời ở bấy nhiêu phần chiều cao cửa sổ

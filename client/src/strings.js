@@ -1,7 +1,26 @@
 // Mọi chữ hiển thị cho người xem (tiếng Việt)
 export const STR = {
   title: 'Đại Chiến Vượt Chướng Ngại',
-  finish: 'ĐÍCH',
+
+  // HUD
+  hud: {
+    titleLine1: 'ĐẠI CHIẾN',
+    titleLine2: 'VƯỢT CHƯỚNG NGẠI',
+    racing: 'ĐANG ĐUA',
+    time: 'THỜI GIAN',
+    camTitle: 'Camera cận',
+    camHint: '(bình luận S)',
+    heartLine1: 'Thả tim =',
+    heartLine2: 'Tăng tốc',
+    giftLine1: 'Tặng quà =',
+    giftLine2: 'Tăng tốc',
+    giftLine3: 'cao độ',
+    top10: 'TOP 10',
+    queue: 'HÀNG ĐỢI',
+    queueCount: (n) => `(${n} người)`,
+    ruleRound: (minutes) => `Mỗi lượt: ${minutes} phút`,
+    ruleMax: (max) => `Tối đa: ${max} người`,
+  },
 
   // Thông báo tham gia
   joinRacing: (name) => `${name} vào đua`,

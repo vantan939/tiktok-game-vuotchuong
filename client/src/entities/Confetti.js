@@ -1,4 +1,5 @@
 import { CONFIG } from '../config.js';
+import { ATLAS } from './art.js';
 
 const POOL_SIZE = 220;
 const COLORS = [0xffc21a, 0xff4fa8, 0x35e0ff, 0x7be08f, 0xffffff, 0xb18aff, 0xff8a1f];
@@ -7,15 +8,8 @@ const GRAVITY = 900;
 // Pháo hoa giấy: pool sprite cố định, tự cập nhật bằng tay (không tạo tween hay đối tượng mới giữa trận).
 export class Confetti {
   constructor(scene, depth = 1100) {
-    if (!scene.textures.exists('confetti')) {
-      const g = scene.make.graphics({ add: false });
-      g.fillStyle(0xffffff, 1);
-      g.fillRect(0, 0, 18, 30);
-      g.generateTexture('confetti', 18, 30);
-      g.destroy();
-    }
     this.items = Array.from({ length: POOL_SIZE }, () => ({
-      img: scene.add.image(0, 0, 'confetti').setDepth(depth).setVisible(false),
+      img: scene.add.image(0, 0, ATLAS, 'confetti').setDepth(depth).setVisible(false),
       active: false, vx: 0, vy: 0, vr: 0, age: 0, seed: 0,
     }));
     this.next = 0;

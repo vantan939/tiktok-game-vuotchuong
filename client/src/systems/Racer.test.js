@@ -37,7 +37,7 @@ test('applyWin: +0,02 mỗi lần thắng, tối đa 0,9', () => {
 
 test('createRacer: 30 người xếp lên 3 làn, 10 hàng; skin ổn định theo userId', () => {
   const racers = Array.from({ length: 30 }, (_, i) => createRacer(user(i), { index: i, skinCount: 8, rng: seeded(i + 1) }));
-  for (let lane = 0; lane < 3; lane++) assert.equal(racers.filter((r) => r.lane === lane).length, 10);
+  for (let lane = 0; lane < 3; lane++) assert.equal(racers.filter((r) => r.targetLane === lane).length, 10);
   assert.equal(racers[0].dist, 0);
   assert.equal(racers[29].dist, -9 * CONFIG.startRowGap);
   assert.equal(hashString('abc'), hashString('abc'));

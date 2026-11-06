@@ -10,8 +10,8 @@ const COLORS = {
   groundBase: 0x8a78f5,
 };
 
-export function quad(g, color, x1, y1, x2, y2, x3, y3, x4, y4) {
-  g.fillStyle(color, 1);
+export function quad(g, color, x1, y1, x2, y2, x3, y3, x4, y4, alpha = 1) {
+  g.fillStyle(color, alpha);
   g.beginPath();
   g.moveTo(x1, y1);
   g.lineTo(x2, y2);
@@ -70,6 +70,12 @@ export function drawRoad(g, cam, vp = MAIN_VIEWPORT, { maxSegments = CONFIG.maxS
       g.fillRect(0, yFar, W, yN - yFar);
       // Mặt đường
       quad(g, COLORS.road[p], cx - rNear, yN, cx - rFar, yFar, cx + rFar, yFar, cx + rNear, yN);
+      // Độ bóng nhẹ: dải sáng ở giữa đường, sáng dần về phía gần
+      const sheenW = 0.62;
+      quad(g, 0xffffff, cx - rNear * sheenW, yN, cx - rFar * sheenW, yFar, cx + rFar * sheenW, yFar, cx + rNear * sheenW, yN, 0.07 + 0.05 * sNear);
+      // Vệt sáng sát mép đường (phản chiếu viền neon)
+      quad(g, 0xbfe6ff, cx - rNear, yN, cx - rFar, yFar, cx - rFar + (rFar * 0.03), yFar, cx - rNear + (rNear * 0.03), yN, 0.22);
+      quad(g, 0xbfe6ff, cx + rNear - (rNear * 0.03), yN, cx + rFar - (rFar * 0.03), yFar, cx + rFar, yFar, cx + rNear, yN, 0.22);
       // Dải viền hồng/vàng
       const cNear = (roadHalfWidth + curbWidth) * sNear;
       const cFar = (roadHalfWidth + curbWidth) * sFar;
@@ -81,6 +87,9 @@ export function drawRoad(g, cam, vp = MAIN_VIEWPORT, { maxSegments = CONFIG.maxS
           const lx = (k - CONFIG.lanes / 2) * laneW;
           const tN = 7 * unit * sNear;
           const tF = 7 * unit * sFar;
+          const hN = 16 * unit * sNear; // quầng sáng mềm quanh vạch
+          const hF = 16 * unit * sFar;
+          quad(g, 0xcfe4ff, cx + lx * sNear - hN, yN, cx + lx * sFar - hF, yFar, cx + lx * sFar + hF, yFar, cx + lx * sNear + hN, yN, 0.16);
           quad(g, COLORS.laneLine, cx + lx * sNear - tN, yN, cx + lx * sFar - tF, yFar, cx + lx * sFar + tF, yFar, cx + lx * sNear + tN, yN);
         }
       }

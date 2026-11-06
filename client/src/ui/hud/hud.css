@@ -1,0 +1,162 @@
+/* HUD HTML/CSS đặt chồng lên canvas. Mọi kích thước tính theo khung 1080x1920 (hud.js co giãn cả khối cho khớp canvas).
+   Màu, bo góc, viền, bóng lấy từ token trong theme.js (biến --c-*, --r-*, --b-*). */
+
+#hud-root { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 5; }
+#hud {
+  position: absolute; left: 50%; top: 50%; width: 1080px; height: 1920px;
+  transform-origin: 50% 50%;
+  font-family: var(--font); font-weight: var(--font-bold); color: #fff;
+  -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+}
+#hud *, #hud *::before, #hud *::after { box-sizing: border-box; }
+#hud svg { display: block; }
+
+#hud .abs { position: absolute; }
+.txt { text-shadow: var(--text-shadow); }
+.num { font-weight: var(--font-heavy); font-variant-numeric: tabular-nums; }
+
+/* ---------- Chữ tiêu đề: gradient vàng cam, viền dày, đổ bóng, vầng sáng ---------- */
+.title-text { position: relative; display: block; font-weight: var(--font-heavy); line-height: 1; text-align: center; white-space: nowrap; }
+.title-text::before {
+  content: attr(data-text); position: absolute; inset: 0; z-index: 0;
+  -webkit-text-stroke: var(--stroke-w, 16px) var(--stroke, #4a1200); color: var(--stroke, #4a1200);
+  text-shadow: 0 var(--drop, 8px) 0 var(--stroke-deep, #2a0a00), 0 0 28px var(--halo, rgba(255,150,30,.8));
+  stroke-linejoin: round;
+}
+.title-text > span {
+  position: relative; z-index: 1;
+  background: linear-gradient(180deg, var(--g1, #fff7b0) 0%, var(--g2, #ffd23a) 40%, var(--g3, #ff9a1f) 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.title-text--blue { --g1: #ffffff; --g2: #e2f1ff; --g3: #9cc8ff; --stroke: #1f4fd8; --stroke-deep: #0f2a8a; --halo: rgba(90,170,255,.85); }
+
+/* ---------- Banner tiêu đề ---------- */
+.banner { left: 246px; top: 46px; width: 608px; height: 236px; }
+.banner__crown { left: 246px; top: -14px; width: 118px; height: 86px; filter: drop-shadow(0 6px 10px rgba(60,20,0,.55)); animation: bob 2.6s ease-in-out infinite; }
+.banner__crown svg, .banner__flag svg { width: 100%; height: 100%; }
+.banner__plate { left: 0; top: 62px; width: 608px; height: 168px; border-radius: 46px; transform: skewX(-6deg); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; }
+.banner__plate .title-text { transform: skewX(6deg); } /* chữ nghiêng nhẹ như mockup nhưng không bị méo hai lần */
+.banner__l1 { font-size: 58px; --stroke-w: 14px; margin-top: -4px; }
+.banner__l2 { font-size: 70px; --stroke-w: 16px; margin-top: 2px; letter-spacing: -1px; }
+.banner__flag { width: 70px; height: 122px; top: 10px; }
+.banner__flag--l { left: -62px; transform: rotate(-14deg) scaleX(-1); }
+.banner__flag--r { right: -62px; transform: rotate(14deg); }
+.banner__shine { left: 24px; top: 70px; width: 560px; height: 30px; border-radius: 30px; background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent); filter: blur(6px); transform: skewX(-6deg); animation: sheen 4.5s ease-in-out infinite; }
+
+/* ---------- Khung trạng thái trên cùng ---------- */
+.stat { display: flex; align-items: center; gap: 14px; padding: 0 18px 0 16px; height: 92px; }
+.stat__icon { width: 60px; height: 60px; flex: none; filter: drop-shadow(0 3px 4px rgba(0,0,40,.5)); }
+.stat__icon svg { width: 100%; height: 100%; }
+.stat__label { font-size: var(--min-text); line-height: 1; color: #d5eaff; letter-spacing: .5px; text-transform: uppercase; text-shadow: 0 2px 0 rgba(5,10,70,.8); }
+.stat__value { font-size: 52px; line-height: 1; margin-top: 2px; white-space: nowrap; }
+.stat__value small { font-size: 30px; color: var(--c-yellow); margin-left: 4px; }
+.stat--time.is-low .stat__value b { color: #ff6b6b; animation: pulse .6s ease-in-out infinite; }
+
+/* ---------- Ba thẻ hướng dẫn bên trái ---------- */
+.card { display: flex; align-items: center; gap: 10px; padding: 0 12px; }
+.card__icon { width: 52px; height: 52px; flex: none; filter: drop-shadow(0 3px 4px rgba(0,0,40,.5)); }
+.card__icon svg { width: 100%; height: 100%; }
+.card__text { font-size: var(--min-text); line-height: 1.02; white-space: nowrap; text-shadow: 0 2px 0 rgba(10,4,70,.85); }
+.card__text em { font-style: normal; color: var(--c-yellow); }
+.card--cam { flex-direction: column; align-items: stretch; justify-content: center; gap: 6px; padding: 8px 12px; }
+.card--cam .row { display: flex; align-items: center; gap: 10px; }
+.toggle {
+  height: 56px; border-radius: 28px; display: flex; align-items: center; justify-content: space-between; padding: 0 8px 0 20px;
+  font-size: 32px; font-weight: var(--font-heavy);
+  background: linear-gradient(180deg, #4ce36e, #12a83a); box-shadow: inset 0 3px 6px rgba(255,255,255,.35), inset 0 -6px 10px rgba(0,60,20,.4), 0 0 18px rgba(60,230,110,.55);
+  border: 3px solid #b5ffc8; transition: filter .3s;
+}
+.toggle::after { content: ''; width: 40px; height: 40px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff, #dfe7ff 70%); box-shadow: 0 3px 6px rgba(0,30,10,.5); }
+.toggle.is-off { background: linear-gradient(180deg, #7b78a8, #4a4678); border-color: #b9b6e8; box-shadow: inset 0 3px 6px rgba(255,255,255,.2), inset 0 -6px 10px rgba(10,6,50,.4); }
+
+/* ---------- Bảng TOP 10 ---------- */
+.top10 { padding: 0 12px; }
+.top10__head { display: flex; align-items: center; justify-content: center; gap: 10px; height: 62px; padding-top: 6px; }
+.top10__head .crown { width: 54px; height: 40px; }
+.top10__head .crown svg { width: 100%; height: 100%; }
+.top10__title { font-size: 40px; line-height: 1; font-weight: var(--font-heavy); text-shadow: var(--text-shadow); }
+.top10__list { position: relative; height: 460px; margin-top: 2px; }
+.t10row { position: absolute; left: 0; right: 0; height: 46px; display: flex; align-items: center; gap: 7px; padding: 0 8px 0 4px; border-radius: 23px; transition: transform .35s cubic-bezier(.3,1.2,.4,1); font-size: var(--min-text); }
+.t10row.is-first { background: linear-gradient(180deg, rgba(255,214,60,.28), rgba(255,160,20,.14)); box-shadow: inset 0 0 0 3px #ffc21a, 0 0 14px rgba(255,194,26,.6); }
+.row__rank { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-size: 26px; font-weight: var(--font-heavy); line-height: 1; flex: none; }
+.row__rank.r1 { background: radial-gradient(circle at 35% 28%, #fff1a0, #ffb81f 60%, #d98206); box-shadow: 0 2px 5px rgba(60,20,0,.5); }
+.row__rank.r2 { background: radial-gradient(circle at 35% 28%, #b8e6ff, #2f8cff 62%, #1a55c8); box-shadow: 0 2px 5px rgba(0,20,80,.5); }
+.row__rank.r3 { background: radial-gradient(circle at 35% 28%, #ffd0a0, #ff8a3a 62%, #d0561a); box-shadow: 0 2px 5px rgba(60,20,0,.5); }
+.row__name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 2px 0 rgba(5,10,70,.8); }
+.row__pct { font-weight: var(--font-heavy); font-variant-numeric: tabular-nums; text-shadow: 0 2px 0 rgba(5,10,70,.8); }
+.t10row.is-first .row__pct { color: var(--c-yellowLight); }
+
+/* ---------- Avatar tròn ---------- */
+.avatar { position: relative; flex: none; border-radius: 50%; overflow: hidden; border: 3px solid #fff; box-shadow: 0 3px 6px rgba(5,5,50,.55), inset 0 0 0 1px rgba(0,0,0,.15); background: var(--av, #ff8a1f); }
+.avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.avatar svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* ---------- Thanh hàng đợi và thẻ thể lệ ---------- */
+.queue { display: flex; align-items: center; padding: 0 16px 0 14px; gap: 12px; }
+.queue__icon { width: 72px; height: 54px; flex: none; }
+.queue__icon svg { width: 100%; height: 100%; }
+.queue__text { font-size: var(--min-text); line-height: 1.05; flex: none; }
+.queue__text em { font-style: normal; color: var(--c-yellow); display: block; }
+.queue__sep { width: 3px; height: 70px; border-radius: 2px; background: linear-gradient(180deg, transparent, rgba(160,190,255,.7), transparent); flex: none; }
+.queue__list { display: flex; gap: 8px; flex: 1; min-width: 0; }
+.queue__item { display: flex; flex-direction: column; align-items: center; gap: 0; width: 62px; font-size: var(--min-text); line-height: 1.05; }
+.queue__more { font-size: 44px; font-weight: var(--font-heavy); opacity: .85; flex: none; }
+.rule { display: flex; align-items: center; gap: 12px; padding: 0 14px; color: #3b1c00; }
+.rule__icon { width: 54px; height: 72px; flex: none; }
+.rule__icon svg { width: 100%; height: 100%; }
+.rule__text { font-size: var(--min-text); line-height: 1.12; white-space: nowrap; text-shadow: 0 1px 0 rgba(255,240,170,.8); }
+
+/* ---------- Nhãn tên trên đầu nhân vật ---------- */
+#hud .nametag { position: absolute; left: 0; top: 0; padding: 0 22px; height: 52px; display: flex; align-items: center; font-size: 36px; line-height: 1; white-space: nowrap; border-radius: 26px; will-change: transform; border-width: 4px; }
+.nametag.is-hidden { display: none; }
+
+/* ---------- Thông báo ngắn ---------- */
+.toasts { position: absolute; left: 22px; bottom: 236px; display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
+.toast { padding: 0 26px 0 18px; height: 58px; display: flex; align-items: center; gap: 12px; font-size: 34px; line-height: 1; white-space: nowrap; animation: toast-in .28s cubic-bezier(.2,1.4,.4,1) both; border-radius: 29px; border-width: 4px; }
+.toast.is-out { animation: toast-out .35s ease-in forwards; }
+.toast__dot { width: 20px; height: 20px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff, var(--dot, #35c759) 60%); box-shadow: 0 0 10px var(--dot, #35c759); flex: none; }
+.toast--ok { --dot: #35e06a; } .toast--queue { --dot: #ffc21a; } .toast--warn { --dot: #ff6b6b; }
+
+/* ---------- Thông báo quà lớn giữa màn hình ---------- */
+.giftbanner { left: 50%; top: 700px; transform: translateX(-50%); width: 940px; padding: 26px 40px 30px; text-align: center; animation: pop-in .5s cubic-bezier(.2,1.5,.4,1) both; border-radius: 64px; }
+.giftbanner.is-out { animation: fade-out .4s ease-in forwards; }
+.giftbanner .title-text { font-size: 66px; white-space: normal; line-height: 1.06; --stroke-w: 14px; }
+
+/* ---------- Đếm ngược, kết quả ---------- */
+.round { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; }
+.round__big { margin-top: 720px; font-size: 400px; }
+.round__big.is-word { font-size: 210px; margin-top: 760px; }
+.round__big.is-go { font-size: 190px; margin-top: 780px; }
+.round__sub { margin-top: 24px; font-size: 76px; font-weight: var(--font-heavy); color: #d5eaff; text-shadow: var(--text-shadow); }
+.pop { animation: pop-in .55s cubic-bezier(.2,1.5,.4,1) both; }
+.countnum { animation: count-pop 1s ease-out both; }
+.go { animation: go-out 1s ease-out both; }
+.result { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; animation: fade-in .4s ease-out both; }
+.result__title { margin-top: 430px; font-size: 92px; --stroke-w: 16px; }
+.result__crown { width: 230px; height: 169px; margin-top: 20px; margin-bottom: -48px; z-index: 2; filter: drop-shadow(0 10px 14px rgba(60,20,0,.6)); animation: bob 2.2s ease-in-out infinite; }
+.result__crown svg { width: 100%; height: 100%; }
+.result__avatar { width: 420px; height: 420px; border-width: 14px; border-color: #ffd23a; box-shadow: 0 0 0 8px rgba(255,255,255,.35), 0 0 60px rgba(255,194,26,.85), 0 20px 40px rgba(10,5,60,.6); animation: pop-in .7s cubic-bezier(.2,1.5,.4,1) both; }
+.result__name { margin-top: 26px; font-size: 112px; line-height: 1; font-weight: var(--font-heavy); --stroke-w: 14px; --g1: #ffffff; --g2: #fff7d6; --g3: #ffe38a; }
+.result__detail { margin-top: 12px; font-size: 60px; color: #d5eaff; text-shadow: var(--text-shadow); font-weight: var(--font-heavy); }
+.result__footer { margin-top: 56px; padding: 12px 44px; font-size: 56px; line-height: 1.1; font-weight: var(--font-heavy); border-radius: 50px; }
+
+/* ---------- Khung camera cận (viền phủ lên canvas, nội dung vẽ bằng Phaser) ---------- */
+.camframe { position: absolute; border-radius: 26px; }
+.camframe__name { position: absolute; left: 18px; top: 4px; right: 120px; font-size: var(--min-text); line-height: 38px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 2px 0 rgba(5,10,70,.9); }
+.camframe__time { position: absolute; right: 16px; top: 4px; font-size: var(--min-text); line-height: 38px; color: var(--c-yellow); font-weight: var(--font-heavy); text-shadow: 0 2px 0 rgba(5,10,70,.9); }
+
+/* Màn kết quả: HUD phía sau mờ đi để nhường chỗ cho người thắng */
+#hud > .frame, #hud > .banner { transition: opacity .35s; }
+#hud.is-result > .frame, #hud.is-result > .banner, #hud.is-result > .nametag { opacity: .16; }
+
+/* ---------- Hoạt ảnh ---------- */
+@keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes sheen { 0%,60% { opacity: 0; transform: translateX(-320px) skewX(-6deg); } 80% { opacity: 1; } 100% { opacity: 0; transform: translateX(320px) skewX(-6deg); } }
+@keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+@keyframes toast-in { from { opacity: 0; transform: translateY(24px) scale(.9); } to { opacity: 1; transform: none; } }
+@keyframes toast-out { to { opacity: 0; transform: translateX(-30px); } }
+@keyframes pop-in { from { opacity: 0; transform: translateX(var(--tx, 0)) scale(.4); } to { opacity: 1; transform: translateX(var(--tx, 0)) scale(1); } }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fade-out { to { opacity: 0; } }
+@keyframes count-pop { 0% { opacity: 0; transform: scale(1.7); } 18% { opacity: 1; transform: scale(1); } 100% { opacity: .85; transform: scale(.92); } }
+@keyframes go-out { 0% { opacity: 0; transform: scale(.5); } 20% { opacity: 1; transform: scale(1.1); } 100% { opacity: 0; transform: scale(1.5); } }

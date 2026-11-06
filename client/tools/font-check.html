@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Kiểm tra font tiếng Việt</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&display=swap" rel="stylesheet" />
+    <style>
+      body { margin: 20px; background: #1d3fa8; color: #fff; font-family: "Baloo 2", sans-serif; }
+      p { margin: 6px 0; line-height: 1.15; }
+      .w7 { font-weight: 700; } .w8 { font-weight: 800; }
+      small { font: 14px system-ui; opacity: 0.7; display: block; }
+    </style>
+  </head>
+  <body>
+    <small id="status">Đang tải font...</small>
+    <script>
+      // Đủ 134 tổ hợp chữ có dấu tiếng Việt, chữ hoa và chữ thường
+      const lower = 'aàáảãạăằắẳẵặâầấẩẫậeèéẻẽẹêềếểễệiìíỉĩịoòóỏõọôồốổỗộơờớởỡợuùúủũụưừứửữựyỳýỷỹỵđ';
+      const upper = lower.toUpperCase();
+      const lines = [
+        ['w8', 120, 'ĐẠI CHIẾN VƯỢT CHƯỚNG NGẠI'],
+        ['w8', 64, upper],
+        ['w7', 48, lower],
+        ['w7', 36, 'Nguyễn Thị Hồng Nhung — Trần Quốc Thịnh — Lê Thuỳ Dương'],
+        ['w7', 28, 'Khóa nhân vật (bình luận S) · Thả tim = Tăng tốc · Tặng quà = Tăng tốc cao độ'],
+        ['w7', 28, 'Mỗi lượt: 3 phút · Tối đa: 30 người · HÀNG ĐỢI (12 người) · THỜI GIAN 02:36 / 03:00'],
+      ];
+      const status = document.getElementById('status');
+      document.fonts.load('800 40px "Baloo 2"', upper).then(() => document.fonts.load('700 40px "Baloo 2"', lower)).then(() => {
+        for (const [cls, size, text] of lines) {
+          const p = document.createElement('p');
+          p.className = cls;
+          p.style.fontSize = `${size}px`;
+          p.textContent = text;
+          document.body.append(p);
+        }
+        // Kiểm tra từng ký tự có trong font thật (không rơi về font dự phòng) bằng cách đo độ rộng
+        const probe = (ch, weight) => {
+          const c = document.createElement('canvas').getContext('2d');
+          c.font = `${weight} 100px "Baloo 2", monospace`;
+          const a = c.measureText(ch).width;
+          c.font = `${weight} 100px monospace`;
+          return a !== c.measureText(ch).width;
+        };
+        const missing = [...new Set(lower + upper)].filter((ch) => !probe(ch, 700));
+        status.textContent = `Baloo 2: ${document.fonts.check('800 40px "Baloo 2"') ? 'đã tải' : 'KHÔNG tải được'}; ký tự có dấu không có trong font: ${missing.length ? missing.join(' ') : 'không có'}`;
+      });
+    </script>
+  </body>
+</html>

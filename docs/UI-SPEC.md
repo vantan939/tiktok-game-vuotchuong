@@ -173,3 +173,14 @@ Cột thẻ dọc bên trái, mép trái x 1.3% (≈ 14 px), rộng ~21.5% (≈ 
 ## 13. Vùng an toàn cho TikTok Live Studio
 
 - Giao diện TikTok che một phần ở mép trên (~8%) và mép dưới (~12%) khi phát dọc. Banner nằm từ 2.4%, nên chấp nhận bị che nhẹ phần cờ; thanh HÀNG ĐỢI và thẻ thể lệ (89.8–95.9%) nằm trong vùng có thể bị chat đè lên, nếu cần có thể đẩy lên ~4% khi chỉnh theo config.
+
+## 14. Ghi chú triển khai (Task 11A)
+
+HUD dựng bằng HTML/CSS đặt chồng lên canvas (chữ sắc nét, hiệu ứng CSS dễ làm, dùng chung một component khung), đã chỉnh so với các số ở trên để chữ phụ đạt tối thiểu 28px trên khung 1080:
+
+- Khung THỜI GIAN rộng 364 (x 652 đến 1016) để vừa "02:36 / 03:00" không xuống dòng.
+- Ba thẻ bên trái rộng 252 (x 14 đến 266).
+- TOP 10 rộng 316 (x 754 đến 1070). Các cửa sổ camera cận cùng cột: x 754, rộng 316, cao 172.
+- Hàng đợi x 25 đến 685, thẻ thể lệ x 700 đến 1056.
+- Thẻ "Khóa nhân vật" đổi thành "Camera cận (bình luận S)" kèm nút hiển thị số camera, ví dụ `2/4` (theo CONTEXT.md).
+- Thẻ quà ghi "Tặng quà = Tăng tốc cao độ" (bỏ dấu "!!" cho đỡ giục tặng quà).

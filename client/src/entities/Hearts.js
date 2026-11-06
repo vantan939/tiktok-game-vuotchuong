@@ -1,26 +1,13 @@
+import { ART, ATLAS } from './art.js';
+
 const POOL_SIZE = 48;
 const LIFE_SECONDS = 1.1;
 
 // Trái tim nhỏ bay lên khi nhân vật nhận tim. Pool sprite cố định, tự cập nhật bằng tay.
 export class Hearts {
   constructor(scene, depth = 600) {
-    if (!scene.textures.exists('heart')) {
-      const tex = scene.textures.createCanvas('heart', 64, 58);
-      const ctx = tex.getContext();
-      ctx.fillStyle = '#ff3d8b';
-      ctx.beginPath();
-      ctx.moveTo(32, 56);
-      ctx.bezierCurveTo(-8, 28, 8, -2, 32, 16);
-      ctx.bezierCurveTo(56, -2, 72, 28, 32, 56);
-      ctx.fill();
-      ctx.fillStyle = 'rgba(255,255,255,0.55)';
-      ctx.beginPath();
-      ctx.ellipse(19, 15, 7, 4, -0.6, 0, Math.PI * 2);
-      ctx.fill();
-      tex.refresh();
-    }
     this.items = Array.from({ length: POOL_SIZE }, () => ({
-      img: scene.add.image(0, 0, 'heart').setDepth(depth).setVisible(false),
+      img: scene.add.image(0, 0, ATLAS, 'icon_heart').setDepth(depth).setVisible(false),
       active: false, age: 0, x0: 0, y0: 0, rise: 0, sway: 0, seed: 0, size: 1,
     }));
     this.next = 0;
@@ -37,7 +24,7 @@ export class Hearts {
       p.rise = (190 + Math.random() * 90) * Math.max(0.5, s);
       p.sway = 18 + Math.random() * 20;
       p.seed = Math.random() * 6;
-      p.size = Math.max(0.35, s * 1.1) * (0.8 + Math.random() * 0.4);
+      p.size = ART * Math.max(0.35, s * 1.1) * (0.8 + Math.random() * 0.4);
       p.img.setVisible(false);
     }
   }

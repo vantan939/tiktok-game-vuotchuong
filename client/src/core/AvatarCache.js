@@ -29,14 +29,3 @@ export class AvatarCache {
     });
   }
 }
-
-/** Cách tải ảnh trong trình duyệt. */
-export function loadImageFromUrl(url) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error(`không tải được ${url}`));
-    img.src = url;
-  });
-}

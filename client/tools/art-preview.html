@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Xem trước asset</title>
+    <style>
+      body { margin: 0; padding: 16px; background: linear-gradient(#2f6bff, #8fd0ff 60%, #8a78f5); font: 14px system-ui; color: #fff; }
+      .grid { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end; }
+      figure { margin: 0; text-align: center; }
+      figure img { display: block; background: rgba(255, 255, 255, 0.06); }
+      h3 { margin: 18px 0 8px; }
+    </style>
+  </head>
+  <body>
+    <div id="out"></div>
+    <script type="module">
+      import { allAssets } from '/art/index.js';
+      const params = new URLSearchParams(location.search);
+      const only = params.get('only'); // ví dụ ?only=char_ hoặc ?only=icon_
+      const scale = Number(params.get('scale')) || 1;
+      const out = document.getElementById('out');
+      const grid = document.createElement('div');
+      grid.className = 'grid';
+      out.append(grid);
+      for (const a of allAssets()) {
+        if (only && !a.name.startsWith(only)) continue;
+        const fig = document.createElement('figure');
+        const img = new Image();
+        img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(a.svg)}`;
+        img.width = a.w * scale;
+        img.height = a.h * scale;
+        const cap = document.createElement('figcaption');
+        cap.textContent = `${a.name} ${a.w}x${a.h}`;
+        fig.append(img, cap);
+        grid.append(fig);
+      }
+    </script>
+  </body>
+</html>

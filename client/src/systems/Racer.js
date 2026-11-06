@@ -48,7 +48,9 @@ export function resetRacer(racer, index, rng = Math.random, cfg = CONFIG) {
   const lane = index % cfg.lanes;
   const row = Math.floor(index / cfg.lanes);
   racer.dist = 0 - row * cfg.startRowGap; // hàng sau đứng lùi sau vạch xuất phát
-  racer.lane = lane; // vị trí làn hiện tại (số thực, trượt mượt)
+  // Vị trí làn hiện tại (số thực, trượt mượt). Hàng lẻ lệch nhẹ sang bên để đoàn xuất phát không xếp thẳng thành cột
+  const stagger = (row % 2 ? 1 : -1) * 0.27;
+  racer.lane = Math.min(cfg.lanes - 1.15, Math.max(0.15, lane + stagger));
   racer.targetLane = lane;
   racer.pending = null; // lệnh đổi làn đang chờ hết độ trễ phản ứng: { lane, delay }
   racer.wanderTimer = cfg.wanderInterval[0] + rng() * (cfg.wanderInterval[1] - cfg.wanderInterval[0]);

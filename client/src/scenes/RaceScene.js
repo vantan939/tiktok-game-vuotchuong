@@ -5,11 +5,13 @@ import { TrackView } from '../entities/TrackView.js';
 import { RacerView } from '../entities/RacerView.js';
 import { ObstacleViews } from '../entities/ObstacleViews.js';
 import { Effects } from '../entities/Effects.js';
-import { AvatarTextures } from '../entities/AvatarTextures.js';
+import { ResultFx } from '../entities/ResultFx.js';
 import { SKINS } from '../entities/skins.js';
 import { DebugOverlay } from '../ui/DebugOverlay.js';
-import { RoundOverlay } from '../ui/RoundOverlay.js';
-import { Toasts } from '../ui/Toasts.js';
+import { createHudRoot } from '../ui/hud/root.js';
+import { Hud } from '../ui/hud/Hud.js';
+import { GiftBanner, NameTags, RoundOverlay, Toasts } from '../ui/hud/Overlays.js';
+import { progressPercent } from '../systems/Ranking.js';
 import { joinMessage } from '../systems/JoinMessage.js';
 import { camMessage } from '../systems/CamMessage.js';
 import { CloseCams } from '../systems/CloseCams.js';
@@ -17,10 +19,8 @@ import { CloseCamPanel } from '../ui/CloseCamPanel.js';
 import { LikeBoost } from '../systems/LikeBoost.js';
 import { Hearts } from '../entities/Hearts.js';
 import { GiftBoost } from '../systems/GiftBoost.js';
-import { GiftBanner } from '../ui/GiftBanner.js';
 import { shortName } from '../systems/JoinMessage.js';
 import { CommandRouter } from '../systems/CommandRouter.js';
-import { AvatarCache, loadImageFromUrl } from '../core/AvatarCache.js';
 import { RaceCamera } from '../systems/RaceCamera.js';
 import { laneCenter, project } from '../systems/Projection.js';
 import { Lobby } from '../systems/Lobby.js';
@@ -56,13 +56,17 @@ export class RaceScene extends Phaser.Scene {
     this.hold = params.get('hold');
 
     RacerView.makeSharedTextures(this);
-    this.avatars = new AvatarTextures(this, new AvatarCache(loadImageFromUrl));
     this.effects = new Effects(this);
     this.hearts = new Hearts(this);
     this.obstacleViews = new ObstacleViews(this, (x, y, s) => this.onHammerImpact(x, y, s));
     this.debug = new DebugOverlay(this);
-    this.overlay = new RoundOverlay(this, this.avatars);
-    this.toasts = new Toasts(this);
+    this.resultFx = new ResultFx(this);
+
+    // HUD và các lớp chữ là HTML/CSS đặt chồng lên canvas
+    const hudRoot = createHudRoot();
+    this.hud = new Hud(hudRoot);
+    this.hudTimer = 0;
+    this.nameTags = new NameTags(hudRoot);
 
     // Người thật giả lập cho tới khi có join thật (Task 8); không có thì toàn bot
     const botFillTo = params.has('bots') ? Number(params.get('bots')) : CONFIG.botFillTo; // ?bots=N: ít bot hơn cho dễ nhìn
@@ -81,10 +85,12 @@ export class RaceScene extends Phaser.Scene {
       onEvent: (e) => this.onGameEvent(e),
     });
     this.closeCams = new CloseCams(this.manager);
-    this.closeCamPanel = new CloseCamPanel(this, this.avatars);
+    this.closeCamPanel = new CloseCamPanel(this, hudRoot);
+    this.toasts = new Toasts(hudRoot);
+    this.overlay = new RoundOverlay(hudRoot);
     this.likeBoost = new LikeBoost(this.manager);
     this.giftBoost = new GiftBoost(this.manager);
-    this.giftBanner = new GiftBanner(this);
+    this.giftBanner = new GiftBanner(hudRoot);
     this.manager.begin();
 
     // Lệnh từ bình luận: join (vào đua) và s (bật/tắt camera cận của chính mình)
@@ -118,7 +124,7 @@ export class RaceScene extends Phaser.Scene {
     this.views.forEach((v) => v.destroy());
     this.views.clear();
     this.racers = this.manager.racers;
-    this.racers.forEach((r) => this.views.set(r, new RacerView(this, r, this.avatars)));
+    this.racers.forEach((r) => this.views.set(r, new RacerView(this, r)));
     this.camera.snap(this.collectDists());
   }
 
@@ -128,7 +134,7 @@ export class RaceScene extends Phaser.Scene {
       this.views.get(removed)?.destroy();
       this.views.delete(removed);
     }
-    this.views.set(added, new RacerView(this, added, this.avatars));
+    this.views.set(added, new RacerView(this, added));
   }
 
   collectDists() {
@@ -146,7 +152,7 @@ export class RaceScene extends Phaser.Scene {
 
     this.camera.update(this.collectDists(), dt);
     const t0 = this.perf ? performance.now() : 0;
-    this.track.draw(this.camera);
+    this.track.draw(this.camera, this.manager.now);
     this.obstacleViews.update(this.manager.field, this.camera, this.manager.now);
     if (this.perf) this.logPerf(performance.now() - t0, delta);
 
@@ -154,9 +160,9 @@ export class RaceScene extends Phaser.Scene {
     this.closeCams.update(this.manager.now);
     this.closeCamPanel.update(this.closeCams, this.manager, dt);
     this.hearts.update(dt);
-    this.giftBanner.update(dt);
-    this.overlay.update(this.manager, dt);
-    this.toasts.update(dt);
+    this.resultFx.update(this.manager, dt);
+    this.overlay.update(this.manager);
+    this.updateHud(dt);
     this.debug.setStatus(this.statusLine());
   }
 
@@ -172,20 +178,54 @@ export class RaceScene extends Phaser.Scene {
     const racing = m.state === 'race' || m.state === 'result';
     this.debug.begin();
     this.racers.forEach((r, i) => {
+      this.views.get(r).visible = false;
       const view = this.views.get(r);
       project(laneCenter(r.lane), r.dist, this.camera, this.point);
       const { x, y, s } = this.point;
       // Ngoài tầm nhìn (quá xa hoặc đã ra sau camera) thì ẩn cho nhẹ
       const visible = s >= CONFIG.minDrawScale && s <= 1.4;
       view.setVisible(visible);
+      view.visible = visible;
       if (!visible) {
         this.debug.hide(r);
         return;
       }
       view.setCrown(racing && r.rank === 1);
-      view.setNameVisible(racing && r.rank <= topNamesShown);
       view.place(x, y, s, m.now * 14 + i * 1.3, 10 + r.dist / 1000, m.now);
+      view.s = s;
       this.debug.racer(r, this.camera, x, y, s);
+    });
+
+    // Nhãn tên chỉ cho top N khi đang đua
+    let tags = 0;
+    if (racing) {
+      for (const r of m.ranking.slice(0, topNamesShown)) {
+        const view = this.views.get(r);
+        if (view?.visible) this.nameTags.show(tags++, r.nickname, view.top.x, view.top.y, view.s);
+      }
+    }
+    this.nameTags.hideFrom(tags);
+  }
+
+  // Cập nhật HUD tám lần mỗi giây là đủ mượt, đỡ tốn DOM
+  updateHud(dt) {
+    this.hudTimer += dt;
+    if (this.hudTimer < 0.12) return;
+    this.hudTimer = 0;
+    const m = this.manager;
+    const toMmss = (sec) => `${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(Math.floor(sec % 60)).padStart(2, '0')}`;
+    const elapsed = m.state === 'race' ? m.raceTime : m.state === 'result' ? m.result?.raceSeconds ?? 0 : 0;
+    this.hud.update({
+      racing: m.racers.length,
+      max: CONFIG.maxPlayers,
+      time: toMmss(Math.min(elapsed, CONFIG.roundSeconds)),
+      total: toMmss(CONFIG.roundSeconds),
+      low: m.state === 'race' && CONFIG.roundSeconds - m.raceTime < 10,
+      cams: { used: this.closeCams.cams.length, max: CONFIG.maxCloseCams },
+      top: m.ranking.slice(0, 10).map((r) => ({ id: r.userId, name: r.nickname, avatarUrl: r.avatarUrl, percent: progressPercent(r) })),
+      queueTotal: this.lobby.queue.length,
+      queueFirst: this.lobby.queue.slice(0, CONFIG.queueShown).map((p) => ({ id: p.userId, avatarUrl: p.avatarUrl })),
+      queueBase: CONFIG.maxPlayers,
     });
   }
 
