@@ -4,6 +4,7 @@ import { CONFIG } from '../config.js';
 import { Lobby } from './Lobby.js';
 import { RaceManager } from './RaceManager.js';
 import { CloseCams } from './CloseCams.js';
+import { rankRacers } from './Ranking.js';
 import { buildHudModel, elapsedSeconds, formatClock, isTimeLow } from './HudModel.js';
 
 function seeded(seed = 1) {
@@ -105,6 +106,12 @@ test('các số liệu khác của HUD: camera cận, top 10, hàng đợi', () 
   const model = buildHudModel(manager, lobby, cams);
   assert.deepEqual(model.cams, { used: 1, max: 4 });
   assert.equal(model.top.length, 10);
+  // Đưa u1 lên đầu bảng để chắc chắn nằm trong top 10, rồi kiểm tra dấu hiệu camera cận
+  manager.racerOf('u1').dist = 9999;
+  rankRacers(manager.racers, manager.ranking);
+  const flagged = buildHudModel(manager, lobby, cams);
+  assert.equal(flagged.top[0].id, 'u1');
+  assert.ok(flagged.top.every((e) => e.cam === (e.id === 'u1')), 'chỉ người bật camera cận có dấu hiệu');
   assert.equal(model.queueTotal, 3);
   assert.deepEqual(model.queueFirst.map((q) => q.id), ['u30', 'u31', 'u32']);
   assert.equal(model.queueBase, 30);

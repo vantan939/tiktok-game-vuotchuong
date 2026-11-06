@@ -74,7 +74,12 @@
 .row__rank.r1 { background: radial-gradient(circle at 35% 28%, #fff1a0, #ffb81f 60%, #d98206); box-shadow: 0 2px 5px rgba(60,20,0,.5); }
 .row__rank.r2 { background: radial-gradient(circle at 35% 28%, #b8e6ff, #2f8cff 62%, #1a55c8); box-shadow: 0 2px 5px rgba(0,20,80,.5); }
 .row__rank.r3 { background: radial-gradient(circle at 35% 28%, #ffd0a0, #ff8a3a 62%, #d0561a); box-shadow: 0 2px 5px rgba(60,20,0,.5); }
-.row__name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 2px 0 rgba(5,10,70,.8); }
+.row__name { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; white-space: nowrap; text-shadow: 0 2px 0 rgba(5,10,70,.8); }
+.row__label { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.row__cam { width: 30px; height: 26px; flex: none; filter: drop-shadow(0 2px 2px rgba(0,0,40,.5)); }
+.row__cam svg { width: 100%; height: 100%; }
+.t10row { animation: row-in .35s ease-out both; }
+.t10row.is-leaving { animation: none; transform: translateY(520px) !important; opacity: 0; transition: transform .4s ease-in, opacity .35s ease-in; }
 .row__pct { font-weight: var(--font-heavy); font-variant-numeric: tabular-nums; text-shadow: 0 2px 0 rgba(5,10,70,.8); }
 .t10row.is-first .row__pct { color: var(--c-yellowLight); }
 
@@ -142,6 +147,7 @@
 #hud.is-result > .frame, #hud.is-result > .banner, #hud.is-result > .nametag { opacity: .16; }
 
 /* ---------- Hoạt ảnh ---------- */
+@keyframes row-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 @keyframes sheen { 0%,60% { opacity: 0; transform: translateX(-320px) skewX(-6deg); } 80% { opacity: 1; } 100% { opacity: 0; transform: translateX(320px) skewX(-6deg); } }
 @keyframes blink-red { 0% { opacity: 1; } 50% { opacity: .25; } }

@@ -28,7 +28,13 @@ export function buildHudModel(manager, lobby, closeCams, cfg = CONFIG) {
     total: formatClock(manager.cfg.roundSeconds),
     low: isTimeLow(manager),
     cams: { used: closeCams.cams.length, max: cfg.maxCloseCams },
-    top: manager.ranking.slice(0, 10).map((r) => ({ id: r.userId, name: r.nickname, avatarUrl: r.avatarUrl, percent: progressPercent(r, manager.cfg) })),
+    top: manager.ranking.slice(0, 10).map((r) => ({
+      id: r.userId,
+      name: r.nickname,
+      avatarUrl: r.avatarUrl,
+      percent: progressPercent(r, manager.cfg),
+      cam: closeCams.cams.some((c) => c.racer === r), // đang bật camera cận
+    })),
     queueTotal: lobby.queue.length,
     queueFirst: lobby.queue.slice(0, cfg.queueShown).map((p) => ({ id: p.userId, avatarUrl: p.avatarUrl })),
     queueBase: cfg.maxPlayers,

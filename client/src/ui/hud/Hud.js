@@ -134,11 +134,14 @@ export class Hud {
         row.badge.className = `row__rank ${i < 3 ? `r${i + 1}` : ''}`;
       }
       setText(row.pct, `${Math.floor(entry.percent)}%`);
+      row.cam.style.display = entry.cam ? '' : 'none';
     });
     for (const [id, row] of this.rows) {
       if (!seen.has(id)) {
-        row.node.remove();
+        // Rời bảng: trượt xuống và mờ dần rồi mới bỏ
         this.rows.delete(id);
+        row.node.classList.add('is-leaving');
+        setTimeout(() => row.node.remove(), 400);
       }
     }
   }
@@ -147,10 +150,15 @@ export class Hud {
     const node = el('div', 't10row');
     const badge = el('div', 'row__rank');
     const name = el('div', 'row__name');
-    name.textContent = entry.name;
+    const label = el('span', 'row__label');
+    label.textContent = entry.name;
+    name.append(label);
     const pct = el('div', 'row__pct');
+    const cam = el('span', 'row__cam', iconSvg('camera')); // dấu hiệu đang bật camera cận
+    cam.style.display = 'none';
+    name.append(cam);
     node.append(badge, createAvatar(entry.id, entry.avatarUrl, 40), name, pct);
-    return { node, badge, pct, rank: 0 };
+    return { node, badge, pct, cam, rank: 0 };
   }
 
   updateQueue(m) {
