@@ -24,9 +24,6 @@ const BODY_R = 140;
 export function makeSkinTexture(scene, skin) {
   if (scene.textures.exists(skin.key)) return;
   const g = scene.make.graphics({ add: false });
-  g.fillStyle(0x000000, 0.25);
-  g.fillEllipse(CX, TEX_H - 14, 230, 36); // bóng dưới chân
-
   const decorBehind = DECOR[skin.type]?.behind;
   decorBehind?.(g, skin);
 

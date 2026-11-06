@@ -75,10 +75,29 @@ export const CONFIG = {
   // Chướng ngại
   obstacleGapMin: 55,
   obstacleGapMax: 90,
+  obstacleFirstDist: 160,    // hàng chướng ngại đầu tiên
+  obstacleEndMargin: 200,    // chừa đoạn cuối trước đích không có chướng ngại
+  obstacleDoubleChance: 0.25, // xác suất một hàng có 2 làn bị chặn (luôn chừa ít nhất 1 làn trống)
+  hammerChance: 0.5,         // còn lại là quả cầu gai
+  hammerHalfLength: 5,       // nửa chiều dài vùng búa đập (đơn vị đường đua)
+  spikeHalfLength: 3.5,
+  spikeRollAmp: 5,           // cầu gai lăn qua lại quanh vị trí gốc ± đoạn này
+  spikeRollPeriod: 3.6,
   hammerCycleSeconds: 2,
-  hammerWarnSeconds: 0.8,
+  hammerImpactAt: 1.4,       // giây trong chu kỳ lúc búa chạm sàn
+  hammerImpactSeconds: 0.35, // búa nằm dưới sàn (gây choáng) trong khoảng này
+  hammerFallSeconds: 0.15,   // thời gian búa giáng xuống
+  hammerWarnMin: 0.5,        // vùng đỏ cảnh báo hiện trước khi đập, mỗi búa chọn một giá trị trong khoảng này
+  hammerWarnMax: 1.0,
+  runnerRadius: 1.5,         // bán kính nhân vật khi xét va chạm (đơn vị đường đua)
+  hitLaneWidth: 0.45,        // lệch làn nhỏ hơn mức này thì coi là cùng làn
   stunSeconds: 1,
   knockback: 25,
+  jumpSeconds: 0.8,
+  jumpHeight: 150,           // độ cao nhảy (px tại s = 1)
+  dodgeLaneSmooth: 8,        // trượt sang làn khác nhanh hơn khi đang né
+  obstacleMinScale: 0.07,    // chướng ngại xa hơn mức này thì không vẽ
+  obstaclePoolSize: 24,
 
   // Bình luận
   commandCooldownSeconds: 1,

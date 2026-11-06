@@ -54,5 +54,32 @@ export function resetRacer(racer, index, rng = Math.random, cfg = CONFIG) {
   racer.wanderTimer = cfg.wanderInterval[0] + rng() * (cfg.wanderInterval[1] - cfg.wanderInterval[0]);
   racer.finished = false;
   racer.finishTime = null;
+
+  // Trạng thái tạm thời (giây còn lại)
+  racer.stun = 0;
+  racer.shield = 0;
+  racer.boost = 0;
+  racer.boostMul = 1;
+  racer.jump = 0;
+  // Tự né
+  racer.plan = null; // kế hoạch né đang chờ: { kind: 'lane'|'jump'|'wait', o, delay, lane? }
+  racer.waitFor = null; // búa đang canh nhịp chờ qua
+  racer.waitCap = Infinity;
+  racer.evading = false;
+  racer.rolled = racer.rolled ?? new Set(); // id chướng ngại đã tung xác suất nhận diện
+  racer.rolled.clear();
+  // Thống kê một lượt
+  racer.hits = 0;
+  racer.encounters = 0;
   return racer;
+}
+
+/** Tăng tốc (tim, quà): nhân tốc độ trong một khoảng thời gian. Giữ mức mạnh hơn và thời gian dài hơn. */
+export function applyBoost(racer, multiplier, seconds) {
+  racer.boostMul = racer.boost > 0 ? Math.max(racer.boostMul, multiplier) : multiplier;
+  racer.boost = Math.max(racer.boost, seconds);
+}
+
+export function applyShield(racer, seconds) {
+  racer.shield = Math.max(racer.shield, seconds);
 }

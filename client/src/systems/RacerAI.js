@@ -1,21 +1,68 @@
 import { CONFIG } from '../config.js';
+import { applyHit, findHit } from './Collision.js';
+import { nominalSpeed, perceive, runPlan, waitControl } from './DodgeAI.js';
 
 const noObstacles = () => false;
 
 /**
- * Một bước chạy của nhân vật: tiến về trước và thỉnh thoảng tự đổi làn nhẹ.
- * ctx: { now, rng, cfg, isBlocked(lane, fromDist, toDist) }
- * isBlocked cho biết làn có chướng ngại trong đoạn đường đó không (Task 6 sẽ cấp hàm thật).
+ * Một bước của nhân vật: tiến về trước, tự né chướng ngại, va chạm, thỉnh thoảng tự đổi làn nhẹ.
+ * ctx: { now, rng, cfg, field?, onHit?(racer, obstacle) }
+ * field là ObstacleField (không có thì đường trống).
  */
 export function stepRacer(r, dt, ctx) {
   if (r.finished) return;
-  const cfg = ctx.cfg ?? CONFIG;
-  const rng = ctx.rng ?? Math.random;
-  const isBlocked = ctx.isBlocked ?? noObstacles;
+  // Scene và mô phỏng truyền đủ cfg, rng; chỉ tạo bản mới khi thiếu (tránh rác mỗi frame)
+  const c = ctx.cfg && ctx.rng ? ctx : { ...ctx, cfg: ctx.cfg ?? CONFIG, rng: ctx.rng ?? Math.random };
+  const { cfg } = c;
+  const field = ctx.field ?? null;
 
-  r.dist = Math.min(cfg.trackLength, r.dist + r.stats.speed * dt);
-  const ahead = r.stats.speed * cfg.lookAheadSeconds;
+  r.shield = Math.max(0, r.shield - dt);
+  r.boost = Math.max(0, r.boost - dt);
+  r.jump = Math.max(0, r.jump - dt);
 
+  if (r.stun > 0) {
+    r.stun = Math.max(0, r.stun - dt); // choáng: đứng yên, không né được
+    smoothLane(r, dt, cfg);
+    return;
+  }
+
+  let speedMul = 1;
+  if (field) {
+    perceive(r, c);
+    runPlan(r, dt, c);
+    speedMul = waitControl(r, c);
+  }
+  r.dist = Math.min(cfg.trackLength, r.dist + nominalSpeed(r) * speedMul * dt);
+  if (r.dist > r.waitCap) r.dist = r.waitCap;
+
+  const isBlocked = ctx.isBlocked ?? (field ? (lane, from, to) => field.hasObstacle(lane, from, to) : noObstacles);
+  wander(r, dt, c, isBlocked);
+
+  if (field) {
+    const hit = findHit(r, field, ctx.now, cfg);
+    if (hit) {
+      applyHit(r, cfg);
+      ctx.onHit?.(r, hit);
+    }
+  }
+
+  smoothLane(r, dt, cfg);
+  if (r.dist >= cfg.trackLength) {
+    r.finished = true;
+    r.finishTime = ctx.now;
+  }
+}
+
+function smoothLane(r, dt, cfg) {
+  const rate = r.evading ? cfg.dodgeLaneSmooth : cfg.laneChangeSmooth;
+  r.lane += (r.targetLane - r.lane) * (1 - Math.exp(-rate * dt));
+  if (r.evading && Math.abs(r.targetLane - r.lane) < 0.05) r.evading = false;
+}
+
+// Tự đổi làn nhẹ cho sinh động, chỉ khi không đang né và đường thoáng
+function wander(r, dt, ctx, isBlocked) {
+  const { cfg, rng } = ctx;
+  const ahead = nominalSpeed(r) * cfg.lookAheadSeconds;
   if (r.pending) {
     // Đã quyết định đổi làn, chờ hết độ trễ phản ứng rồi mới làm (đoàn không đổi làn cùng nhịp)
     r.pending.delay -= dt;
@@ -24,19 +71,13 @@ export function stepRacer(r, dt, ctx) {
       if (!isBlocked(r.pending.lane, r.dist, r.dist + ahead)) r.targetLane = r.pending.lane;
       r.pending = null;
     }
-  } else {
-    r.wanderTimer -= dt;
-    if (r.wanderTimer <= 0) {
-      r.wanderTimer = cfg.wanderInterval[0] + rng() * (cfg.wanderInterval[1] - cfg.wanderInterval[0]);
-      considerWander(r, ahead, rng, cfg, isBlocked);
-    }
+    return;
   }
-
-  r.lane += (r.targetLane - r.lane) * (1 - Math.exp(-cfg.laneChangeSmooth * dt));
-  if (r.dist >= cfg.trackLength) {
-    r.finished = true;
-    r.finishTime = ctx.now;
-  }
+  r.wanderTimer -= dt;
+  if (r.wanderTimer > 0) return;
+  r.wanderTimer = cfg.wanderInterval[0] + rng() * (cfg.wanderInterval[1] - cfg.wanderInterval[0]);
+  if (r.plan || r.waitFor || r.jump > 0 || r.evading) return;
+  considerWander(r, ahead, rng, cfg, isBlocked);
 }
 
 // Chỉ đổi làn khi làn hiện tại thoáng phía trước; chỉ sang làn kề cũng thoáng
