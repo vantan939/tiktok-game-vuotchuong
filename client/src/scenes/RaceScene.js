@@ -14,6 +14,8 @@ import { joinMessage } from '../systems/JoinMessage.js';
 import { camMessage } from '../systems/CamMessage.js';
 import { CloseCams } from '../systems/CloseCams.js';
 import { CloseCamPanel } from '../ui/CloseCamPanel.js';
+import { LikeBoost } from '../systems/LikeBoost.js';
+import { Hearts } from '../entities/Hearts.js';
 import { CommandRouter } from '../systems/CommandRouter.js';
 import { AvatarCache, loadImageFromUrl } from '../core/AvatarCache.js';
 import { RaceCamera } from '../systems/RaceCamera.js';
@@ -43,7 +45,7 @@ export class RaceScene extends Phaser.Scene {
     this.views = new Map(); // nhân vật -> hình
 
     // Tham số debug trên URL: ?players=N (người thật giả lập), ?start=N (xuất phát gần đích),
-    // ?speed=N (chạy nhanh N lần), ?hold=result (dừng ở trạng thái đó sau 3 giây để xem), ?avatars=1 (thử avatar), ?perf=1 (in thời gian vẽ)
+    // ?speed=N (chạy nhanh N lần), ?hold=result (dừng ở trạng thái đó sau 3 giây để xem), ?avatars=1 (thử avatar), ?bots=N (số người tối thiểu, còn lại thiếu thì bot), ?perf=1 (in thời gian vẽ)
     const params = new URLSearchParams(location.search);
     this.perf = params.get('perf') === '1';
     this.perfAcc = { n: 0, draw: 0, frame: 0 };
@@ -53,13 +55,15 @@ export class RaceScene extends Phaser.Scene {
     RacerView.makeSharedTextures(this);
     this.avatars = new AvatarTextures(this, new AvatarCache(loadImageFromUrl));
     this.effects = new Effects(this);
+    this.hearts = new Hearts(this);
     this.obstacleViews = new ObstacleViews(this, (x, y, s) => this.onHammerImpact(x, y, s));
     this.debug = new DebugOverlay(this);
     this.overlay = new RoundOverlay(this, this.avatars);
     this.toasts = new Toasts(this);
 
     // Người thật giả lập cho tới khi có join thật (Task 8); không có thì toàn bot
-    this.lobby = new Lobby({ botNames: STR.demoNames });
+    const botFillTo = params.has('bots') ? Number(params.get('bots')) : CONFIG.botFillTo; // ?bots=N: ít bot hơn cho dễ nhìn
+    this.lobby = new Lobby({ cfg: { ...CONFIG, botFillTo }, botNames: STR.demoNames });
     const useAvatars = params.get('avatars') === '1';
     for (let i = 0; i < (Number(params.get('players')) || 0); i++) {
       this.lobby.join({
@@ -75,6 +79,7 @@ export class RaceScene extends Phaser.Scene {
     });
     this.closeCams = new CloseCams(this.manager);
     this.closeCamPanel = new CloseCamPanel(this, this.avatars);
+    this.likeBoost = new LikeBoost(this.manager);
     this.manager.begin();
 
     // Lệnh từ bình luận: join (vào đua) và s (bật/tắt camera cận của chính mình)
@@ -82,6 +87,7 @@ export class RaceScene extends Phaser.Scene {
     if (bus) {
       this.router = new CommandRouter(bus);
       this.router.onCommand(({ command, user }) => (command === 'join' ? this.onJoin(user) : this.onCamCommand(user)));
+      bus.on('like', (e) => this.likeBoost.handle(e)); // thả tim = tăng tốc
     }
   }
 
@@ -98,6 +104,7 @@ export class RaceScene extends Phaser.Scene {
     if (e.type === 'round') this.buildViews();
     else if (e.type === 'racer') this.swapView(e.added, e.removed);
     else if (e.type === 'hit') this.onRacerHit(e.racer);
+    else if (e.type === 'boost') this.onBoost(e);
   }
 
   // Lượt mới: dựng lại hình nhân vật theo đoàn đua mới và đặt camera về vạch xuất phát
@@ -140,6 +147,7 @@ export class RaceScene extends Phaser.Scene {
     this.placeViews();
     this.closeCams.update(this.manager.now);
     this.closeCamPanel.update(this.closeCams, this.manager, dt);
+    this.hearts.update(dt);
     this.overlay.update(this.manager, dt);
     this.toasts.update(dt);
     this.debug.setStatus(this.statusLine());
@@ -172,6 +180,15 @@ export class RaceScene extends Phaser.Scene {
       view.place(x, y, s, m.now * 14 + i * 1.3, 10 + r.dist / 1000, m.now);
       this.debug.racer(r, this.camera, x, y, s);
     });
+  }
+
+  // Nhận tim: vài trái tim nhỏ bay lên trên đầu nhân vật (vệt tốc độ do RacerView vẽ khi đang boost)
+  onBoost(e) {
+    if (e.source !== 'like' || e.seconds < 0.05) return;
+    project(laneCenter(e.racer.lane), e.racer.dist, this.camera, this.point);
+    const { x, y, s } = this.point;
+    if (s < CONFIG.minDrawScale || s > 1.4) return;
+    this.hearts.spawn(x, y - CONFIG.runnerHeight * s * 0.95, s, 1 + Math.min(2, Math.round(e.seconds * 2)));
   }
 
   // Nhân vật dính chướng ngại: bụi tung lên

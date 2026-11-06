@@ -61,6 +61,9 @@ export function resetRacer(racer, index, rng = Math.random, cfg = CONFIG) {
   racer.boost = 0;
   racer.boostMul = 1;
   racer.jump = 0;
+  // Tim: độ "nóng" của các lần thả gần đây, càng nóng thì mỗi lần thả càng ít boost (xem LikeBoost)
+  racer.likeStreak = 0;
+  racer.likeStreakAt = 0;
   // Tự né
   racer.plan = null; // kế hoạch né đang chờ: { kind: 'lane'|'jump'|'wait', o, delay, lane? }
   racer.waitFor = null; // búa đang canh nhịp chờ qua
@@ -78,6 +81,12 @@ export function resetRacer(racer, index, rng = Math.random, cfg = CONFIG) {
 export function applyBoost(racer, multiplier, seconds) {
   racer.boostMul = racer.boost > 0 ? Math.max(racer.boostMul, multiplier) : multiplier;
   racer.boost = Math.max(racer.boost, seconds);
+}
+
+/** Cộng dồn thời gian boost (tim), tối đa cap giây; không làm ngắn boost đang có (vd. từ quà). */
+export function addBoost(racer, multiplier, seconds, cap) {
+  racer.boostMul = racer.boost > 0 ? Math.max(racer.boostMul, multiplier) : multiplier;
+  racer.boost = Math.max(racer.boost, Math.min(cap, racer.boost + seconds));
 }
 
 export function applyShield(racer, seconds) {

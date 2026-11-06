@@ -1,3 +1,4 @@
+import Phaser from 'phaser';
 import { CONFIG } from '../config.js';
 import { SKINS, TEX_H, makeSkinTexture } from './skins.js';
 
@@ -8,6 +9,7 @@ const CROWN_Y = -TEX_H + 52; // đáy vương miện, nằm trên đỉnh đầu
 export const SHADOW_Y = -14;
 const STAR_CENTER_Y = -TEX_H + 40; // sao quay quanh đầu khi choáng
 const STAR_COUNT = 3;
+const STREAK_COUNT = 5;
 
 // Phần hiển thị của một nhân vật: bóng, thân (theo skin), huy hiệu avatar, vương miện, nhãn tên,
 // sao choáng. Không chứa logic game; nhận vị trí đã chiếu từ scene.
@@ -49,6 +51,33 @@ export class RacerView {
     g.fillPoints(pts, true);
     g.generateTexture('star', 56, 56);
     g.destroy();
+
+    // Ánh sáng vàng mờ dần ra ngoài
+    const glow = scene.textures.createCanvas('glow', 256, 256);
+    const gctx = glow.getContext();
+    const grad = gctx.createRadialGradient(128, 128, 0, 128, 128, 128);
+    grad.addColorStop(0, 'rgba(255,226,90,0.95)');
+    grad.addColorStop(0.45, 'rgba(255,190,40,0.45)');
+    grad.addColorStop(1, 'rgba(255,170,0,0)');
+    gctx.fillStyle = grad;
+    gctx.fillRect(0, 0, 256, 256);
+    glow.refresh();
+
+    // Vệt tốc độ: dải đứng vàng trắng mờ dần xuống dưới
+    const streak = scene.textures.createCanvas('streak', 40, 340);
+    const sctx = streak.getContext();
+    const sg = sctx.createLinearGradient(0, 0, 0, 340);
+    sg.addColorStop(0, 'rgba(255,255,230,0.95)');
+    sg.addColorStop(0.35, 'rgba(255,214,70,0.7)');
+    sg.addColorStop(1, 'rgba(255,170,0,0)');
+    sctx.fillStyle = sg;
+    sctx.beginPath();
+    sctx.moveTo(20, 0);
+    sctx.lineTo(40, 340);
+    sctx.lineTo(0, 340);
+    sctx.closePath();
+    sctx.fill();
+    streak.refresh();
   }
 
   constructor(scene, racer, avatars) {
@@ -61,7 +90,13 @@ export class RacerView {
     this.crown = scene.add.image(0, CROWN_Y, 'crown').setOrigin(0.5, 1).setVisible(false);
     this.stars = Array.from({ length: STAR_COUNT }, () => scene.add.image(0, STAR_CENTER_Y, 'star').setVisible(false));
     this.label = null; // tạo khi cần lần đầu (chỉ top 3 hiện tên)
-    this.root = scene.add.container(0, 0, [this.shadow, this.body, this.badge, this.crown, ...this.stars]);
+    // Hiệu ứng boost nằm phía sau thân: ánh sáng vàng và các vệt tốc độ tỏa xuống dưới chân
+    this.glow = scene.add.image(0, -TEX_H * 0.45, 'glow').setBlendMode(Phaser.BlendModes.ADD).setVisible(false);
+    this.streaks = Array.from({ length: STREAK_COUNT }, (_, i) =>
+      scene.add.image((i - 2) * 48, -50, 'streak').setOrigin(0.5, 0).setRotation(-(i - 2) * 0.2).setBlendMode(Phaser.BlendModes.ADD).setVisible(false),
+    );
+    this.boosting = false;
+    this.root = scene.add.container(0, 0, [this.glow, ...this.streaks, this.shadow, this.body, this.badge, this.crown, ...this.stars]);
     this.showName = false;
     this.hasCrown = false;
     this.dazed = false;
@@ -129,6 +164,24 @@ export class RacerView {
     this.shadow.y = SHADOW_Y + hop / k; // bóng ở lại mặt đường khi nhảy
     this.shadow.setScale(1 - Math.min(0.4, hop / (k * 600)));
     this.updateStars(r.stun > 0, clock);
+    this.updateBoost(r, clock);
+  }
+
+  // Đang boost (tim, quà): ánh sáng vàng phía sau và vệt tốc độ chạy xuống, mờ dần khi sắp hết
+  updateBoost(r, clock) {
+    const on = r.boost > 0 && r.stun <= 0;
+    if (on !== this.boosting) {
+      this.boosting = on;
+      this.glow.setVisible(on);
+      this.streaks.forEach((s) => s.setVisible(on));
+    }
+    if (!on) return;
+    const power = Math.min(1, r.boost / 0.5) * (r.boostMul > 1.8 ? 1 : 0.8);
+    this.glow.setAlpha(power * (0.7 + 0.15 * Math.sin(clock * 18))).setScale(2.2 + 0.2 * Math.sin(clock * 12));
+    this.streaks.forEach((s, i) => {
+      const p = (clock * 2.4 + i * 0.37) % 1; // mỗi vệt chạy từ chân xuống dưới rồi lặp
+      s.setAlpha(power * (1 - p)).setScale(0.8, 0.45 + 0.75 * p).setY(-60 + p * 70);
+    });
   }
 
   updateStars(on, clock) {

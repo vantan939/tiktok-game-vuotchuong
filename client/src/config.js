@@ -74,7 +74,9 @@ export const CONFIG = {
   likeBoostSeconds: 1,
   likeBoostMaxSeconds: 4,
   likeCooldownSeconds: 0.5,
-  likeSpamDecay: 0.8,
+  likeSpamDecay: 0.8,       // mỗi lần thả liên tục nhân hiệu quả với hệ số này mũ số lần thả gần đây
+  likeStreakHalfLife: 5,    // giây để độ "nóng" của spam giảm một nửa
+  likeMaxTapsPerEvent: 5,   // một sự kiện like gộp nhiều lần chạm thì chỉ tính tối đa bấy nhiêu
 
   // Quà: khiên + tăng tốc mạnh
   giftShieldSeconds: 5,
