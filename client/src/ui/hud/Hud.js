@@ -81,12 +81,15 @@ export class Hud {
     // Hàng đợi và thẻ thể lệ
     this.queueCount = el('em');
     this.queueList = el('div', 'queue__list');
-    const queue = createFrame({ variant: 'purple', className: 'queue', rect: { x: 25, y: 1725, w: 660, h: 117 } });
+    this.queueItems = new Map(); // userId -> phần tử avatar
+    this.queueEmpty = el('div', 'queue__empty txt', STR.hud.queueEmpty);
+    this.queueMore = el('div', 'queue__more', '›');
+    const queue = createFrame({ variant: 'purple', className: 'queue', rect: { x: 25, y: 1725, w: 712, h: 117 } });
     const qText = el('div', 'queue__text txt');
     qText.append(document.createTextNode(H.queue), this.queueCount);
-    queue.append(el('div', 'queue__icon', iconSvg('people')), qText, el('div', 'queue__sep'), this.queueList, el('div', 'queue__more', '›'));
+    queue.append(el('div', 'queue__icon', iconSvg('people')), qText, el('div', 'queue__sep'), this.queueList, this.queueEmpty, this.queueMore);
     const minutes = Math.round(CONFIG.roundSeconds / 60);
-    const rule = createFrame({ variant: 'gold', className: 'rule', rect: { x: 700, y: 1725, w: 356, h: 117 } });
+    const rule = createFrame({ variant: 'gold', className: 'rule', rect: { x: 752, y: 1725, w: 304, h: 117 } });
     rule.append(
       el('div', 'rule__icon', iconSvg('hourglass')),
       el('div', 'rule__text', `${H.ruleRound(minutes)}<br>${H.ruleMax(CONFIG.maxPlayers)}`),
@@ -161,18 +164,37 @@ export class Hud {
     return { node, badge, pct, cam, rank: 0 };
   }
 
+  // Hàng đợi: 5 người đầu theo dữ liệu thật. Giữ phần tử theo userId để người mới vào mờ hiện, người rời đi trượt ra
   updateQueue(m) {
     setText(this.queueCount, STR.hud.queueCount(m.queueTotal));
-    // Dựng lại danh sách chỉ khi 5 người đầu hàng hoặc số thứ tự đổi
+    this.queueMore.style.visibility = m.queueTotal > m.queueFirst.length ? 'visible' : 'hidden'; // còn người phía sau
+    this.queueEmpty.style.display = m.queueFirst.length ? 'none' : '';
+
     const key = m.queueFirst.map((q) => q.id).join('|') + `#${m.queueBase}`;
     if (key === this.queueKey) return;
     this.queueKey = key;
-    this.queueList.replaceChildren(
-      ...m.queueFirst.map((q, i) => {
-        const item = el('div', 'queue__item txt');
-        item.append(createAvatar(q.id, q.avatarUrl, 56), document.createTextNode(`#${m.queueBase + i + 1}`));
-        return item;
-      }),
-    );
+
+    const seen = new Set();
+    m.queueFirst.forEach((q, i) => {
+      seen.add(q.id);
+      let item = this.queueItems.get(q.id);
+      if (!item) {
+        const node = el('div', 'queue__item txt is-new');
+        const label = document.createTextNode('');
+        node.append(createAvatar(q.id, q.avatarUrl, 56), label);
+        item = { node, label };
+        this.queueItems.set(q.id, item);
+      }
+      const text = `#${m.queueBase + i + 1}`;
+      if (item.label.textContent !== text) item.label.textContent = text;
+      if (this.queueList.children[i] !== item.node) this.queueList.insertBefore(item.node, this.queueList.children[i] ?? null);
+    });
+    for (const [id, item] of this.queueItems) {
+      if (!seen.has(id)) {
+        this.queueItems.delete(id);
+        item.node.classList.add('is-leaving');
+        setTimeout(() => item.node.remove(), 350);
+      }
+    }
   }
 }

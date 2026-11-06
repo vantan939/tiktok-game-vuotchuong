@@ -20,6 +20,7 @@ export const STR = {
     top10: 'TOP 10',
     queue: 'HÀNG ĐỢI',
     queueCount: (n) => `(${n} người)`,
+    queueEmpty: 'Chưa ai chờ, gõ join nhé',
     ruleRound: (minutes) => `Mỗi lượt: ${minutes} phút`,
     ruleMax: (max) => `Tối đa: ${max} người`,
   },

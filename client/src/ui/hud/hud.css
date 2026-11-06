@@ -95,11 +95,14 @@
 .queue__text { font-size: var(--min-text); line-height: 1.05; flex: none; }
 .queue__text em { font-style: normal; color: var(--c-yellow); display: block; }
 .queue__sep { width: 3px; height: 70px; border-radius: 2px; background: linear-gradient(180deg, transparent, rgba(160,190,255,.7), transparent); flex: none; }
-.queue__list { display: flex; gap: 8px; flex: 1; min-width: 0; }
+.queue__list { display: flex; gap: 10px; flex: 1; min-width: 0; }
+.queue__empty { flex: 1; font-size: var(--min-text); opacity: .75; white-space: nowrap; }
+.queue__item.is-new { animation: q-in .4s cubic-bezier(.2,1.4,.4,1) both; }
+.queue__item.is-leaving { animation: q-out .35s ease-in forwards; }
 .queue__item { display: flex; flex-direction: column; align-items: center; gap: 0; width: 62px; font-size: var(--min-text); line-height: 1.05; }
 .queue__more { font-size: 44px; font-weight: var(--font-heavy); opacity: .85; flex: none; }
-.rule { display: flex; align-items: center; gap: 12px; padding: 0 14px; color: #3b1c00; }
-.rule__icon { width: 54px; height: 72px; flex: none; }
+.rule { display: flex; align-items: center; gap: 10px; padding: 0 12px; color: #3b1c00; }
+.rule__icon { width: 46px; height: 72px; flex: none; }
 .rule__icon svg { width: 100%; height: 100%; }
 .rule__text { font-size: var(--min-text); line-height: 1.12; white-space: nowrap; text-shadow: 0 1px 0 rgba(255,240,170,.8); }
 
@@ -148,6 +151,8 @@
 
 /* ---------- Hoạt ảnh ---------- */
 @keyframes row-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes q-in { from { opacity: 0; transform: translateX(40px) scale(.6); } to { opacity: 1; transform: none; } }
+@keyframes q-out { to { opacity: 0; transform: translateX(-40px) scale(.6); } }
 @keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 @keyframes sheen { 0%,60% { opacity: 0; transform: translateX(-320px) skewX(-6deg); } 80% { opacity: 1; } 100% { opacity: 0; transform: translateX(320px) skewX(-6deg); } }
 @keyframes blink-red { 0% { opacity: 1; } 50% { opacity: .25; } }

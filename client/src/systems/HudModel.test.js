@@ -116,3 +116,26 @@ test('các số liệu khác của HUD: camera cận, top 10, hàng đợi', () 
   assert.deepEqual(model.queueFirst.map((q) => q.id), ['u30', 'u31', 'u32']);
   assert.equal(model.queueBase, 30);
 });
+
+test('hàng đợi 12 người: chỉ hiện 5 người đầu, đếm đủ 12, số thứ tự bắt đầu từ #31', () => {
+  const { lobby, manager, cams } = setup();
+  for (let i = 0; i < 42; i++) manager.join({ userId: `u${i}`, nickname: `N${i}`, avatarUrl: `http://x/${i}.png` });
+  const model = buildHudModel(manager, lobby, cams);
+  assert.equal(model.queueTotal, 12);
+  assert.deepEqual(model.queueFirst.map((q) => q.id), ['u30', 'u31', 'u32', 'u33', 'u34']);
+  assert.equal(model.queueFirst[0].avatarUrl, 'http://x/30.png');
+  assert.equal(model.queueBase, 30);
+
+  // Có người rời đi thì tổng giảm, 5 người đầu cập nhật theo
+  lobby.leave('u30');
+  const after = buildHudModel(manager, lobby, cams);
+  assert.equal(after.queueTotal, 11);
+  assert.deepEqual(after.queueFirst.map((q) => q.id), ['u31', 'u32', 'u33', 'u34', 'u35']);
+});
+
+test('hàng đợi trống thì không có ai', () => {
+  const { lobby, manager, cams } = setup();
+  const model = buildHudModel(manager, lobby, cams);
+  assert.equal(model.queueTotal, 0);
+  assert.deepEqual(model.queueFirst, []);
+});
