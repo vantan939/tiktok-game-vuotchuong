@@ -8,21 +8,21 @@ import { Effects } from '../entities/Effects.js';
 import { AvatarTextures } from '../entities/AvatarTextures.js';
 import { SKINS } from '../entities/skins.js';
 import { DebugOverlay } from '../ui/DebugOverlay.js';
+import { RoundOverlay } from '../ui/RoundOverlay.js';
 import { AvatarCache, loadImageFromUrl } from '../core/AvatarCache.js';
 import { RaceCamera } from '../systems/RaceCamera.js';
 import { laneCenter, project } from '../systems/Projection.js';
-import { createRacer, resetRacer } from '../systems/Racer.js';
-import { stepRacer } from '../systems/RacerAI.js';
-import { rankRacers } from '../systems/Ranking.js';
-import { generateObstacles } from '../systems/Obstacles.js';
+import { Lobby } from '../systems/Lobby.js';
+import { RaceManager } from '../systems/RaceManager.js';
 
-const SAMPLE_RESTART_SECONDS = 3;
 const SHAKE_MIN_SCALE = 0.22; // búa xa hơn mức này thì không rung màn hình
 // Avatar thử cho ?avatars=1: một ảnh hợp lệ (data URL) và một url hỏng để kiểm tra ảnh mặc định
 const TEST_AVATAR = `data:image/svg+xml,${encodeURIComponent(
   '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect width="64" height="64" fill="#ffc21a"/><circle cx="32" cy="32" r="18" fill="#e0243c"/></svg>',
 )}`;
 const BROKEN_AVATAR = 'http://localhost:1/khong-ton-tai.png';
+
+const STATE_LABEL = { wait: 'chờ', countdown: 'đếm ngược', race: 'đua', result: 'kết quả' };
 
 export class RaceScene extends Phaser.Scene {
   constructor() {
@@ -33,44 +33,57 @@ export class RaceScene extends Phaser.Scene {
     this.track = new TrackView(this);
     this.camera = new RaceCamera();
     this.point = { x: 0, y: 0, s: 0 };
-    this.ranking = [];
-    this.clock = 0;
-    this.roundStart = 0;
-    this.finishedAt = null;
+    this.dists = [];
+    this.views = [];
 
+    // Tham số debug trên URL: ?players=N (người thật giả lập), ?start=N (xuất phát gần đích),
+    // ?speed=N (chạy nhanh N lần), ?hold=result (dừng ở trạng thái đó sau 3 giây để xem), ?avatars=1 (thử avatar), ?perf=1 (in thời gian vẽ)
     const params = new URLSearchParams(location.search);
-    this.perf = params.get('perf') === '1'; // ?perf=1: in thời gian vẽ đường và FPS ra console
+    this.perf = params.get('perf') === '1';
     this.perfAcc = { n: 0, draw: 0, frame: 0 };
-    const startDist = Number(params.get('start')) || 0; // ?start=5200 để thử ngay gần đích
-    const count = Number(params.get('runners')) || CONFIG.sampleRunners; // ?runners=N
+    this.speed = Math.max(1, Number(params.get('speed')) || 1);
+    this.hold = params.get('hold');
 
     RacerView.makeSharedTextures(this);
     this.avatars = new AvatarTextures(this, new AvatarCache(loadImageFromUrl));
     this.effects = new Effects(this);
     this.obstacleViews = new ObstacleViews(this, (x, y, s) => this.onHammerImpact(x, y, s));
     this.debug = new DebugOverlay(this);
-    this.field = generateObstacles();
+    this.overlay = new RoundOverlay(this, this.avatars);
 
-    // 30 nhân vật mẫu cho tới khi có join thật (Task 8)
+    // Người thật giả lập cho tới khi có join thật (Task 8); không có thì toàn bot
+    this.lobby = new Lobby({ botNames: STR.demoNames });
     const useAvatars = params.get('avatars') === '1';
-    this.racers = Array.from({ length: count }, (_, i) => {
-      const user = {
+    for (let i = 0; i < (Number(params.get('players')) || 0); i++) {
+      this.lobby.join({
         userId: `sample_${i}`,
-        nickname: STR.demoNames[i] ?? `Người ${i + 1}`,
+        nickname: `Người ${i + 1}`,
         avatarUrl: useAvatars ? [TEST_AVATAR, BROKEN_AVATAR][i] ?? '' : '',
-      };
-      const racer = createRacer(user, { index: i, skinCount: SKINS.length });
-      racer.dist += startDist;
-      return racer;
+      });
+    }
+    this.manager = new RaceManager(this.lobby, {
+      skinCount: SKINS.length,
+      startDist: Number(params.get('start')) || 0,
+      onEvent: (e) => this.onGameEvent(e),
     });
-    this.startDist = startDist;
+    this.manager.begin();
+  }
+
+  onGameEvent(e) {
+    if (e.type === 'round') this.buildViews();
+    else if (e.type === 'hit') this.onRacerHit(e.racer);
+  }
+
+  // Lượt mới: dựng lại hình nhân vật theo đoàn đua mới và đặt camera về vạch xuất phát
+  buildViews() {
+    this.views.forEach((v) => v.destroy());
+    this.racers = this.manager.racers;
     this.views = this.racers.map((r) => new RacerView(this, r, this.avatars));
-    this.dists = new Array(count);
-    this.stepCtx = { now: 0, cfg: CONFIG, rng: Math.random, field: this.field, onHit: (r) => this.onRacerHit(r) };
     this.camera.snap(this.collectDists());
   }
 
   collectDists() {
+    this.dists.length = this.racers.length;
     this.racers.forEach((r, i) => {
       this.dists[i] = r.dist;
     });
@@ -79,44 +92,30 @@ export class RaceScene extends Phaser.Scene {
 
   update(_time, delta) {
     const dt = Math.min(delta / 1000, 0.05);
-    this.clock += dt;
-    this.stepRace(dt);
+    const held = this.hold && this.manager.state === this.hold && this.manager.stateTime >= 3;
+    if (!held) for (let i = 0; i < this.speed; i++) this.manager.update(dt);
 
     this.camera.update(this.collectDists(), dt);
     const t0 = this.perf ? performance.now() : 0;
     this.track.draw(this.camera);
-    this.obstacleViews.update(this.field, this.camera, this.clock);
+    this.obstacleViews.update(this.manager.field, this.camera, this.manager.now);
     if (this.perf) this.logPerf(performance.now() - t0, delta);
 
     this.placeViews();
+    this.overlay.update(this.manager, dt);
+    this.debug.setStatus(this.statusLine());
   }
 
-  stepRace(dt) {
-    this.stepCtx.now = this.clock;
-    for (const r of this.racers) stepRacer(r, dt, this.stepCtx);
-    rankRacers(this.racers, this.ranking);
-
-    // Mẫu: cả đoàn về đích hoặc hết giờ lượt thì chạy lại sau vài giây
-    const over = this.racers.every((r) => r.finished) || this.clock - this.roundStart > CONFIG.roundSeconds;
-    if (!over) return;
-    this.finishedAt ??= this.clock;
-    if (this.clock - this.finishedAt > SAMPLE_RESTART_SECONDS) this.restartSample();
-  }
-
-  restartSample() {
-    this.finishedAt = null;
-    this.roundStart = this.clock;
-    this.field = generateObstacles();
-    this.stepCtx.field = this.field;
-    this.racers.forEach((r, i) => {
-      resetRacer(r, i);
-      r.dist += this.startDist;
-    });
-    this.camera.snap(this.collectDists());
+  statusLine() {
+    const m = this.manager;
+    const real = m.racers.filter((r) => !r.isBot).length;
+    return `Lượt ${m.round} | ${STATE_LABEL[m.state]} ${m.stateTime.toFixed(1)}s | người thật ${real}, bot ${m.racers.length - real}, hàng đợi ${this.lobby.queue.length}`;
   }
 
   placeViews() {
     const { topNamesShown } = CONFIG;
+    const m = this.manager;
+    const racing = m.state === 'race' || m.state === 'result';
     this.debug.begin();
     this.racers.forEach((r, i) => {
       const view = this.views[i];
@@ -129,9 +128,9 @@ export class RaceScene extends Phaser.Scene {
         this.debug.hide(r);
         return;
       }
-      view.setCrown(r.rank === 1);
-      view.setNameVisible(r.rank <= topNamesShown);
-      view.place(x, y, s, this.clock * 14 + i * 1.3, 10 + r.dist / 1000, this.clock);
+      view.setCrown(racing && r.rank === 1);
+      view.setNameVisible(racing && r.rank <= topNamesShown);
+      view.place(x, y, s, m.now * 14 + i * 1.3, 10 + r.dist / 1000, m.now);
       this.debug.racer(r, this.camera, x, y, s);
     });
   }

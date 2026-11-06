@@ -3,6 +3,15 @@ export const STR = {
   title: 'Đại Chiến Vượt Chướng Ngại',
   finish: 'ĐÍCH',
 
+  // Vòng lặp lượt đua
+  round: (n) => `LƯỢT ${n}`,
+  getReady: 'Chuẩn bị...',
+  go: 'XUẤT PHÁT!',
+  winnerTitle: 'NGƯỜI CHIẾN THẮNG',
+  finishedIn: (time) => `Về đích sau ${time}`,
+  leadedWith: (percent) => `Dẫn đầu với ${percent}% quãng đường`,
+  nextRound: (seconds) => `Lượt mới sau ${seconds} giây`,
+
   // Panel debug (chỉ ở chế độ demo)
   debug: {
     title: 'Debug (phím D để ẩn)',

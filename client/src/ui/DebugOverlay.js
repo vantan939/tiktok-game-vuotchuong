@@ -9,13 +9,23 @@ export class DebugOverlay {
     this.on = false;
     this.g = scene.add.graphics().setDepth(900).setVisible(false);
     this.texts = new Map();
+    this.status = scene.add
+      .text(12, 12, '', { fontFamily: 'monospace', fontStyle: 'bold', fontSize: '30px', color: '#ffffff', backgroundColor: '#000000aa', padding: { x: 8, y: 4 } })
+      .setDepth(902)
+      .setVisible(false);
     scene.input.keyboard.on('keydown-B', () => this.toggle());
   }
 
   toggle() {
     this.on = !this.on;
     this.g.setVisible(this.on);
+    this.status.setVisible(this.on);
     if (!this.on) this.texts.forEach((t) => t.setVisible(false));
+  }
+
+  /** Dòng trạng thái lượt đua ở góc trên (chỉ hiện khi bật debug). */
+  setStatus(line) {
+    if (this.on) this.status.setText(line);
   }
 
   begin() {

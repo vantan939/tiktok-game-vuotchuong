@@ -9,9 +9,11 @@ export const CONFIG = {
 
   // Lượt đua
   roundSeconds: 180,
+  waitSeconds: 2,           // nghỉ ngắn trước khi đếm ngược, để người xem thấy đoàn đua mới
   countdownSeconds: 3,
   resultSeconds: 8,
   maxPlayers: 30,
+  botFillTo: 30,            // thiếu người thật thì thêm bot cho đủ số này, để luôn có đoàn đua
   queueShown: 5,
   trackLength: 5500,
   lanes: 3,
