@@ -179,8 +179,8 @@ Cột thẻ dọc bên trái, mép trái x 1.3% (≈ 14 px), rộng ~21.5% (≈ 
 HUD dựng bằng HTML/CSS đặt chồng lên canvas (chữ sắc nét, hiệu ứng CSS dễ làm, dùng chung một component khung), đã chỉnh so với các số ở trên để chữ phụ đạt tối thiểu 28px trên khung 1080:
 
 - Khung THỜI GIAN rộng 364 (x 652 đến 1016) để vừa "02:36 / 03:00" không xuống dòng.
-- Ba thẻ bên trái rộng 252 (x 14 đến 266).
+- Ba thẻ bên trái rộng 266 (x 14 đến 280), chữ 30px, thêm thẻ nhỏ "Gõ join để tham gia" ngay dưới (y 838).
 - TOP 10 rộng 316 (x 754 đến 1070). Các cửa sổ camera cận cùng cột: x 754, rộng 316, cao 172.
 - Hàng đợi x 25 đến 685, thẻ thể lệ x 700 đến 1056.
 - Thẻ "Khóa nhân vật" đổi thành "Camera cận (bình luận S)" kèm nút hiển thị số camera, ví dụ `2/4` (theo CONTEXT.md).
-- Thẻ quà ghi "Tặng quà = Tăng tốc cao độ" (bỏ dấu "!!" cho đỡ giục tặng quà).
+- Thẻ quà ghi "Tặng quà = Tăng tốc cao độ!!" đúng như yêu cầu.

@@ -54,17 +54,21 @@ export class Hud {
 
     // Ba thẻ bên trái
     this.camPill = el('div', 'toggle');
-    const camCard = createFrame({ variant: 'purple', className: 'card card--cam', rect: { x: 14, y: 435, w: 252, h: 155 } });
+    const camCard = createFrame({ variant: 'purple', className: 'card card--cam', rect: { x: 14, y: 435, w: 266, h: 158 } });
     const camRow = el('div', 'row');
     camRow.append(
-      el('div', 'card__icon', iconSvg('camera')),
+      el('div', 'card__icon', iconSvg('lock')),
       el('div', 'card__text txt', `${H.camTitle}<br><em>${H.camHint}</em>`),
     );
     camCard.append(camRow, this.camPill);
-    const heartCard = createFrame({ variant: 'purple', className: 'card', rect: { x: 14, y: 612, w: 252, h: 86 } });
+    const heartCard = createFrame({ variant: 'purple', className: 'card', rect: { x: 14, y: 610, w: 266, h: 88 } });
     heartCard.append(el('div', 'card__icon', iconSvg('heart')), el('div', 'card__text txt', `${H.heartLine1}<br>${H.heartLine2}`));
-    const giftCard = createFrame({ variant: 'purple', className: 'card', rect: { x: 14, y: 713, w: 252, h: 108 } });
+    const giftCard = createFrame({ variant: 'purple', className: 'card', rect: { x: 14, y: 712, w: 266, h: 112 } });
     giftCard.append(el('div', 'card__icon', iconSvg('gift')), el('div', 'card__text txt', `${H.giftLine1}<br>${H.giftLine2}<br>${H.giftLine3}`));
+
+    // Dòng chỉ dẫn nhỏ dưới ba thẻ
+    const joinCard = createFrame({ variant: 'purple', className: 'card card--join', rect: { x: 14, y: 838, w: 266, h: 92 } });
+    joinCard.append(el('div', 'card__text txt', `${H.joinHint1} <em>join</em><br>${H.joinHint2}`));
 
     // TOP 10
     this.top10List = el('div', 'top10__list');
@@ -88,7 +92,7 @@ export class Hud {
       el('div', 'rule__text', `${H.ruleRound(minutes)}<br>${H.ruleMax(CONFIG.maxPlayers)}`),
     );
 
-    parent.append(banner, racing, this.timeFrame, camCard, heartCard, giftCard, top10, queue, rule);
+    parent.append(banner, racing, this.timeFrame, camCard, heartCard, giftCard, joinCard, top10, queue, rule);
     this.queueKey = '';
   }
 
