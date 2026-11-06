@@ -54,6 +54,7 @@ export const CONFIG = {
 
   // Bình luận
   commandCooldownSeconds: 1,
+  commandGateMaxEntries: 2000, // vượt số này thì dọn người đã hết cooldown
 
   // Kết nối server
   serverUrl: 'ws://localhost:8080',
