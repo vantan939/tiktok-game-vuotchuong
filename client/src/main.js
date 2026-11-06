@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import './ui/hud/hud.css';
+import './ui/hud/banner.css';
 import { CONFIG } from './config.js';
 import { THEME, applyTheme } from './theme.js';
 import { BootScene } from './scenes/BootScene.js';

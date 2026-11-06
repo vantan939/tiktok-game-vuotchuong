@@ -1,6 +1,7 @@
 import { CONFIG } from '../../config.js';
 import { STR } from '../../strings.js';
 import { createAvatar } from './avatar.js';
+import { createBanner } from './Banner.js';
 import { createFrame, el } from './Frame.js';
 import { iconSvg } from './svgIcons.js';
 
@@ -34,16 +35,7 @@ export class Hud {
     const H = STR.hud;
     this.parent = parent;
 
-    // Banner tiêu đề
-    const banner = el('div', 'abs banner');
-    banner.innerHTML = `
-      <div class="abs banner__flag banner__flag--l">${iconSvg('flag')}</div>
-      <div class="abs banner__flag banner__flag--r">${iconSvg('flag')}</div>`;
-    const plate = createFrame({ variant: 'title', className: 'abs banner__plate' });
-    plate.innerHTML = `
-      <span class="title-text title-text--blue banner__l1" data-text="${H.titleLine1}"><span>${H.titleLine1}</span></span>
-      <span class="title-text banner__l2" data-text="${H.titleLine2}"><span>${H.titleLine2}</span></span>`;
-    banner.append(plate, el('div', 'abs banner__shine'), el('div', 'abs banner__crown', iconSvg('crown')));
+    const banner = createBanner();
 
     // ĐANG ĐUA và THỜI GIAN
     this.racingValue = el('div', 'stat__value num txt');

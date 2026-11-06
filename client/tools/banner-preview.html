@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Xem trước banner</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&display=swap" rel="stylesheet" />
+    <style>
+      body { margin: 0; background: #222; }
+      /* Hai bản: kích thước thật 1080 rộng và bản thu nhỏ 1/3 (cỡ điện thoại) để thử độ đọc */
+      .row { display: flex; gap: 20px; padding: 10px; align-items: flex-start; flex-wrap: wrap; }
+      .stage { position: relative; width: 1080px; height: 330px; overflow: hidden; background: linear-gradient(#1d6bff, #4aa6ff 60%, #a6d8ff); transform-origin: 0 0; }
+      .mid { width: 756px; height: 231px; overflow: hidden; }
+      .mid .stage { transform: scale(0.7); }
+      .small { width: 360px; height: 110px; overflow: hidden; }
+      .small .stage { transform: scale(0.3333); }
+      .stage > #hud.h { position: absolute; left: 0; top: 0; width: 1080px; height: 330px; transform: none; font-family: var(--font); font-weight: var(--font-bold); color: #fff; }
+      #hud .abs { position: absolute; }
+    </style>
+  </head>
+  <body>
+    <div class="row">
+      <div class="mid"><div class="stage"><div id="hud" class="h"></div></div></div>
+      <div class="small"><div class="stage"><div id="hud" class="h"></div></div></div>
+    </div>
+    <script type="module">
+      import '/src/ui/hud/hud.css';
+      import '/src/ui/hud/banner.css';
+      import { applyTheme } from '/src/theme.js';
+      import { createBanner } from '/src/ui/hud/Banner.js';
+      applyTheme();
+      await document.fonts.load('800 40px "Baloo 2"', 'ĐẠI CHIẾN VƯỢT CHƯỚNG NGẠI');
+      for (const hud of document.querySelectorAll('.h')) {
+        const b = createBanner();
+        hud.append(b);
+      }
+    </script>
+  </body>
+</html>
