@@ -16,6 +16,9 @@ import { CloseCams } from '../systems/CloseCams.js';
 import { CloseCamPanel } from '../ui/CloseCamPanel.js';
 import { LikeBoost } from '../systems/LikeBoost.js';
 import { Hearts } from '../entities/Hearts.js';
+import { GiftBoost } from '../systems/GiftBoost.js';
+import { GiftBanner } from '../ui/GiftBanner.js';
+import { shortName } from '../systems/JoinMessage.js';
 import { CommandRouter } from '../systems/CommandRouter.js';
 import { AvatarCache, loadImageFromUrl } from '../core/AvatarCache.js';
 import { RaceCamera } from '../systems/RaceCamera.js';
@@ -80,6 +83,8 @@ export class RaceScene extends Phaser.Scene {
     this.closeCams = new CloseCams(this.manager);
     this.closeCamPanel = new CloseCamPanel(this, this.avatars);
     this.likeBoost = new LikeBoost(this.manager);
+    this.giftBoost = new GiftBoost(this.manager);
+    this.giftBanner = new GiftBanner(this);
     this.manager.begin();
 
     // Lệnh từ bình luận: join (vào đua) và s (bật/tắt camera cận của chính mình)
@@ -88,6 +93,7 @@ export class RaceScene extends Phaser.Scene {
       this.router = new CommandRouter(bus);
       this.router.onCommand(({ command, user }) => (command === 'join' ? this.onJoin(user) : this.onCamCommand(user)));
       bus.on('like', (e) => this.likeBoost.handle(e)); // thả tim = tăng tốc
+      bus.on('gift', (e) => this.giftBoost.handle(e)); // tặng quà = khiên + tăng tốc mạnh
     }
   }
 
@@ -148,6 +154,7 @@ export class RaceScene extends Phaser.Scene {
     this.closeCams.update(this.manager.now);
     this.closeCamPanel.update(this.closeCams, this.manager, dt);
     this.hearts.update(dt);
+    this.giftBanner.update(dt);
     this.overlay.update(this.manager, dt);
     this.toasts.update(dt);
     this.debug.setStatus(this.statusLine());
@@ -184,6 +191,11 @@ export class RaceScene extends Phaser.Scene {
 
   // Nhận tim: vài trái tim nhỏ bay lên trên đầu nhân vật (vệt tốc độ do RacerView vẽ khi đang boost)
   onBoost(e) {
+    if (e.source === 'gift') {
+      // Quà lớn: thông báo to giữa màn hình
+      if (e.tier.announce) this.giftBanner.show(STR.giftAnnounce(shortName(e.senderName), e.gift.name));
+      return;
+    }
     if (e.source !== 'like' || e.seconds < 0.05) return;
     project(laneCenter(e.racer.lane), e.racer.dist, this.camera, this.point);
     const { x, y, s } = this.point;

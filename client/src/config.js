@@ -78,10 +78,15 @@ export const CONFIG = {
   likeStreakHalfLife: 5,    // giây để độ "nóng" của spam giảm một nửa
   likeMaxTapsPerEvent: 5,   // một sự kiện like gộp nhiều lần chạm thì chỉ tính tối đa bấy nhiêu
 
-  // Quà: khiên + tăng tốc mạnh
-  giftShieldSeconds: 5,
-  giftBoostMultiplier: 2.2,
-  giftBoostSeconds: 4,
+  // Quà: khiên (miễn nhiễm chướng ngại) + tăng tốc mạnh. Phân bậc theo số kim cương, xếp tăng dần.
+  // fxScale: độ lớn của ánh sáng và vệt tốc độ; grow: nhân vật phóng to thêm bấy nhiêu; tint: màu ánh sáng;
+  // announce: có thông báo to giữa màn hình hay không.
+  giftTiers: [
+    { id: 'small', minDiamonds: 1, boostMultiplier: 2.0, boostSeconds: 3, shieldSeconds: 5, fxScale: 1.0, grow: 0.06, tint: 0xffffff, announce: false },
+    { id: 'medium', minDiamonds: 100, boostMultiplier: 2.2, boostSeconds: 4, shieldSeconds: 5, fxScale: 1.5, grow: 0.12, tint: 0xffa040, announce: false },
+    { id: 'large', minDiamonds: 1000, boostMultiplier: 2.6, boostSeconds: 5, shieldSeconds: 5, fxScale: 2.1, grow: 0.2, tint: 0xff6ad5, announce: true },
+  ],
+  giftBannerSeconds: 2.8,   // thông báo quà lớn hiện bấy lâu
 
   // Chướng ngại
   obstacleGapMin: 55,

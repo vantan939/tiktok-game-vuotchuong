@@ -45,7 +45,7 @@ export class LikeBoost {
 
     let racer = m.racerOf(event.userId);
     const cheered = !racer;
-    if (!racer) racer = this.pickCheerTarget();
+    if (!racer) racer = pickCheerTarget(m);
     if (!racer) return null;
 
     this.lastAt.set(event.userId, m.now);
@@ -53,12 +53,12 @@ export class LikeBoost {
     m.emit({ type: 'boost', source: 'like', racer, seconds, sender: event.userId, cheered });
     return { racer, seconds, cheered };
   }
+}
 
-  /** Người đang đua được cổ vũ: ngẫu nhiên trong số người thật chưa về đích, không có thì bot. */
-  pickCheerTarget() {
-    const running = this.manager.racers.filter((r) => !r.finished);
-    const real = running.filter((r) => !r.isBot);
-    const pool = real.length ? real : running;
-    return pool.length ? pool[Math.floor(this.manager.rng() * pool.length)] : null;
-  }
+/** Người được cổ vũ khi người gửi chưa có nhân vật: ngẫu nhiên trong số người thật chưa về đích, không có thì bot. */
+export function pickCheerTarget(manager) {
+  const running = manager.racers.filter((r) => !r.finished);
+  const real = running.filter((r) => !r.isBot);
+  const pool = real.length ? real : running;
+  return pool.length ? pool[Math.floor(manager.rng() * pool.length)] : null;
 }

@@ -61,6 +61,7 @@ export function resetRacer(racer, index, rng = Math.random, cfg = CONFIG) {
   racer.boost = 0;
   racer.boostMul = 1;
   racer.jump = 0;
+  racer.gift = null; // bậc quà đang có hiệu lực (theo khiên), dùng để vẽ hiệu ứng
   // Tim: độ "nóng" của các lần thả gần đây, càng nóng thì mỗi lần thả càng ít boost (xem LikeBoost)
   racer.likeStreak = 0;
   racer.likeStreakAt = 0;

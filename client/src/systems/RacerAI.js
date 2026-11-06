@@ -19,6 +19,7 @@ export function stepRacer(r, dt, ctx) {
   r.shield = Math.max(0, r.shield - dt);
   r.boost = Math.max(0, r.boost - dt);
   r.jump = Math.max(0, r.jump - dt);
+  if (r.shield <= 0) r.gift = null;
 
   if (r.stun > 0) {
     r.stun = Math.max(0, r.stun - dt); // choáng: đứng yên, không né được

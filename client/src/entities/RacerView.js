@@ -78,6 +78,28 @@ export class RacerView {
     sctx.closePath();
     sctx.fill();
     streak.refresh();
+
+    // Khiên xanh: quả cầu trong suốt, đậm dần ra mép, viền sáng
+    const shield = scene.textures.createCanvas('shield', 320, 320);
+    const hctx = shield.getContext();
+    const sgr = hctx.createRadialGradient(160, 160, 40, 160, 160, 150);
+    sgr.addColorStop(0, 'rgba(90,170,255,0.06)');
+    sgr.addColorStop(0.75, 'rgba(110,190,255,0.28)');
+    sgr.addColorStop(1, 'rgba(150,220,255,0.6)');
+    hctx.fillStyle = sgr;
+    hctx.beginPath();
+    hctx.arc(160, 160, 150, 0, Math.PI * 2);
+    hctx.fill();
+    hctx.lineWidth = 8;
+    hctx.strokeStyle = 'rgba(200,240,255,0.95)';
+    hctx.beginPath();
+    hctx.arc(160, 160, 146, 0, Math.PI * 2);
+    hctx.stroke();
+    hctx.fillStyle = 'rgba(255,255,255,0.55)'; // vệt phản chiếu
+    hctx.beginPath();
+    hctx.ellipse(104, 92, 34, 16, -0.7, 0, Math.PI * 2);
+    hctx.fill();
+    shield.refresh();
   }
 
   constructor(scene, racer, avatars) {
@@ -96,7 +118,11 @@ export class RacerView {
       scene.add.image((i - 2) * 48, -50, 'streak').setOrigin(0.5, 0).setRotation(-(i - 2) * 0.2).setBlendMode(Phaser.BlendModes.ADD).setVisible(false),
     );
     this.boosting = false;
-    this.root = scene.add.container(0, 0, [this.glow, ...this.streaks, this.shadow, this.body, this.badge, this.crown, ...this.stars]);
+    this.shield = scene.add.image(0, -TEX_H * 0.47, 'shield').setVisible(false);
+    this.root = scene.add.container(0, 0, [this.glow, ...this.streaks, this.shadow, this.body, this.badge, this.crown, ...this.stars, this.shield]);
+    this.grow = 1; // phóng to nhẹ khi có quà, mượt theo thời gian
+    this.lastClock = 0;
+    this.shielded = false;
     this.showName = false;
     this.hasCrown = false;
     this.dazed = false;
@@ -160,11 +186,29 @@ export class RacerView {
     } else {
       hop = Math.abs(Math.sin(bob)) * 18 * k;
     }
-    this.root.setPosition(x, y - hop).setScale(k * squash, k).setDepth(depth).setAngle(wobble);
+    const dt = Math.min(0.1, Math.max(0, clock - this.lastClock));
+    this.lastClock = clock;
+    const targetGrow = r.shield > 0 && r.gift ? 1 + r.gift.grow : 1;
+    this.grow += (targetGrow - this.grow) * (1 - Math.exp(-8 * dt));
+    this.root.setPosition(x, y - hop).setScale(k * squash * this.grow, k * this.grow).setDepth(depth).setAngle(wobble);
     this.shadow.y = SHADOW_Y + hop / k; // bóng ở lại mặt đường khi nhảy
     this.shadow.setScale(1 - Math.min(0.4, hop / (k * 600)));
     this.updateStars(r.stun > 0, clock);
     this.updateBoost(r, clock);
+    this.updateShield(r, clock);
+  }
+
+  // Khiên xanh quanh nhân vật (quà): to hơn theo bậc quà, nhấp nháy khi sắp hết
+  updateShield(r, clock) {
+    const on = r.shield > 0;
+    if (on !== this.shielded) {
+      this.shielded = on;
+      this.shield.setVisible(on);
+    }
+    if (!on) return;
+    const size = 1.45 + (r.gift ? 0.2 * r.gift.fxScale : 0);
+    const blink = r.shield < 1 ? 0.5 + 0.5 * Math.sin(clock * 24) : 1; // còn dưới 1 giây thì nhấp nháy
+    this.shield.setScale(size * (1 + 0.03 * Math.sin(clock * 9))).setAlpha(blink);
   }
 
   // Đang boost (tim, quà): ánh sáng vàng phía sau và vệt tốc độ chạy xuống, mờ dần khi sắp hết
@@ -176,11 +220,21 @@ export class RacerView {
       this.streaks.forEach((s) => s.setVisible(on));
     }
     if (!on) return;
+    // Quà thì to hơn, mạnh hơn và đổi màu theo bậc; tim thì vàng nhẹ
+    const fx = r.shield > 0 ? r.gift : null;
+    const size = fx ? fx.fxScale : 1;
+    const tint = fx ? fx.tint : 0xffffff;
     const power = Math.min(1, r.boost / 0.5) * (r.boostMul > 1.8 ? 1 : 0.8);
-    this.glow.setAlpha(power * (0.7 + 0.15 * Math.sin(clock * 18))).setScale(2.2 + 0.2 * Math.sin(clock * 12));
+    this.glow
+      .setTint(tint)
+      .setAlpha(Math.min(1, power * (0.7 + 0.15 * Math.sin(clock * 18))))
+      .setScale((2.2 + 0.2 * Math.sin(clock * 12)) * (0.75 + 0.35 * size));
     this.streaks.forEach((s, i) => {
       const p = (clock * 2.4 + i * 0.37) % 1; // mỗi vệt chạy từ chân xuống dưới rồi lặp
-      s.setAlpha(power * (1 - p)).setScale(0.8, 0.45 + 0.75 * p).setY(-60 + p * 70);
+      s.setTint(tint)
+        .setAlpha(Math.min(1, power * (1 - p) * (0.9 + 0.2 * size)))
+        .setScale(0.8 * (0.8 + 0.3 * size), (0.45 + 0.75 * p) * size)
+        .setY(-60 + p * 70);
     });
   }
 

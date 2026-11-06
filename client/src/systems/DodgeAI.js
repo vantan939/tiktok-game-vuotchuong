@@ -53,11 +53,14 @@ function decide(r, o, ctx) {
 export function perceive(r, ctx) {
   if (r.plan || r.waitFor || r.jump > 0) return;
   const { field, cfg, rng } = ctx;
-  const ahead = nominalSpeed(r) * cfg.lookAheadSeconds;
+  const speed = nominalSpeed(r);
+  const ahead = speed * cfg.lookAheadSeconds;
   for (let i = field.indexAfter(r.dist - 1); i < field.list.length; i++) {
     const o = field.list[i];
     if (o.dist - r.dist > ahead) break;
     if (o.lane !== r.targetLane || r.rolled.has(o.id)) continue;
+    // Còn khiên tới lúc chạy qua hết chướng ngại này thì không cần né, cứ lao thẳng
+    if (r.shield > (o.dist - r.dist + halfLength(o, cfg) + cfg.runnerRadius + cfg.spikeRollAmp) / speed) continue;
     r.rolled.add(o.id);
     r.encounters++;
     if (rng() >= noticeChance(r, cfg)) return; // lơ đễnh, không nhận ra

@@ -6,6 +6,7 @@ export const GIFTS = [
   { giftName: 'Bắn tim', diamonds: 5 },
   { giftName: 'Kem', diamonds: 10 },
   { giftName: 'Gấu bông', diamonds: 99 },
+  { giftName: 'Nhẫn kim cương', diamonds: 500 },
   { giftName: 'Sư tử', diamonds: 29999 },
 ];
 
@@ -32,7 +33,7 @@ export class DemoSource {
     });
     this.loop(CONFIG.demoSComment, (u) => this.chat(u, 's'));
     this.loop(CONFIG.demoLike, (u) => this.like(u, 1 + Math.floor(this.random() * CONFIG.demoLikeMax)));
-    this.loop(CONFIG.demoGift, (u) => this.gift(u, this.pick(GIFTS)));
+    this.loop(CONFIG.demoGift, (u) => this.gift(u, this.randomGift()));
   }
 
   stop() {
@@ -67,6 +68,14 @@ export class DemoSource {
 
   base(u) {
     return { userId: u.userId, nickname: u.nickname, avatarUrl: u.avatarUrl };
+  }
+
+  // Quà nhỏ hay gặp nhất, quà lớn hiếm, cho giống buổi live thật
+  randomGift() {
+    const r = this.random();
+    if (r < 0.65) return this.pick(GIFTS.slice(0, 4));
+    if (r < 0.92) return GIFTS[4];
+    return GIFTS[5];
   }
 
   // Lặp vô hạn: mỗi lần chọn ngẫu nhiên một người đã join, rồi hẹn lần sau

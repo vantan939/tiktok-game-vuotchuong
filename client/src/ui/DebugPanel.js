@@ -27,7 +27,8 @@ export class DebugPanel {
     this.addButton(STR.debug.camera, (u) => demo.chat(u, 's'));
     this.addButton(STR.debug.like, (u) => demo.like(u, 5));
     this.addButton(STR.debug.gift, (u) => demo.gift(u, GIFTS[1]));
-    this.addButton(STR.debug.bigGift, (u) => demo.gift(u, GIFTS[4]));
+    this.addButton(STR.debug.midGift, (u) => demo.gift(u, GIFTS[4]));
+    this.addButton(STR.debug.bigGift, (u) => demo.gift(u, GIFTS[5]));
 
     const hint = document.createElement('div');
     hint.textContent = STR.debug.hint;

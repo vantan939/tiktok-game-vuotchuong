@@ -15,6 +15,9 @@ export const STR = {
   camNextRound: (name) => `${name}: camera cận dùng được từ lượt sau`,
   camIdle: (name) => `${name}: camera cận mở lại khi lượt mới bắt đầu`,
 
+  // Thông báo quà lớn
+  giftAnnounce: (name, gift) => `${name} tặng ${gift}, bay vút!`,
+
   // Vòng lặp lượt đua
   round: (n) => `LƯỢT ${n}`,
   getReady: 'Chuẩn bị...',
@@ -32,6 +35,7 @@ export const STR = {
     camera: 's',
     like: 'Thả tim',
     gift: 'Quà nhỏ',
+    midGift: 'Quà vừa',
     bigGift: 'Quà lớn',
     hint: 'Tên chưa có sẽ tự tạo người dùng mới',
   },
