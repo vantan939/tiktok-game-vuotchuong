@@ -1,0 +1,111 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { CONFIG } from '../config.js';
+import { Lobby } from './Lobby.js';
+import { RaceManager } from './RaceManager.js';
+import { CloseCams } from './CloseCams.js';
+import { buildHudModel, elapsedSeconds, formatClock, isTimeLow } from './HudModel.js';
+
+function seeded(seed = 1) {
+  let s = seed;
+  return () => {
+    s = (s * 1664525 + 1013904223) >>> 0;
+    return s / 2 ** 32;
+  };
+}
+
+const NAMES = Array.from({ length: 60 }, (_, i) => `Bot${i}`);
+
+function setup(cfg = CONFIG) {
+  const rng = seeded(6);
+  const lobby = new Lobby({ cfg, rng, botNames: NAMES });
+  const manager = new RaceManager(lobby, { cfg, rng, skinCount: 8 });
+  const cams = new CloseCams(manager, cfg);
+  manager.begin();
+  return { lobby, manager, cams };
+}
+
+const step = (m, until, dt = 1 / 30) => {
+  for (let i = 0; i < 100000 && !until(); i++) m.update(dt);
+  assert.ok(until());
+};
+
+test('formatClock: mm:ss, làm tròn xuống, không âm', () => {
+  assert.equal(formatClock(0), '00:00');
+  assert.equal(formatClock(156.9), '02:36');
+  assert.equal(formatClock(180), '03:00');
+  assert.equal(formatClock(-5), '00:00');
+});
+
+test('ĐANG ĐUA: số người trong đoàn đua trên tối đa 30, giữ 30/30 nhờ bot', () => {
+  const { lobby, manager, cams } = setup();
+  let model = buildHudModel(manager, lobby, cams);
+  assert.equal(model.racing, 30);
+  assert.equal(model.max, 30);
+  // ít người hơn thì hiện đúng số thật có trong đoàn
+  const small = setup({ ...CONFIG, botFillTo: 12 });
+  model = buildHudModel(small.manager, small.lobby, small.cams, CONFIG);
+  assert.equal(model.racing, 12);
+  assert.equal(model.max, 30);
+});
+
+test('THỜI GIAN: 00:00 khi chờ và đếm ngược, chạy khi đua, đứng yên ở kết quả', () => {
+  const { lobby, manager, cams } = setup();
+  assert.equal(buildHudModel(manager, lobby, cams).time, '00:00');
+  step(manager, () => manager.state === 'countdown');
+  assert.equal(buildHudModel(manager, lobby, cams).time, '00:00');
+  step(manager, () => manager.state === 'race');
+  step(manager, () => manager.raceTime >= 5);
+  assert.equal(buildHudModel(manager, lobby, cams).time, '00:05');
+  step(manager, () => manager.raceTime >= 65.5);
+  assert.equal(buildHudModel(manager, lobby, cams).time, '01:05');
+  assert.equal(buildHudModel(manager, lobby, cams).total, '03:00');
+
+  step(manager, () => manager.state === 'result');
+  const final = buildHudModel(manager, lobby, cams).time;
+  assert.equal(final, formatClock(manager.result.raceSeconds));
+  for (let i = 0; i < 30; i++) manager.update(1 / 30);
+  assert.equal(buildHudModel(manager, lobby, cams).time, final, 'màn kết quả không chạy tiếp');
+});
+
+test('THỜI GIAN: sang lượt mới thì về 00:00', () => {
+  const { manager } = setup({ ...CONFIG, trackLength: 500, obstacleEndMargin: 100 });
+  step(manager, () => manager.state === 'result');
+  assert.ok(elapsedSeconds(manager) > 0);
+  step(manager, () => manager.round === 2);
+  assert.equal(elapsedSeconds(manager), 0);
+});
+
+test('hết giờ thì thời gian dừng ở đúng độ dài lượt', () => {
+  const cfg = { ...CONFIG, roundSeconds: 5 };
+  const { lobby, manager, cams } = setup(cfg);
+  step(manager, () => manager.state === 'result');
+  const model = buildHudModel(manager, lobby, cams);
+  assert.equal(model.time, '00:05');
+  assert.equal(model.total, '00:05');
+});
+
+test('dưới 10 giây cuối của lượt thì báo động (đỏ, nhấp nháy), chỉ khi đang đua', () => {
+  const cfg = { ...CONFIG, roundSeconds: 40, trackLength: 99999 };
+  const { manager } = setup(cfg);
+  assert.equal(isTimeLow(manager), false, 'chưa đua');
+  step(manager, () => manager.state === 'race');
+  step(manager, () => manager.raceTime >= 29.5);
+  assert.equal(isTimeLow(manager), false, 'còn hơn 10 giây');
+  step(manager, () => manager.raceTime >= 30.5);
+  assert.equal(isTimeLow(manager), true, 'còn dưới 10 giây');
+  step(manager, () => manager.state === 'result');
+  assert.equal(isTimeLow(manager), false, 'hết lượt thì tắt báo động');
+});
+
+test('các số liệu khác của HUD: camera cận, top 10, hàng đợi', () => {
+  const { lobby, manager, cams } = setup();
+  for (let i = 0; i < 33; i++) manager.join({ userId: `u${i}`, nickname: `N${i}`, avatarUrl: '' });
+  cams.press({ userId: 'u1' });
+  const model = buildHudModel(manager, lobby, cams);
+  assert.deepEqual(model.cams, { used: 1, max: 4 });
+  assert.equal(model.top.length, 10);
+  assert.equal(model.queueTotal, 3);
+  assert.deepEqual(model.queueFirst.map((q) => q.id), ['u30', 'u31', 'u32']);
+  assert.equal(model.queueBase, 30);
+});

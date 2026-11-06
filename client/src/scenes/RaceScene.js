@@ -11,7 +11,7 @@ import { DebugOverlay } from '../ui/DebugOverlay.js';
 import { createHudRoot } from '../ui/hud/root.js';
 import { Hud } from '../ui/hud/Hud.js';
 import { GiftBanner, NameTags, RoundOverlay, Toasts } from '../ui/hud/Overlays.js';
-import { progressPercent } from '../systems/Ranking.js';
+import { buildHudModel } from '../systems/HudModel.js';
 import { joinMessage } from '../systems/JoinMessage.js';
 import { camMessage } from '../systems/CamMessage.js';
 import { CloseCams } from '../systems/CloseCams.js';
@@ -48,7 +48,7 @@ export class RaceScene extends Phaser.Scene {
     this.views = new Map(); // nhân vật -> hình
 
     // Tham số debug trên URL: ?players=N (người thật giả lập), ?start=N (xuất phát gần đích),
-    // ?speed=N (chạy nhanh N lần), ?hold=result (dừng ở trạng thái đó sau 3 giây để xem), ?avatars=1 (thử avatar), ?bots=N (số người tối thiểu, còn lại thiếu thì bot), ?perf=1 (in thời gian vẽ)
+    // ?speed=N (chạy nhanh N lần), ?round=N (độ dài lượt, giây), ?hold=result (dừng ở trạng thái đó sau 3 giây để xem), ?avatars=1 (thử avatar), ?bots=N (số người tối thiểu, còn lại thiếu thì bot), ?perf=1 (in thời gian vẽ)
     const params = new URLSearchParams(location.search);
     this.perf = params.get('perf') === '1';
     this.perfAcc = { n: 0, draw: 0, frame: 0 };
@@ -79,7 +79,10 @@ export class RaceScene extends Phaser.Scene {
         avatarUrl: useAvatars ? [TEST_AVATAR, BROKEN_AVATAR][i] ?? '' : '',
       });
     }
+    // ?round=N: rút ngắn lượt đua (giây) để thử báo động hết giờ
+    const roundSeconds = Number(params.get('round')) || CONFIG.roundSeconds;
     this.manager = new RaceManager(this.lobby, {
+      cfg: { ...CONFIG, roundSeconds },
       skinCount: SKINS.length,
       startDist: Number(params.get('start')) || 0,
       onEvent: (e) => this.onGameEvent(e),
@@ -212,21 +215,7 @@ export class RaceScene extends Phaser.Scene {
     this.hudTimer += dt;
     if (this.hudTimer < 0.12) return;
     this.hudTimer = 0;
-    const m = this.manager;
-    const toMmss = (sec) => `${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(Math.floor(sec % 60)).padStart(2, '0')}`;
-    const elapsed = m.state === 'race' ? m.raceTime : m.state === 'result' ? m.result?.raceSeconds ?? 0 : 0;
-    this.hud.update({
-      racing: m.racers.length,
-      max: CONFIG.maxPlayers,
-      time: toMmss(Math.min(elapsed, CONFIG.roundSeconds)),
-      total: toMmss(CONFIG.roundSeconds),
-      low: m.state === 'race' && CONFIG.roundSeconds - m.raceTime < 10,
-      cams: { used: this.closeCams.cams.length, max: CONFIG.maxCloseCams },
-      top: m.ranking.slice(0, 10).map((r) => ({ id: r.userId, name: r.nickname, avatarUrl: r.avatarUrl, percent: progressPercent(r) })),
-      queueTotal: this.lobby.queue.length,
-      queueFirst: this.lobby.queue.slice(0, CONFIG.queueShown).map((p) => ({ id: p.userId, avatarUrl: p.avatarUrl })),
-      queueBase: CONFIG.maxPlayers,
-    });
+    this.hud.update(buildHudModel(this.manager, this.lobby, this.closeCams));
   }
 
   // Nhận tim: vài trái tim nhỏ bay lên trên đầu nhân vật (vệt tốc độ do RacerView vẽ khi đang boost)
