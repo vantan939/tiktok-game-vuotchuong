@@ -4,6 +4,7 @@ const LEFT = 24;
 const ROW_GAP = 66;
 const MAX_VISIBLE = 5;
 const LIFE_SECONDS = 2.8;
+const MIN_VISIBLE_SECONDS = 0.8; // mỗi thông báo hiện ít nhất bấy lâu mới bị nhường chỗ
 const FADE_SECONDS = 0.5;
 const KIND_COLOR = { ok: 0x35c759, queue: 0xffc21a, warn: 0xff6b6b };
 
@@ -30,6 +31,19 @@ export class Toasts {
   }
 
   flush() {
+    // Hết chỗ thì nhường cho thông báo mới bằng cách bỏ cái cũ nhất (đã hiện đủ lâu để đọc)
+    while (this.pending.length > 0 && !this.pool.length && this.active[0]?.age >= MIN_VISIBLE_SECONDS) {
+      const old = this.active.shift();
+      old.root.setVisible(false);
+      this.pool.push(old);
+      this.fill();
+    }
+    this.fill();
+    // Quá nhiều thông báo cùng lúc thì bỏ bớt cái cũ nhất để cái mới hiện kịp
+    if (this.pending.length > 8) this.pending.splice(0, this.pending.length - 8);
+  }
+
+  fill() {
     while (this.pending.length && this.pool.length) {
       const msg = this.pending.shift();
       const item = this.pool.pop();
@@ -46,8 +60,6 @@ export class Toasts {
       item.root.setVisible(true).setAlpha(0).setPosition(LEFT, item.y);
       this.active.push(item);
     }
-    // Quá nhiều thông báo cùng lúc thì bỏ bớt cái cũ nhất để cái mới hiện kịp
-    if (this.pending.length > 8) this.pending.splice(0, this.pending.length - 8);
   }
 
   update(dt) {

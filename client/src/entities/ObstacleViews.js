@@ -1,6 +1,6 @@
 import { CONFIG } from '../config.js';
 import { hammerLift, hammerPhaseAt, spikeDist } from '../systems/Obstacles.js';
-import { laneCenter, laneWidthPx, project, screenX, screenY, scaleAt } from '../systems/Projection.js';
+import { MAIN_VIEWPORT, laneCenter, laneWidthPx, project, screenX, screenY, scaleAt } from '../systems/Projection.js';
 
 const HEAD_W = 300;
 const HEAD_H = 150;
@@ -11,14 +11,22 @@ const BALL_SIZE = 230;
 
 // Vẽ búa đập và cầu gai. Dùng pool view cố định: mỗi frame gán cho các chướng ngại gần camera nhất.
 // Vùng đỏ cảnh báo vẽ trên mặt đường bằng một Graphics chung.
+// Dùng cho màn hình chính hoặc cho một cửa sổ camera cận (truyền container + vp + poolSize nhỏ hơn).
 export class ObstacleViews {
-  /** onImpact(x, y, s): gọi lúc búa chạm sàn (để rung màn hình và tung bụi). */
-  constructor(scene, onImpact) {
+  /**
+   * onImpact(x, y, s): gọi lúc búa chạm sàn (để rung màn hình và tung bụi), có thể bỏ trống.
+   * options.container: đặt các hình vào Container này thay vì thẳng vào scene (cửa sổ camera cận).
+   */
+  constructor(scene, onImpact, { container = null, vp = MAIN_VIEWPORT, poolSize = CONFIG.obstaclePoolSize, minScale = CONFIG.obstacleMinScale } = {}) {
     this.scene = scene;
     this.onImpact = onImpact;
+    this.container = container;
+    this.vp = vp;
+    this.minScale = minScale;
     this.makeTextures();
     this.zoneG = scene.add.graphics().setDepth(1.5);
-    this.pool = Array.from({ length: CONFIG.obstaclePoolSize }, () => this.makeView());
+    container?.add(this.zoneG);
+    this.pool = Array.from({ length: poolSize }, () => this.makeView());
     this.point = { x: 0, y: 0, s: 0 };
   }
 
@@ -77,6 +85,7 @@ export class ObstacleViews {
     const head = scene.add.image(0, 0, 'hammer_head').setOrigin(0.5, 1);
     const ball = scene.add.image(0, 0, 'spike_ball').setOrigin(0.5, 0.88);
     const root = scene.add.container(0, 0, [shadow, handle, head, ball]).setVisible(false);
+    this.container?.add(root);
     return { root, shadow, handle, head, ball, lastCycle: -1, o: null };
   }
 
@@ -89,11 +98,11 @@ export class ObstacleViews {
       const o = field.list[i];
       const dist = o.type === 'spike' ? spikeDist(o, now) : o.dist;
       const s = scaleAt(dist - cam.z0, cam.focal);
-      if (s < CONFIG.obstacleMinScale) break; // đã quá xa, các hàng sau còn xa hơn
+      if (s < this.minScale) break; // đã quá xa, các hàng sau còn xa hơn
       const view = this.pool[used++];
-      project(laneCenter(o.lane), dist, cam, this.point);
+      project(laneCenter(o.lane), dist, cam, this.point, this.vp);
       const { x, y } = this.point;
-      view.root.setVisible(true).setPosition(x, y).setScale(s).setDepth(10 + dist / 1000 - 0.0005);
+      view.root.setVisible(true).setPosition(x, y).setScale(s * this.vp.unit).setDepth(10 + dist / 1000 - 0.0005);
       if (o.type === 'hammer') this.updateHammer(view, o, now, cam, x, y, s);
       else this.updateSpike(view, dist, now);
     }
@@ -133,12 +142,13 @@ export class ObstacleViews {
     const half = CONFIG.hammerHalfLength + 1;
     const sNear = scaleAt(o.dist - half - cam.z0, f);
     const sFar = scaleAt(o.dist + half - cam.z0, f);
-    if (sFar < CONFIG.obstacleMinScale) return;
-    const lw = laneWidthPx() * 0.5 * 0.94;
+    if (sFar < this.minScale) return;
+    const vp = this.vp;
+    const lw = laneWidthPx(vp) * 0.5 * 0.94;
     const cx = laneCenter(o.lane);
-    const xl = (a, s) => screenX(cx, s) + a * lw * s; // a = -1 mép trái, +1 mép phải của làn
-    const yN = screenY(sNear);
-    const yF = screenY(sFar);
+    const xl = (a, s) => screenX(cx, s, vp) + a * lw * s; // a = -1 mép trái, +1 mép phải của làn
+    const yN = screenY(sNear, vp);
+    const yF = screenY(sFar, vp);
     const u = ((now + o.phase) % CONFIG.hammerCycleSeconds + CONFIG.hammerCycleSeconds) % CONFIG.hammerCycleSeconds;
     const progress = phase === 'impact' ? 1 : Math.max(0, Math.min(1, (u - (CONFIG.hammerImpactAt - o.warn)) / o.warn));
     const blink = phase === 'impact' ? 1 : 0.6 + 0.4 * Math.sin(progress * progress * 40);
@@ -151,7 +161,7 @@ export class ObstacleViews {
     g.lineTo(xl(1, sNear), yN);
     g.closePath();
     g.fillPath();
-    g.lineStyle(Math.max(2, 6 * sNear), 0xff7a7a, 0.8 * blink);
+    g.lineStyle(Math.max(1.5, 6 * vp.unit * sNear), 0xff7a7a, 0.8 * blink);
     g.strokePath();
   }
 }

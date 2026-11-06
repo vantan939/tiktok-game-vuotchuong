@@ -19,6 +19,7 @@ export class RaceManager {
     this.skinCount = skinCount;
     this.startDist = startDist; // chỉ dùng khi debug (?start=N)
     this.onEvent = onEvent ?? (() => {});
+    this.listeners = []; // nơi khác muốn nghe sự kiện (vd. CloseCams)
 
     this.state = 'wait';
     this.stateTime = 0; // giây kể từ khi vào trạng thái hiện tại
@@ -29,7 +30,7 @@ export class RaceManager {
     this.ranking = [];
     this.field = null;
     this.result = null;
-    this.ctx = { now: 0, cfg, rng, field: null, onHit: (racer, obstacle) => this.onEvent({ type: 'hit', racer, obstacle }) };
+    this.ctx = { now: 0, cfg, rng, field: null, onHit: (racer, obstacle) => this.emit({ type: 'hit', racer, obstacle }) };
   }
 
   /** Giây đã đua trong lượt hiện tại (0 khi chưa đua). */
@@ -40,6 +41,20 @@ export class RaceManager {
   /** Số đang hiển thị khi đếm ngược: 3, 2, 1. */
   get countdownValue() {
     return Math.max(1, Math.ceil(this.cfg.countdownSeconds - this.stateTime));
+  }
+
+  addListener(fn) {
+    this.listeners.push(fn);
+  }
+
+  emit(e) {
+    this.onEvent(e);
+    for (const fn of this.listeners) fn(e);
+  }
+
+  /** Nhân vật của một người thật trong lượt hiện tại (undefined nếu chưa có mặt). */
+  racerOf(userId) {
+    return this.racers.find((r) => !r.isBot && r.userId === userId);
   }
 
   /** Bắt đầu lượt đầu tiên. */
@@ -71,7 +86,7 @@ export class RaceManager {
     this.state = state;
     this.stateTime = 0;
     if (state === 'race') this.raceStart = this.now;
-    this.onEvent({ type: 'state', state, prev });
+    this.emit({ type: 'state', state, prev });
   }
 
   // Dựng đoàn đua mới: người cũ ở lại, hàng đợi vào cho đủ, thiếu thì thêm bot
@@ -83,7 +98,7 @@ export class RaceManager {
     this.ctx.field = this.field;
     this.result = null;
     rankRacers(this.racers, this.ranking);
-    this.onEvent({ type: 'round', round: this.round });
+    this.emit({ type: 'round', round: this.round });
     this.setState('wait');
   }
 
@@ -130,7 +145,7 @@ export class RaceManager {
       this.racers.push(racer);
     }
     rankRacers(this.racers, this.ranking);
-    this.onEvent({ type: 'racer', added: racer, removed });
+    this.emit({ type: 'racer', added: racer, removed });
   }
 
   // Xếp ngẫu nhiên vị trí xuất phát để không ai luôn đứng hàng đầu
@@ -161,6 +176,6 @@ export class RaceManager {
     };
     if (!winner.isBot) this.lobby.recordWin(winner.userId);
     this.setState('result');
-    this.onEvent({ type: 'end', result: this.result });
+    this.emit({ type: 'end', result: this.result });
   }
 }

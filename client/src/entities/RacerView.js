@@ -1,11 +1,11 @@
 import { CONFIG } from '../config.js';
 import { SKINS, TEX_H, makeSkinTexture } from './skins.js';
 
-const BADGE_SIZE = 76;
-const BADGE_Y = -TEX_H + 215; // huy hiệu avatar trên thân
+export const BADGE_SIZE = 76;
+export const BADGE_Y = -TEX_H + 215; // huy hiệu avatar trên thân
 const NAME_Y = -TEX_H - 6;
 const CROWN_Y = -TEX_H + 52; // đáy vương miện, nằm trên đỉnh đầu
-const SHADOW_Y = -14;
+export const SHADOW_Y = -14;
 const STAR_CENTER_Y = -TEX_H + 40; // sao quay quanh đầu khi choáng
 const STAR_COUNT = 3;
 

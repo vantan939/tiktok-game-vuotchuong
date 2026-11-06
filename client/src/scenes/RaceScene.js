@@ -11,6 +11,9 @@ import { DebugOverlay } from '../ui/DebugOverlay.js';
 import { RoundOverlay } from '../ui/RoundOverlay.js';
 import { Toasts } from '../ui/Toasts.js';
 import { joinMessage } from '../systems/JoinMessage.js';
+import { camMessage } from '../systems/CamMessage.js';
+import { CloseCams } from '../systems/CloseCams.js';
+import { CloseCamPanel } from '../ui/CloseCamPanel.js';
 import { CommandRouter } from '../systems/CommandRouter.js';
 import { AvatarCache, loadImageFromUrl } from '../core/AvatarCache.js';
 import { RaceCamera } from '../systems/RaceCamera.js';
@@ -70,18 +73,25 @@ export class RaceScene extends Phaser.Scene {
       startDist: Number(params.get('start')) || 0,
       onEvent: (e) => this.onGameEvent(e),
     });
+    this.closeCams = new CloseCams(this.manager);
+    this.closeCamPanel = new CloseCamPanel(this, this.avatars);
     this.manager.begin();
 
-    // Lệnh từ bình luận: chỉ `join` được xử lý ở đây (`s` dành cho camera cận ở task sau)
+    // Lệnh từ bình luận: join (vào đua) và s (bật/tắt camera cận của chính mình)
     const bus = this.registry.get('bus');
     if (bus) {
       this.router = new CommandRouter(bus);
-      this.router.onCommand(({ command, user }) => command === 'join' && this.onJoin(user));
+      this.router.onCommand(({ command, user }) => (command === 'join' ? this.onJoin(user) : this.onCamCommand(user)));
     }
   }
 
   onJoin(user) {
     this.toasts.show(joinMessage(this.manager.join(user), user.nickname));
+  }
+
+  onCamCommand(user) {
+    const message = camMessage(this.closeCams.press(user), user.nickname);
+    if (message) this.toasts.show(message);
   }
 
   onGameEvent(e) {
@@ -128,6 +138,8 @@ export class RaceScene extends Phaser.Scene {
     if (this.perf) this.logPerf(performance.now() - t0, delta);
 
     this.placeViews();
+    this.closeCams.update(this.manager.now);
+    this.closeCamPanel.update(this.closeCams, this.manager, dt);
     this.overlay.update(this.manager, dt);
     this.toasts.update(dt);
     this.debug.setStatus(this.statusLine());

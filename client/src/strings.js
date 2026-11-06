@@ -9,6 +9,12 @@ export const STR = {
   joinQueued: (name) => `${name} vào hàng đợi`,
   joinDuplicate: (name) => `${name} đã tham gia rồi`,
 
+  // Thông báo camera cận (lệnh s)
+  camFull: (name, max) => `${name}: Đã đủ ${max} camera cận, thử lại sau`,
+  camNotJoined: (name) => `${name}: hãy gõ join trước`,
+  camNextRound: (name) => `${name}: camera cận dùng được từ lượt sau`,
+  camIdle: (name) => `${name}: camera cận mở lại khi lượt mới bắt đầu`,
+
   // Vòng lặp lượt đua
   round: (n) => `LƯỢT ${n}`,
   getReady: 'Chuẩn bị...',
