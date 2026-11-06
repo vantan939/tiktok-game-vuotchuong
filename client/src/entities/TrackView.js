@@ -2,6 +2,7 @@ import { CONFIG } from '../config.js';
 import { THEME } from '../theme.js';
 import { ART, ATLAS } from './art.js';
 import { drawRoad } from './roadDrawing.js';
+import { drawRoadside } from './roadside.js';
 import { FinishGate } from './FinishGate.js';
 
 // Khinh khí cầu và mây trên trời: [khung, x, y, độ rộng hiển thị, độ trôi, pha]
@@ -11,12 +12,16 @@ const BALLOONS = [
   ['balloon_purple', 165, 235, 104, 9, 3.1],
   ['balloon_pink', 690, 520, 56, 6, 4.4],
 ];
+// [khung, x, y, độ rộng hiển thị, tốc độ trôi ngang (px/giây), pha nhấp nhô]. Lớp xa nhỏ và chậm, lớp gần lớn và nhanh.
 const CLOUDS = [
-  ['cloud_0', 70, 320, 330, 18, 0],
-  ['cloud_1', 1010, 400, 360, 16, 2],
-  ['cloud_2', 120, 560, 230, 12, 4],
-  ['cloud_0', 960, 570, 210, 12, 1],
+  ['cloud_2', 120, 560, 200, 4, 4],
+  ['cloud_0', 960, 575, 190, 5, 1],
+  ['cloud_1', 560, 470, 230, 6, 2.4],
+  ['cloud_0', 70, 330, 320, 11, 0],
+  ['cloud_1', 1010, 410, 350, 13, 2],
+  ['cloud_2', 520, 250, 300, 9, 5],
 ];
+const CLOUD_MARGIN = 260; // mây ra khỏi mép bấy nhiêu px thì quay lại phía bên kia
 
 // Vẽ nền trời, mây, khinh khí cầu, núi sương mờ, mặt đường phối cảnh, vạch kẻ làn, dải viền và cổng đích.
 // Phần tĩnh (trời, núi) tạo một lần; mây và khinh khí cầu trôi nhẹ; đường, viền vẽ lại mỗi frame.
@@ -24,7 +29,8 @@ export class TrackView {
   constructor(scene) {
     this.scene = scene;
     this.makeSky();
-    this.drifters = [...CLOUDS.map((c) => this.addSky(c, -9.5)), ...BALLOONS.map((b) => this.addSky(b, -9.4))];
+    this.clouds = CLOUDS.map((c) => this.addSky(c, -9.6 + c[3] / 10000));
+    this.balloons = BALLOONS.map((b) => this.addSky(b, -9.4));
     scene.add.image(0, CONFIG.horizonY + 44, ATLAS, 'mountains').setOrigin(0, 1).setScale(ART).setDepth(-9);
     this.road = scene.add.graphics().setDepth(1);
     this.gate = new FinishGate(scene);
@@ -51,7 +57,7 @@ export class TrackView {
   addSky([frame, x, y, w, drift, phase], depth) {
     const img = this.scene.add.image(x, y, ATLAS, frame).setDepth(depth);
     img.setScale(w / img.width); // độ rộng hiển thị w (px)
-    return { img, x, y, drift, phase };
+    return { img, x, y, drift, phase, w, speed: drift };
   }
 
   // Sương mờ ở chân trời: đậm nhất đúng đường chân trời, nhạt dần lên và xuống
@@ -74,7 +80,14 @@ export class TrackView {
 
   draw(cam, clock = 0) {
     drawRoad(this.road, cam);
+    drawRoadside(this.road, cam);
     this.gate.draw(cam, clock);
-    for (const d of this.drifters) d.img.setPosition(d.x + Math.sin(clock * 0.25 + d.phase) * d.drift * 2, d.y + Math.sin(clock * 0.6 + d.phase) * d.drift);
+    // Mây trôi chậm theo chiều ngang và quay vòng; khinh khí cầu lơ lửng, nhấp nhô nhẹ
+    const span = CONFIG.width + CLOUD_MARGIN * 2;
+    for (const c of this.clouds) {
+      const x = ((((c.x + CLOUD_MARGIN + clock * c.speed) % span) + span) % span) - CLOUD_MARGIN;
+      c.img.setPosition(x, c.y + Math.sin(clock * 0.3 + c.phase) * 4);
+    }
+    for (const b of this.balloons) b.img.setPosition(b.x + Math.sin(clock * 0.25 + b.phase) * b.drift * 2, b.y + Math.sin(clock * 0.6 + b.phase) * b.drift);
   }
 }
