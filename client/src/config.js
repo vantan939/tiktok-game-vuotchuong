@@ -33,9 +33,16 @@ export const CONFIG = {
   cameraMinFocal: 110,      // nhỏ nhất = zoom gần nhất; càng lớn càng zoom xa
   cameraSmooth: 6,          // độ mượt (lớn = bám nhanh)
 
-  // Nhân vật mẫu (Task 4). Ghi đè bằng ?runners=N khi debug
-  sampleRunners: 1,
+  // Nhân vật mẫu (tới khi có join thật ở Task 8). Ghi đè bằng ?runners=N khi debug
+  sampleRunners: 30,
   runnerHeight: 380,        // chiều cao nhân vật tại s = 1
+  startRowGap: 12,          // khoảng cách giữa các hàng ở vạch xuất phát
+  topNamesShown: 3,         // camera chính chỉ hiện tên top N
+  avatarTimeoutSeconds: 8,
+
+  // Hành vi tự đổi làn "sống động" khi đường phía trước thoáng
+  wanderInterval: [3, 8],   // [min, max] giây giữa hai lần cân nhắc đổi làn
+  laneChangeSmooth: 4,      // độ mượt khi trượt sang làn khác
 
   // Camera cận
   maxCloseCams: 4,
