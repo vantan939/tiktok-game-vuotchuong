@@ -1,0 +1,97 @@
+import { CONFIG } from '../config.js';
+import { STR } from '../strings.js';
+
+export const GIFTS = [
+  { giftName: 'Hoa hồng', diamonds: 1 },
+  { giftName: 'Bắn tim', diamonds: 5 },
+  { giftName: 'Kem', diamonds: 10 },
+  { giftName: 'Gấu bông', diamonds: 99 },
+  { giftName: 'Sư tử', diamonds: 29999 },
+];
+
+// Nguồn sự kiện giả lập (?demo=1): 40 người dùng giả tự join, gõ s, thả tim, tặng quà.
+// Logic thuần, không phụ thuộc Phaser. "join" và "s" được phát dưới dạng bình luận (chat),
+// giống TikTok thật vì người xem gõ chữ vào ô bình luận.
+export class DemoSource {
+  constructor(bus, random = Math.random) {
+    this.bus = bus;
+    this.random = random;
+    this.timers = new Set();
+    this.users = STR.demoNames.slice(0, CONFIG.demoUserCount).map((nickname, i) => ({
+      userId: `demo_${i + 1}`,
+      nickname,
+      avatarUrl: '',
+      joined: false,
+    }));
+  }
+
+  start() {
+    // Mỗi người join lệch nhau để mô phỏng người xem vào dần
+    this.users.forEach((u) => {
+      this.after(this.rand(0.3, CONFIG.demoJoinSpreadSeconds), () => this.chat(u, 'join'));
+    });
+    this.loop(CONFIG.demoSComment, (u) => this.chat(u, 's'));
+    this.loop(CONFIG.demoLike, (u) => this.like(u, 1 + Math.floor(this.random() * CONFIG.demoLikeMax)));
+    this.loop(CONFIG.demoGift, (u) => this.gift(u, this.pick(GIFTS)));
+  }
+
+  stop() {
+    this.timers.forEach(clearTimeout);
+    this.timers.clear();
+  }
+
+  /** Tìm người dùng theo tên (không phân biệt hoa thường), chưa có thì tạo mới. Dùng cho panel debug. */
+  userByName(name) {
+    const key = name.trim().toLowerCase();
+    let user = this.users.find((u) => u.nickname.toLowerCase() === key);
+    if (!user) {
+      user = { userId: `custom_${key}`, nickname: name.trim(), avatarUrl: '', joined: false };
+      this.users.push(user);
+    }
+    return user;
+  }
+
+  // Các hàm phát sự kiện, panel debug gọi trực tiếp
+  chat(user, text) {
+    if (text === 'join') user.joined = true;
+    this.bus.emit({ type: 'chat', ...this.base(user), text });
+  }
+
+  like(user, likeCount = 1) {
+    this.bus.emit({ type: 'like', ...this.base(user), likeCount });
+  }
+
+  gift(user, gift = GIFTS[0]) {
+    this.bus.emit({ type: 'gift', ...this.base(user), ...gift });
+  }
+
+  base(u) {
+    return { userId: u.userId, nickname: u.nickname, avatarUrl: u.avatarUrl };
+  }
+
+  // Lặp vô hạn: mỗi lần chọn ngẫu nhiên một người đã join, rồi hẹn lần sau
+  loop([minSec, maxSec], action) {
+    const tick = () => {
+      const joined = this.users.filter((u) => u.joined);
+      if (joined.length) action(this.pick(joined));
+      this.after(this.rand(minSec, maxSec), tick);
+    };
+    this.after(this.rand(minSec, maxSec) + CONFIG.demoWarmupSeconds, tick);
+  }
+
+  after(seconds, fn) {
+    const id = setTimeout(() => {
+      this.timers.delete(id);
+      fn();
+    }, seconds * 1000);
+    this.timers.add(id);
+  }
+
+  rand(min, max) {
+    return min + this.random() * (max - min);
+  }
+
+  pick(list) {
+    return list[Math.floor(this.random() * list.length)];
+  }
+}
