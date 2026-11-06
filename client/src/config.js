@@ -16,6 +16,27 @@ export const CONFIG = {
   trackLength: 5500,
   lanes: 3,
 
+  // Đường đua: hiển thị (px tính tại tỉ lệ phối cảnh s = 1, tức mép dưới màn hình)
+  horizonY: 634,            // đường chân trời
+  roadHalfWidth: 495,       // nửa bề rộng mặt đường
+  curbWidth: 70,            // dải viền hồng/vàng hai bên
+  segmentLength: 16,        // chiều dài một đoạn kẻ sọc (đơn vị đường đua)
+  laneDashSegments: [2, 4], // vạch kẻ làn: [số đoạn sáng, chu kỳ]
+  minDrawScale: 0.03,       // xa hơn mức này thì không vẽ nữa
+  maxSegments: 260,
+  gatePillarHeight: 380,
+  gateArcHeight: 330,
+
+  // Camera chính: nhân vật cuối ở tỉ lệ cameraBackScale, người đầu ở cameraFarScale khi đoàn dàn dài
+  cameraBackScale: 0.6,
+  cameraFarScale: 0.25,
+  cameraMinFocal: 110,      // nhỏ nhất = zoom gần nhất; càng lớn càng zoom xa
+  cameraSmooth: 6,          // độ mượt (lớn = bám nhanh)
+
+  // Nhân vật mẫu (Task 4). Ghi đè bằng ?runners=N khi debug
+  sampleRunners: 1,
+  runnerHeight: 380,        // chiều cao nhân vật tại s = 1
+
   // Camera cận
   maxCloseCams: 4,
 
