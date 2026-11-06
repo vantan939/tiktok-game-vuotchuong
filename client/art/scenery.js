@@ -58,11 +58,11 @@ export function cloudSvg(variant = 0) {
 /** Dãy núi tím xanh nhiều lớp, sương mờ chân núi. 1080x420. */
 export function mountainsSvg() {
   const defs = `
-    ${vGrad('far', '#9fb4ff', '#c6c6ff')}
-    ${vGrad('mid', '#8a7cf2', '#b09af8')}
-    ${vGrad('near', '#6c5ce0', '#9a84f4')}
+    ${vGrad('far', '#7fb0ff', '#bcd9ff')}
+    ${vGrad('mid', '#6f9bff', '#a8c4ff')}
+    ${vGrad('near', '#6a8cf5', '#9db6ff')}
     <linearGradient id="mist" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#cfe6ff" stop-opacity="0"/><stop offset="1" stop-color="#d8e6ff" stop-opacity="0.95"/>
+      <stop offset="0" stop-color="#afd4ff" stop-opacity="0"/><stop offset="1" stop-color="#b9dcff" stop-opacity="0.95"/>
     </linearGradient>
     ${blur('b8', 8)}`;
   const peaks = (seed, base, amp, step) => {

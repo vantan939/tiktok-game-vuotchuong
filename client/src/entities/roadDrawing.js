@@ -2,12 +2,12 @@ import { CONFIG } from '../config.js';
 import { MAIN_VIEWPORT, laneWidthPx, scaleAt, screenY } from '../systems/Projection.js';
 
 const COLORS = {
-  ground: [0x8a78f5, 0x9283f8],
-  road: [0x3c58e6, 0x4a67f0],
+  ground: [0xb24df0, 0xc05cf6],
+  road: [0x3a62f2, 0x4872ff],
   curb: [0xff4fa8, 0xffc21a],
   laneLine: 0xffffff,
-  roadBase: 0x3c58e6,
-  groundBase: 0x8a78f5,
+  roadBase: 0x3a62f2,
+  groundBase: 0xb24df0,
 };
 
 export function quad(g, color, x1, y1, x2, y2, x3, y3, x4, y4, alpha = 1) {
@@ -72,7 +72,7 @@ export function drawRoad(g, cam, vp = MAIN_VIEWPORT, { maxSegments = CONFIG.maxS
       quad(g, COLORS.road[p], cx - rNear, yN, cx - rFar, yFar, cx + rFar, yFar, cx + rNear, yN);
       // Độ bóng nhẹ: dải sáng ở giữa đường, sáng dần về phía gần
       const sheenW = 0.62;
-      quad(g, 0xffffff, cx - rNear * sheenW, yN, cx - rFar * sheenW, yFar, cx + rFar * sheenW, yFar, cx + rNear * sheenW, yN, 0.07 + 0.05 * sNear);
+      quad(g, 0xffffff, cx - rNear * sheenW, yN, cx - rFar * sheenW, yFar, cx + rFar * sheenW, yFar, cx + rNear * sheenW, yN, 0.025 + 0.03 * sNear);
       // Vệt sáng sát mép đường (phản chiếu viền neon)
       quad(g, 0xbfe6ff, cx - rNear, yN, cx - rFar, yFar, cx - rFar + (rFar * 0.03), yFar, cx - rNear + (rNear * 0.03), yN, 0.22);
       quad(g, 0xbfe6ff, cx + rNear - (rNear * 0.03), yN, cx + rFar - (rFar * 0.03), yFar, cx + rFar, yFar, cx + rNear, yN, 0.22);

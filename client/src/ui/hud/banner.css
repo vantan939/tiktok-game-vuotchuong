@@ -1,10 +1,10 @@
 /* Banner tiêu đề (khung 1080x1920): y 40 đến 290 (khoảng 2 đến 15% chiều cao), canh giữa. */
 
-.banner { left: 210px; top: 40px; width: 660px; height: 250px; transform-origin: 50% 75%; animation: breathe 3.6s ease-in-out infinite; }
+.banner { left: 190px; top: 34px; width: 700px; height: 256px; transform-origin: 50% 75%; animation: breathe 3.6s ease-in-out infinite; }
 
 /* Tấm nền: tím đậm, viền neon hồng ngoài và tím trong, thêm vành trắng mảnh bên trong */
 .banner__plate {
-  left: 14px; top: 74px; width: 632px; height: 170px; border-radius: 52px; transform: skewX(-5deg);
+  left: 24px; top: 80px; width: 652px; height: 166px; border-radius: 54px; transform: skewX(-7deg);
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   animation: neon 3.6s ease-in-out infinite;
 }
@@ -12,8 +12,8 @@
 .banner__plate .title-text { transform: skewX(1.5deg); } /* chữ vẫn nghiêng nhẹ như mockup, không bị méo hai lần */
 
 /* Hai dòng chữ nổi khối: lớp sau là viền dày và các bậc đổ bóng tạo độ dày, lớp trước là gradient có vệt sáng mép trên */
-.banner__l1 { font-size: 62px; margin-top: -10px; --stroke-w: 18px; letter-spacing: 2px; }
-.banner__l2 { font-size: 67px; margin-top: 0; --stroke-w: 19px; letter-spacing: -1.5px; }
+.banner__l1 { font-size: 66px; margin-top: -12px; --stroke-w: 19px; letter-spacing: 2px; }
+.banner__l2 { font-size: 78px; margin-top: 0; --stroke-w: 19px; letter-spacing: -1.5px; }
 .banner__l1::before {
   --stroke: #1638b8;
   text-shadow: 0 3px 0 #1b47c9, 0 6px 0 #153aa6, 0 9px 0 #0f2a8a, 0 12px 10px rgba(2, 8, 60, .6), 0 0 14px rgba(90, 170, 255, .55);
@@ -23,15 +23,16 @@
   text-shadow: 0 3px 0 #b34a00, 0 6px 0 #9a3e00, 0 9px 0 #7f3200, 0 12px 0 #612600, 0 16px 14px rgba(20, 4, 40, .6), 0 0 32px rgba(255, 150, 30, .85);
 }
 .banner__l1 > span, .banner__l2 > span { filter: drop-shadow(0 -2px 0 rgba(255, 255, 255, .85)); }
+.banner__plate .title-text { filter: drop-shadow(0 0 3px #fff) drop-shadow(0 0 11px rgba(255, 61, 166, .95)); }
 
 /* Cờ ca-rô hai bên, nghiêng ra ngoài, vẫy nhẹ */
-.banner__flag { width: 96px; height: 166px; top: 4px; }
+.banner__flag { width: 92px; height: 160px; top: 22px; }
 .banner__flag svg, .banner__crown svg, .banner__spark svg { width: 100%; height: 100%; }
-.banner__flag--l { left: -34px; transform: rotate(-18deg) scaleX(-1); transform-origin: 14% 96%; animation: wave-l 2.6s ease-in-out infinite; }
-.banner__flag--r { right: -34px; transform: rotate(18deg); transform-origin: 14% 96%; animation: wave-r 2.6s ease-in-out infinite .4s; }
+.banner__flag--l { left: 6px; transform: rotate(-18deg) scaleX(-1); transform-origin: 14% 96%; animation: wave-l 2.6s ease-in-out infinite; }
+.banner__flag--r { right: 6px; transform: rotate(18deg); transform-origin: 14% 96%; animation: wave-r 2.6s ease-in-out infinite .4s; }
 
 /* Vương miện vàng ở trên, đậu lên mép tấm nền */
-.banner__crown { left: 50%; top: -10px; width: 150px; height: 110px; margin-left: -75px; filter: drop-shadow(0 8px 10px rgba(60, 20, 0, .6)) drop-shadow(0 0 16px rgba(255, 200, 60, .65)); animation: bob 2.6s ease-in-out infinite; }
+.banner__crown { left: 50%; top: -6px; width: 136px; height: 100px; margin-left: -68px; filter: drop-shadow(0 8px 10px rgba(60, 20, 0, .6)) drop-shadow(0 0 16px rgba(255, 200, 60, .65)); animation: bob 2.6s ease-in-out infinite; }
 
 /* Vệt sáng lướt qua và ánh sao */
 .banner__shine { left: 40px; top: 84px; width: 580px; height: 30px; border-radius: 30px; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .4), transparent); filter: blur(6px); transform: skewX(-5deg); animation: sheen 4.5s ease-in-out infinite; }

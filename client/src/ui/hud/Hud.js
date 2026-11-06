@@ -72,7 +72,7 @@ export class Hud {
 
     // TOP 10
     this.top10List = el('div', 'top10__list');
-    const top10 = createFrame({ variant: 'blue', className: 'top10', rect: { x: 754, y: 416, w: 316, h: 538 } });
+    const top10 = createFrame({ variant: 'blue', className: 'top10', rect: { x: 730, y: 416, w: 340, h: 556 } });
     const head = el('div', 'top10__head');
     head.append(el('div', 'crown', iconSvg('crown')), el('div', 'top10__title', H.top10));
     top10.append(head, this.top10List);

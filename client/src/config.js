@@ -20,8 +20,9 @@ export const CONFIG = {
 
   // Đường đua: hiển thị (px tính tại tỉ lệ phối cảnh s = 1, tức mép dưới màn hình)
   horizonY: 634,            // đường chân trời
-  roadHalfWidth: 495,       // nửa bề rộng mặt đường
-  curbWidth: 70,            // dải viền hồng/vàng hai bên
+  roadHalfWidth: 800,       // nửa bề rộng mặt đường (px tại s = 1)
+  designRoadHalfWidth: 495, // bề rộng đường mà kích thước chướng ngại, viền, vạch làn được thiết kế theo (để co theo unit)
+  curbWidth: 44,            // dải viền hồng/vàng hai bên
   segmentLength: 16,        // chiều dài một đoạn kẻ sọc (đơn vị đường đua)
   laneDashSegments: [2, 4], // vạch kẻ làn: [số đoạn sáng, chu kỳ]
   minDrawScale: 0.03,       // xa hơn mức này thì không vẽ nữa
@@ -37,7 +38,8 @@ export const CONFIG = {
 
   // Nhân vật mẫu (tới khi có join thật ở Task 8). Ghi đè bằng ?runners=N khi debug
   sampleRunners: 30,
-  runnerHeight: 380,        // chiều cao nhân vật tại s = 1
+  runnerHeight: 560,        // chiều cao nhân vật tại s = 1
+  closeCamRunnerHeight: 380, // chiều cao nhân vật trong cửa sổ camera cận (px tại s = 1, trước khi nhân unit)
   startRowGap: 12,          // khoảng cách giữa các hàng ở vạch xuất phát
   topNamesShown: 3,         // camera chính chỉ hiện tên top N
   avatarTimeoutSeconds: 8,
@@ -49,7 +51,7 @@ export const CONFIG = {
   // Camera cận (lệnh s)
   maxCloseCams: 4,
   closeCamSeconds: 30,      // tự tắt sau bấy lâu để không chiếm chỗ; 0 = không tự tắt
-  closeCamWindow: { x: 754, y: 975, w: 316, h: 172, gap: 12 }, // cửa sổ đầu tiên (px khung 1080x1920), các cửa sổ sau xếp dọc xuống
+  closeCamWindow: { x: 730, y: 990, w: 340, h: 168, gap: 12 }, // cửa sổ đầu tiên (px khung 1080x1920), các cửa sổ sau xếp dọc xuống
   closeCamFocal: 55,        // nhỏ = zoom gần
   closeCamBackScale: 0.8,   // tỉ lệ phối cảnh của nhân vật được theo dõi
   closeCamHorizon: 0.3,     // chân trời ở bấy nhiêu phần chiều cao cửa sổ

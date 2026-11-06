@@ -1,6 +1,6 @@
 {
  "scale": 2,
- "sourceHash": "386f75c1",
+ "sourceHash": "83a5e040",
  "textures": [
   {
    "image": "atlas0.png",
@@ -264,7 +264,7 @@
      }
     },
     {
-     "filename": "balloon_blue",
+     "filename": "balloon_lilac",
      "rotated": false,
      "trimmed": false,
      "sourceSize": {

@@ -6,7 +6,7 @@ import { MAIN_VIEWPORT, scaleAt, screenY } from '../systems/Projection.js';
 // Vẽ bằng Graphics theo phối cảnh (mỗi khối 3 mặt: sườn hướng vào đường, mặt gần, mặt trên), từ xa tới gần.
 // Mọi thứ sinh theo công thức từ chỉ số đoạn nên cố định, không tốn bộ nhớ và không nhấp nháy khi camera chạy.
 
-const PALETTE = ['#ff5fb0', '#45e0d0', '#8a5cff', '#6fb4ff', '#ffd23a', '#ff8a5c'].map((c) => ({
+const PALETTE = ['#ff4fa8', '#d94bff', '#8a5cff', '#3fe0e8', '#5aa9ff', '#ff6fb8'].map((c) => ({
   base: parseInt(c.slice(1), 16),
   top: parseInt(light(c, 0.38).slice(1), 16),
   side: parseInt(dark(c, 0.28).slice(1), 16),
@@ -58,7 +58,7 @@ export function drawRoadside(g, cam, vp = MAIN_VIEWPORT, { maxSegments = CONFIG.
       const color = PALETTE[Math.floor(r(1) * PALETTE.length)];
       const gap = (14 + r(2) * 46) * unit;
       const width = (150 + r(3) * 190) * unit;
-      const height = (60 + r(4) * 210) * unit;
+      const height = (28 + r(4) * 110) * unit;
       const xi = inner0 + gap;
       const xo = xi + width;
       const X = (a, s) => cx + side * a * s;

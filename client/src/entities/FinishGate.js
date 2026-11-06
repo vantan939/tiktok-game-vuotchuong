@@ -10,9 +10,9 @@ const FLAG_HEIGHT = 380; // chiều cao cờ ngoài thế giới (px tại s = 1
 // (xa hơn minDrawScale thì tự ẩn). Co giãn theo phối cảnh.
 export class FinishGate {
   constructor(scene) {
-    this.gate = scene.add.image(0, 0, ATLAS, 'gate').setOrigin(0.5, GATE_BASE_Y).setDepth(2).setVisible(false);
+    this.gate = scene.add.image(0, 0, ATLAS, 'gate').setOrigin(0.5, GATE_BASE_Y).setDepth(3).setVisible(false);
     this.flags = [-1, 1].map((side) =>
-      scene.add.image(0, 0, ATLAS, 'flag').setOrigin(0.09, 0.98).setFlipX(side < 0).setDepth(2).setVisible(false),
+      scene.add.image(0, 0, ATLAS, 'flag').setOrigin(0.09, 0.98).setFlipX(side < 0).setDepth(3).setVisible(false),
     );
   }
 

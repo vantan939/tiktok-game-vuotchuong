@@ -123,7 +123,7 @@ export class CloseCamPanel {
       if (s < ROAD_MIN_SCALE || s > 1.4 || used >= sprites.length) return;
       const sprite = sprites[used++];
       sprite.set(r);
-      const k = (CONFIG.runnerHeight / TEX_H) * s * vp.unit;
+      const k = (CONFIG.closeCamRunnerHeight / TEX_H) * s * vp.unit;
       const clock = manager.now;
       let hop = Math.abs(Math.sin(clock * 14 + r.skinIndex)) * 18 * k;
       let wobble = 0;
@@ -137,7 +137,7 @@ export class CloseCamPanel {
       sprite.shadow.y = SHADOW_Y + hop / k;
       if (r === target) {
         // Mũi tên vàng đánh dấu người đang theo dõi
-        const top = y - hop - CONFIG.runnerHeight * s * vp.unit - 6;
+        const top = y - hop - CONFIG.closeCamRunnerHeight * s * vp.unit - 6;
         marker.setVisible(true).setPosition(x, top - 8 + Math.sin(manager.now * 6) * 3);
       }
     };

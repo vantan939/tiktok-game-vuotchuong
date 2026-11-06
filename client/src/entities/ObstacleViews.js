@@ -4,7 +4,7 @@ import { hammerLift, hammerPhaseAt, spikeDist } from '../systems/Obstacles.js';
 import { MAIN_VIEWPORT, laneCenter, laneWidthPx, project, screenX, screenY, scaleAt } from '../systems/Projection.js';
 
 const HEAD_H = 150;
-const LIFT_PX = 560; // độ cao đầu búa khi nâng hết cỡ (px tại s = 1)
+const LIFT_PX = 330; // độ cao đầu búa khi nâng hết cỡ (px tại s = 1)
 
 // Vẽ búa đập và cầu gai. Dùng pool view cố định: mỗi frame gán cho các chướng ngại gần camera nhất.
 // Vùng đỏ cảnh báo vẽ trên mặt đường bằng một Graphics chung.
@@ -29,7 +29,7 @@ export class ObstacleViews {
   makeView() {
     const { scene } = this;
     const shadow = scene.add.image(0, 0, ATLAS, 'shadow').setScale(ART * 1.1);
-    const handle = scene.add.image(0, 0, ATLAS, 'hammer_handle').setOrigin(0.5, 1).setScale(ART);
+    const handle = scene.add.image(0, 0, ATLAS, 'hammer_handle').setOrigin(0.5, 1).setScale(ART, ART * 0.5);
     const head = scene.add.image(0, 0, ATLAS, 'hammer_head').setOrigin(0.5, 1).setScale(ART);
     const ball = scene.add.image(0, 0, ATLAS, 'spike_ball').setOrigin(0.5, 0.88).setScale(ART);
     const root = scene.add.container(0, 0, [shadow, handle, head, ball]).setVisible(false);

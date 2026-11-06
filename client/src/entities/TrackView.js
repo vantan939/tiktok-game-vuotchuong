@@ -8,7 +8,7 @@ import { FinishGate } from './FinishGate.js';
 // Khinh khí cầu và mây trên trời: [khung, x, y, độ rộng hiển thị, độ trôi, pha]
 const BALLOONS = [
   ['balloon_pink', 830, 100, 96, 8, 0],
-  ['balloon_blue', 950, 200, 132, 10, 1.7],
+  ['balloon_lilac', 950, 200, 132, 10, 1.7],
   ['balloon_purple', 165, 235, 104, 9, 3.1],
   ['balloon_pink', 690, 520, 56, 6, 4.4],
 ];
@@ -35,6 +35,7 @@ export class TrackView {
     this.road = scene.add.graphics().setDepth(1);
     this.gate = new FinishGate(scene);
     this.makeFog();
+    this.makeEdgeGlow();
   }
 
   makeSky() {
@@ -68,14 +69,34 @@ export class TrackView {
       const tex = scene.textures.createCanvas('fog', 4, H);
       const ctx = tex.getContext();
       const grad = ctx.createLinearGradient(0, 0, 0, H);
-      grad.addColorStop(0, 'rgba(214,226,255,0)');
-      grad.addColorStop(0.46, 'rgba(214,226,255,0.9)');
-      grad.addColorStop(1, 'rgba(214,226,255,0)');
+      grad.addColorStop(0, 'rgba(175,212,255,0)');
+      grad.addColorStop(0.46, 'rgba(175,212,255,0.5)');
+      grad.addColorStop(1, 'rgba(175,212,255,0)');
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, 4, H);
       tex.refresh();
     }
     scene.add.image(0, CONFIG.horizonY - H * 0.46, 'fog').setOrigin(0).setDisplaySize(CONFIG.width, H).setDepth(2.5);
+  }
+
+  // Quầng sáng hồng tím dọc hai mép dưới màn hình, như mockup
+  makeEdgeGlow() {
+    const { scene } = this;
+    const W = 340;
+    if (!scene.textures.exists('edgeglow')) {
+      const tex = scene.textures.createCanvas('edgeglow', W, 4);
+      const ctx = tex.getContext();
+      const grad = ctx.createLinearGradient(0, 0, W, 0);
+      grad.addColorStop(0, 'rgba(255,70,200,0.55)');
+      grad.addColorStop(0.5, 'rgba(190,80,255,0.2)');
+      grad.addColorStop(1, 'rgba(160,80,255,0)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, W, 4);
+      tex.refresh();
+    }
+    const top = CONFIG.horizonY + 420;
+    scene.add.image(0, top, 'edgeglow').setOrigin(0).setDisplaySize(W, CONFIG.height - top).setDepth(1.2);
+    scene.add.image(CONFIG.width, top, 'edgeglow').setOrigin(1, 0).setFlipX(true).setDisplaySize(W, CONFIG.height - top).setDepth(1.2);
   }
 
   draw(cam, clock = 0) {

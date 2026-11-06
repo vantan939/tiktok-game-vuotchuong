@@ -8,7 +8,7 @@ import { CONFIG } from '../config.js';
 // unit là hệ số so với màn hình chính, dùng để co kích thước nhân vật, chướng ngại, nét vẽ cho vừa khung.
 
 export function makeViewport({ w, h, horizonY, roadHalfWidth }) {
-  return { w, h, cx: w / 2, horizonY, roadHalfWidth, unit: roadHalfWidth / CONFIG.roadHalfWidth };
+  return { w, h, cx: w / 2, horizonY, roadHalfWidth, unit: roadHalfWidth / CONFIG.designRoadHalfWidth };
 }
 
 export const MAIN_VIEWPORT = makeViewport({

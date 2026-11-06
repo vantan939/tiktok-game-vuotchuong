@@ -24,9 +24,9 @@ export function allAssets() {
   list.push(entry('flag', flagSvg()));
   list.push(entry('gate', gateSvg(), { text: { value: 'ĐÍCH', x: 500, y: 82, size: 98, color: '#ffffff', stroke: '#7a1200' } }));
   for (const [name, svg] of Object.entries(iconList())) list.push(entry(`icon_${name}`, svg));
-  list.push(entry('balloon_pink', balloonSvg(['#ff5fa8', '#ffe3f0'])));
-  list.push(entry('balloon_blue', balloonSvg(['#5aa9ff', '#fff3a8'])));
-  list.push(entry('balloon_purple', balloonSvg(['#a46bff', '#ffd0f0'])));
+  list.push(entry('balloon_pink', balloonSvg(['#ff5fa8', '#ffffff'])));
+  list.push(entry('balloon_lilac', balloonSvg(['#ff7ec0', '#f3e6ff'])));
+  list.push(entry('balloon_purple', balloonSvg(['#e86bd8', '#fff0fb'])));
   list.push(entry('cloud_0', cloudSvg(0)));
   list.push(entry('cloud_1', cloudSvg(1)));
   list.push(entry('cloud_2', cloudSvg(2)));

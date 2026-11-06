@@ -12,12 +12,15 @@ import { createHudRoot } from '../ui/hud/root.js';
 import { Hud } from '../ui/hud/Hud.js';
 import { GiftBanner, NameTags, RoundOverlay, Toasts } from '../ui/hud/Overlays.js';
 import { buildHudModel } from '../systems/HudModel.js';
+import { isMock } from '../systems/mockData.js';
+import { applyMock, mockHudModel, seedMockLobby } from './mockMode.js';
 import { joinMessage } from '../systems/JoinMessage.js';
 import { camMessage } from '../systems/CamMessage.js';
 import { CloseCams } from '../systems/CloseCams.js';
 import { CloseCamPanel } from '../ui/CloseCamPanel.js';
 import { LikeBoost } from '../systems/LikeBoost.js';
 import { Hearts } from '../entities/Hearts.js';
+import { SpeedRays } from '../entities/SpeedRays.js';
 import { GiftBoost } from '../systems/GiftBoost.js';
 import { shortName } from '../systems/JoinMessage.js';
 import { CommandRouter } from '../systems/CommandRouter.js';
@@ -48,29 +51,34 @@ export class RaceScene extends Phaser.Scene {
     this.views = new Map(); // nhân vật -> hình
 
     // Tham số debug trên URL: ?players=N (người thật giả lập), ?start=N (xuất phát gần đích),
-    // ?speed=N (chạy nhanh N lần), ?round=N (độ dài lượt, giây), ?hold=result (dừng ở trạng thái đó sau 3 giây để xem), ?avatars=1 (thử avatar), ?bots=N (số người tối thiểu, còn lại thiếu thì bot), ?perf=1 (in thời gian vẽ)
+    // ?speed=N (chạy nhanh N lần), ?round=N (độ dài lượt, giây), ?hold=result (dừng ở trạng thái đó sau 3 giây để xem), ?avatars=1 (thử avatar), ?bots=N (số người tối thiểu, còn lại thiếu thì bot), ?perf=1 (in thời gian vẽ), ?mock=1 (cảnh đóng băng đúng như mockup để so sánh)
     const params = new URLSearchParams(location.search);
     this.perf = params.get('perf') === '1';
     this.perfAcc = { n: 0, draw: 0, frame: 0 };
     this.speed = Math.max(1, Number(params.get('speed')) || 1);
     this.hold = params.get('hold');
+    this.mock = null; // được đặt khi ?mock=1
+    this.mockScale = new Map(); // nhân vật -> hệ số kích thước phụ (chỉ ở ?mock=1)
+    const mockOn = isMock();
 
     RacerView.makeSharedTextures(this);
     this.effects = new Effects(this);
     this.hearts = new Hearts(this);
+    this.rays = new SpeedRays(this);
     this.obstacleViews = new ObstacleViews(this, (x, y, s) => this.onHammerImpact(x, y, s));
     this.debug = new DebugOverlay(this);
     this.resultFx = new ResultFx(this);
 
     // HUD và các lớp chữ là HTML/CSS đặt chồng lên canvas
     const hudRoot = createHudRoot();
+    this.nameTags = new NameTags(hudRoot, 4);
     this.hud = new Hud(hudRoot);
     this.hudTimer = 0;
-    this.nameTags = new NameTags(hudRoot);
 
     // Người thật giả lập cho tới khi có join thật (Task 8); không có thì toàn bot
     const botFillTo = params.has('bots') ? Number(params.get('bots')) : CONFIG.botFillTo; // ?bots=N: ít bot hơn cho dễ nhìn
     this.lobby = new Lobby({ cfg: { ...CONFIG, botFillTo }, botNames: STR.demoNames });
+    if (mockOn) seedMockLobby(this.lobby);
     const useAvatars = params.get('avatars') === '1';
     for (let i = 0; i < (Number(params.get('players')) || 0); i++) {
       this.lobby.join({
@@ -95,6 +103,7 @@ export class RaceScene extends Phaser.Scene {
     this.giftBoost = new GiftBoost(this.manager);
     this.giftBanner = new GiftBanner(hudRoot);
     this.manager.begin();
+    if (mockOn) applyMock(this);
 
     // Lệnh từ bình luận: join (vào đua) và s (bật/tắt camera cận của chính mình)
     const bus = this.registry.get('bus');
@@ -151,9 +160,9 @@ export class RaceScene extends Phaser.Scene {
   update(_time, delta) {
     const dt = Math.min(delta / 1000, 0.05);
     const held = this.hold && this.manager.state === this.hold && this.manager.stateTime >= 3;
-    if (!held) for (let i = 0; i < this.speed; i++) this.manager.update(dt);
+    if (!held && !this.mock) for (let i = 0; i < this.speed; i++) this.manager.update(dt);
 
-    this.camera.update(this.collectDists(), dt);
+    if (!this.mock) this.camera.update(this.collectDists(), dt);
     const t0 = this.perf ? performance.now() : 0;
     this.track.draw(this.camera, this.manager.now);
     this.obstacleViews.update(this.manager.field, this.camera, this.manager.now);
@@ -180,6 +189,7 @@ export class RaceScene extends Phaser.Scene {
     const m = this.manager;
     const racing = m.state === 'race' || m.state === 'result';
     this.debug.begin();
+    let rayTarget = null; // người đang boost mạnh và gần camera nhất
     this.racers.forEach((r, i) => {
       this.views.get(r).visible = false;
       const view = this.views.get(r);
@@ -194,15 +204,20 @@ export class RaceScene extends Phaser.Scene {
         return;
       }
       view.setCrown(racing && r.rank === 1);
+      view.extraScale = this.mockScale.get(r);
       view.place(x, y, s, m.now * 14 + i * 1.3, 10 + r.dist / 1000, m.now);
       view.s = s;
+      if (r.boost > 0 && s > 0.3 && (!rayTarget || s > rayTarget.s)) rayTarget = { x, y, s, power: Math.min(1, r.boost / 0.5) };
       this.debug.racer(r, this.camera, x, y, s);
     });
+
+    this.rays.update(rayTarget, m.now);
 
     // Nhãn tên chỉ cho top N khi đang đua
     let tags = 0;
     if (racing) {
-      for (const r of m.ranking.slice(0, topNamesShown)) {
+      const tagged = this.mock ? this.racers.filter((r) => this.mock.tagged.includes(r.nickname)) : m.ranking.slice(0, topNamesShown);
+      for (const r of tagged) {
         const view = this.views.get(r);
         if (view?.visible) this.nameTags.show(tags++, r.nickname, view.top.x, view.top.y, view.s);
       }
@@ -215,7 +230,8 @@ export class RaceScene extends Phaser.Scene {
     this.hudTimer += dt;
     if (this.hudTimer < 0.12) return;
     this.hudTimer = 0;
-    this.hud.update(buildHudModel(this.manager, this.lobby, this.closeCams));
+    const model = buildHudModel(this.manager, this.lobby, this.closeCams);
+    this.hud.update(this.mock ? mockHudModel(model) : model);
   }
 
   // Nhận tim: vài trái tim nhỏ bay lên trên đầu nhân vật (vệt tốc độ do RacerView vẽ khi đang boost)

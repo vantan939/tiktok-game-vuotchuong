@@ -115,7 +115,8 @@ export class RacerView {
     this.lastClock = clock;
     const targetGrow = r.shield > 0 && r.gift ? 1 + r.gift.grow : 1;
     this.grow += (targetGrow - this.grow) * (1 - Math.exp(-8 * dt));
-    this.root.setPosition(x, y - hop).setScale(k * squash * this.grow, k * this.grow).setDepth(depth).setAngle(wobble);
+    const mul = this.extraScale ?? 1;
+    this.root.setPosition(x, y - hop).setScale(k * squash * this.grow * mul, k * this.grow * mul).setDepth(depth).setAngle(wobble);
     this.shadow.y = SHADOW_Y + hop / k; // bóng ở lại mặt đường khi nhảy
     this.shadow.setScale(ART * 1.2 * (1 - Math.min(0.4, hop / (k * 600))));
     this.top.x = x;

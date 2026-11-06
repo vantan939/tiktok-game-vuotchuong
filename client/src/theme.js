@@ -11,9 +11,9 @@ export const THEME = {
   },
 
   colors: {
-    skyTop: '#1d6bff',
-    skyMid: '#4aa6ff',
-    skyLow: '#a6d8ff',
+    skyTop: '#0a6bff',
+    skyMid: '#2f9bff',
+    skyLow: '#9bd0ff',
     purple: '#8a4bff',
     violet: '#5b2fd0',
     pink: '#ff3da6',
@@ -51,19 +51,19 @@ export const THEME = {
       top: 'rgba(18, 56, 156, 0.90)',
       bottom: 'rgba(5, 22, 88, 0.94)',
       border: ['#aee6ff', '#3f84ff', '#7a5cff'],
-      glow: 'rgba(72, 156, 255, 0.60)',
+      glow: 'rgba(72, 156, 255, 0.80)',
     },
     purple: {
       top: 'rgba(70, 26, 148, 0.90)',
       bottom: 'rgba(28, 8, 88, 0.94)',
       border: ['#ffb0ee', '#b14dff', '#6a3dff'],
-      glow: 'rgba(192, 84, 255, 0.60)',
+      glow: 'rgba(206, 96, 255, 0.85)',
     },
     gold: {
-      top: 'rgba(255, 222, 70, 1)',
-      bottom: 'rgba(255, 162, 24, 1)',
+      top: 'rgba(255, 204, 0, 1)',
+      bottom: 'rgba(255, 140, 0, 1)',
       border: ['#fff6b0', '#ffb81f', '#ff7a1a'],
-      glow: 'rgba(255, 192, 40, 0.70)',
+      glow: 'rgba(255, 200, 50, 0.95)',
     },
     // Tấm nền tiêu đề: tím đậm, viền hồng neon, vầng sáng hồng
     title: {
