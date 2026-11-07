@@ -106,7 +106,8 @@ export function createClientLogHandler({ log = console.log } = {}) {
     try {
       if (req.method !== 'POST') throw new TtsError(405, 'Chỉ nhận POST');
       const body = await readJson(req);
-      log(`[client] lỗi ${clean(body.source, 40)}: ${clean(body.message, 300)}${body.stack ? ` | ${clean(body.stack, 400)}` : ''}`);
+      if (body.kind === 'info') log(`[game] ${clean(body.message, 500)}`); // trạng thái game để streamer xem trong terminal
+      else log(`[client] lỗi ${clean(body.source, 40)}: ${clean(body.message, 300)}${body.stack ? ` | ${clean(body.stack, 400)}` : ''}`);
       send(res, 204, '', cors);
     } catch (err) {
       send(res, err instanceof TtsError ? err.status : 500, JSON.stringify({ error: 'Lỗi' }), { ...cors, 'Content-Type': 'application/json' });

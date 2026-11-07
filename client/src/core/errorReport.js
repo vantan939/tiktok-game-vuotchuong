@@ -1,4 +1,4 @@
-import { CONFIG } from '../config.js';
+import { serverHttpUrl } from './serverUrl.js';
 
 const REPEAT_MS = 30000; // cùng một lỗi chỉ báo lại sau bấy lâu, tránh tràn log khi lỗi lặp mỗi khung hình
 const last = new Map();
@@ -23,7 +23,7 @@ export function reportError(source, err, now = Date.now(), send = defaultSend) {
 
 function defaultSend(body) {
   if (typeof fetch === 'undefined') return;
-  fetch(`${CONFIG.serverUrl.replace(/^ws/, 'http')}/log`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).catch(() => {});
+  fetch(`${serverHttpUrl()}/log`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).catch(() => {});
 }
 
 /** Bắt cả lỗi không ai xử lý (sự kiện, Promise) của cả trang. */

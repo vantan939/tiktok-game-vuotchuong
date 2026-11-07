@@ -28,6 +28,8 @@ import { Mc } from '../audio/Mc.js';
 import { RemoteVoice } from '../audio/RemoteVoice.js';
 import { NetDot } from '../ui/hud/NetDot.js';
 import { reportError } from '../core/errorReport.js';
+import { serverHttpUrl } from '../core/serverUrl.js';
+import { DebugReporter, describeLobby } from '../core/debugReport.js';
 import { McDirector } from '../systems/McDirector.js';
 import { shortName } from '../systems/JoinMessage.js';
 import { CommandRouter } from '../systems/CommandRouter.js';
@@ -87,11 +89,12 @@ export class RaceScene extends Phaser.Scene {
     this.floatTexts = new FloatTexts(hudRoot); // sau HUD để chữ nổi nằm trên các khung
     this.hudTimer = 0;
     this.fxDirector = new FxDirector(CONFIG);
+    this.debugReporter = this.registry.get('net') && !mockOn ? new DebugReporter() : null;
     this.audio = new AudioEngine();
     if (mockOn || params.get('mute') === '1') this.audio.enabled = false; // ?mock=1 và ?mute=1: im lặng
     // MC dẫn chương trình (giọng đọc của trình duyệt); tắt khi tắt tiếng chung (phím M), ?mc=0 hoặc ?mock=1
     this.mcDirector = new McDirector(CONFIG);
-    const remote = CONFIG.mc.provider === 'browser' ? null : new RemoteVoice({ baseUrl: CONFIG.serverUrl.replace(/^ws/, 'http'), volume: CONFIG.mc.volume, timeoutMs: CONFIG.mc.remoteTimeoutMs });
+    const remote = CONFIG.mc.provider === 'browser' ? null : new RemoteVoice({ baseUrl: serverHttpUrl(), volume: CONFIG.mc.volume, timeoutMs: CONFIG.mc.remoteTimeoutMs });
     this.mc = new Mc(CONFIG.mc, { isMuted: () => !this.audio.enabled, remote });
     if (!mockOn) this.mc.init(); // hỏi server có giọng genmax không và tạo sẵn các câu cố định
     if (mockOn || params.get('mc') === '0') this.mc.enabled = false;
@@ -143,6 +146,7 @@ export class RaceScene extends Phaser.Scene {
 
   onJoin(user) {
     const result = this.manager.join(user);
+    this.debugReporter?.event(`join: ${user.nickname} (${user.userId}) -> ${result.status}${result.where ? ` (${result.where})` : ''}${result.late ? ', vào đua từ lượt sau' : ''}${result.queuePosition ? `, hàng đợi số ${result.queuePosition}` : ''}`);
     console.log(`[join] ${user.nickname} (${user.userId}): ${result.status}, đang đua ${this.lobby.players.length}/${CONFIG.maxPlayers} người thật, hàng đợi ${this.lobby.queue.length}`);
     this.toasts.show(joinMessage(result, user.nickname));
     this.refreshHud(); // cập nhật hàng đợi ngay, không chờ vòng lặp game (vòng lặp có thể bị trình duyệt làm chậm khi cửa sổ bị che)
@@ -339,7 +343,14 @@ export class RaceScene extends Phaser.Scene {
     this.refreshHud();
   }
 
+  // Gửi danh sách ai đang đua, ai chờ lượt sau, ai trong hàng đợi về terminal của server (chỉ khi nhận sự kiện từ server)
+  reportLobby() {
+    if (!this.debugReporter) return;
+    this.debugReporter.state(describeLobby({ round: this.manager.round, state: this.manager.state, racers: this.manager.racers, lobby: this.lobby }));
+  }
+
   refreshHud() {
+    this.reportLobby();
     const model = buildHudModel(this.manager, this.lobby, this.closeCams);
     this.hud.update(this.mock ? mockHudModel(model) : model);
   }

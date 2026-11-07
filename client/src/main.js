@@ -10,6 +10,7 @@ import { DemoSource } from './sources/DemoSource.js';
 import { WebSocketSource } from './sources/WebSocketSource.js';
 import { NetStatus } from './systems/NetStatus.js';
 import { liveSize, parseLive } from './liveMode.js';
+import { serverWsUrl } from './core/serverUrl.js';
 import { installGlobalErrorReporting } from './core/errorReport.js';
 import { DebugPanel } from './ui/DebugPanel.js';
 
@@ -53,7 +54,7 @@ async function main() {
     });
     demo.start();
   } else {
-    new WebSocketSource(bus, params.get('server') ?? undefined, { net }).start(); // ?server=ws://host:cổng để trỏ tới server khác
+    new WebSocketSource(bus, serverWsUrl(), { net }).start(); // ?server=ws://host:cổng để trỏ tới server khác
   }
 
   new Phaser.Game({

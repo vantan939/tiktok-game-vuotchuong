@@ -110,3 +110,23 @@ test('POST /log: nhận báo lỗi từ client và in ra, bỏ ký tự xuống 
     await new Promise((r) => server.close(r));
   }
 });
+
+test('POST /log kind=info: in trạng thái game ra terminal với tiền tố [game]', async () => {
+  const { createClientLogHandler } = await import('./routes.js');
+  const lines = [];
+  const handle = createClientLogHandler({ log: (l) => lines.push(l) });
+  const server = createServer(async (req, res) => {
+    if (!(await handle(req, res))) {
+      res.writeHead(404);
+      res.end();
+    }
+  });
+  await new Promise((r) => server.listen(0, r));
+  try {
+    const res = await fetch(`http://127.0.0.1:${server.address().port}/log`, { method: 'POST', body: JSON.stringify({ kind: 'info', message: 'lượt 1 (race) | hàng đợi 1: Nam' }) });
+    assert.equal(res.status, 204);
+    assert.deepEqual(lines, ['[game] lượt 1 (race) | hàng đợi 1: Nam']);
+  } finally {
+    await new Promise((r) => server.close(r));
+  }
+});
