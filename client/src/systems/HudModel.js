@@ -21,6 +21,12 @@ export function isTimeLow(manager, lowSeconds = 10) {
 
 /** Dữ liệu cho HUD (Hud.update) lấy từ trạng thái game. Thuần logic, không đụng DOM. */
 export function buildHudModel(manager, lobby, closeCams, cfg = CONFIG) {
+  // Danh sách chờ hiện ở ô HÀNG ĐỢI gồm cả người đã có suất nhưng vào giữa lượt (đợi lượt sau, late) và hàng đợi thật
+  const onTrack = new Set(manager.racers.map((r) => r.userId));
+  const waiting = [
+    ...lobby.players.filter((p) => !onTrack.has(p.userId)).map((p) => ({ id: p.userId, avatarUrl: p.avatarUrl, late: true })),
+    ...lobby.queue.map((p, i) => ({ id: p.userId, avatarUrl: p.avatarUrl, late: false, n: cfg.maxPlayers + i + 1 })),
+  ];
   return {
     racing: manager.racers.length,
     max: cfg.maxPlayers,
@@ -35,8 +41,8 @@ export function buildHudModel(manager, lobby, closeCams, cfg = CONFIG) {
       percent: progressPercent(r, manager.cfg),
       cam: closeCams.cams.some((c) => c.racer === r), // đang bật camera cận
     })),
-    queueTotal: lobby.queue.length,
-    queueFirst: lobby.queue.slice(0, cfg.queueShown).map((p) => ({ id: p.userId, avatarUrl: p.avatarUrl })),
+    queueTotal: waiting.length,
+    queueFirst: waiting.slice(0, cfg.queueShown),
     queueBase: cfg.maxPlayers,
   };
 }

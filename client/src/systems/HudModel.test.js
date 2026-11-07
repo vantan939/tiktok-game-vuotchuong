@@ -155,3 +155,16 @@ test('cấu hình hiện tại: một lượt 3 người, bảng xếp hạng ch
   assert.equal(model.queueTotal, 5);
   assert.equal(model.queueBase, 3);
 });
+
+test('hàng đợi hiện cả người vào giữa lượt (đã có suất, đợi lượt sau, late) lẫn hàng đợi thật; sang lượt mới thì họ lên đường', () => {
+  const cfg = { ...BIG, maxPlayers: 3, botFillTo: 3 };
+  const { lobby, manager, cams } = setup(cfg);
+  step(manager, () => manager.state === 'race');
+  for (const i of [0, 1, 2, 3]) manager.join({ userId: `u${i}`, nickname: `N${i}`, avatarUrl: '' }); // u0-u2 có suất (vào giữa lượt), u3 xếp hàng
+  const model = buildHudModel(manager, lobby, cams, cfg);
+  assert.equal(model.queueTotal, 4);
+  assert.deepEqual(model.queueFirst.map((q) => [q.id, q.late, q.n]), [['u0', true, undefined], ['u1', true, undefined], ['u2', true, undefined], ['u3', false, 4]]);
+  step(manager, () => manager.round === 2);
+  const next = buildHudModel(manager, lobby, cams, cfg);
+  assert.ok(next.queueFirst.every((q) => !q.late), 'sang lượt mới thì người có suất lên đường, không còn ở ô chờ');
+});

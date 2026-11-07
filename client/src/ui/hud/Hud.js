@@ -176,7 +176,7 @@ export class Hud {
     this.queueMore.style.visibility = m.queueTotal > m.queueFirst.length ? 'visible' : 'hidden'; // còn người phía sau
     this.queueEmpty.style.display = m.queueFirst.length ? 'none' : '';
 
-    const key = m.queueFirst.map((q) => q.id).join('|') + `#${m.queueBase}`;
+    const key = m.queueFirst.map((q) => `${q.id}${q.late ? 'L' : ''}${q.n ?? ''}`).join('|') + `#${m.queueBase}`;
     if (key === this.queueKey) return;
     this.queueKey = key;
 
@@ -191,7 +191,7 @@ export class Hud {
         item = { node, label };
         this.queueItems.set(q.id, item);
       }
-      const text = `#${m.queueBase + i + 1}`;
+      const text = q.late ? '✓' : `#${q.n ?? m.queueBase + i + 1}`; // ✓: đã có suất, vào đua từ lượt sau
       if (item.label.textContent !== text) item.label.textContent = text;
       if (this.queueList.children[i] !== item.node) this.queueList.insertBefore(item.node, this.queueList.children[i] ?? null);
     });
