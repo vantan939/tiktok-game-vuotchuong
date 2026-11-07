@@ -162,8 +162,8 @@ export const CONFIG = {
     leaderHoldSeconds: 1.5,   // người dẫn đầu giữ vị trí bấy lâu mới xướng tên
     nearFinishFraction: 0.88, // người dẫn đầu chạy được bấy nhiêu phần đường thì báo sắp về đích
     // Khoảng nghỉ tối thiểu (giây game) giữa hai câu cùng loại
-    gaps: { welcome: 120, join: 4, leader: 7, dodge: 8, hit: 8, boost: 10 },
-    idleSeconds: 12,          // đang đua mà MC im quá bấy lâu thì nói một câu xen kẽ cho sôi nổi
+    gaps: { welcome: 120, join: 4, leader: 6, dodge: 5, hit: 5, boost: 7 },
+    idleSeconds: 4,           // đang đua mà MC im quá bấy lâu thì nói một câu xen kẽ cho sôi nổi
     topRankCommented: 3,      // bot nằm trong top này cũng được bình luận (né, dính), người thật thì luôn được
     watchdogMs: 25000,        // một câu bị kẹt (không báo xong) quá bấy lâu thì bỏ để MC nói tiếp
   },

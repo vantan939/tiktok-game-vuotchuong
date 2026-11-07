@@ -22,7 +22,7 @@ export class McDirector {
     this.lastAt = new Map(); // loại câu -> lần nói gần nhất (giây game)
     this.round = { nearFinish: false, lastSeconds: false, leader: null, leaderSince: 0, announcedLeader: null };
     this.lastSpoke = -Infinity; // lần gần nhất có câu nào được đưa ra (giây game)
-    this.lastFiller = -1;
+    this.lastFiller = null;
     // Mọi câu đưa ra đều ghi nhận thời điểm, để biết MC đã im bao lâu
     for (const [name, nowIndex] of [['onState', 2], ['onJoin', 1], ['onEvent', 1], ['update', 1]]) {
       const original = this[name].bind(this);
@@ -126,13 +126,16 @@ export class McDirector {
 
   filler(manager) {
     const [first, second] = manager.ranking;
-    if (first && second && this.rng() < 0.4) {
+    if (first && second && this.rng() < 0.25) {
       return { text: this.pick('gap', spokenName(first.nickname), spokenName(second.nickname)), priority: PRIORITY.chatter };
     }
-    const list = STR.mc.filler;
-    let i = Math.floor(this.rng() * list.length);
-    if (i === this.lastFiller) i = (i + 1) % list.length; // không lặp một câu hai lần liền
-    this.lastFiller = i;
-    return { text: list[i](), priority: PRIORITY.chatter };
+    // Câu chung trộn với câu theo chặng đua (đầu, giữa, cuối) của người dẫn đầu
+    const progress = first ? first.dist / this.trackLength : 0;
+    const phase = progress < 0.3 ? STR.mc.fillerEarly : progress < 0.7 ? STR.mc.fillerMid : STR.mc.fillerLate;
+    const list = [...STR.mc.filler, ...phase, ...phase];
+    let text = list[Math.floor(this.rng() * list.length)]();
+    if (text === this.lastFiller) text = list[(list.findIndex((f) => f() === text) + 1) % list.length](); // không lặp một câu hai lần liền
+    this.lastFiller = text;
+    return { text, priority: PRIORITY.chatter };
   }
 }
