@@ -52,6 +52,7 @@ export class FxDirector {
       if (this.allowText(e.racer, now)) cues.push({ kind: 'text', text: STR.fx.stun, tone: 'bad', racer: e.racer });
     } else if (e.type === 'boost') {
       if (e.source === 'gift') {
+        if (e.followUp && !e.tier?.announce) return cues; // nâng cấp cuối chuỗi: đã cảm ơn ở quà đầu, chỉ nhắc lại khi lên bậc lớn
         // Quà luôn được ghi nhận bằng tên người tặng, không bị giới hạn tần suất
         cues.push({ kind: 'text', text: STR.fx.gift(shortName(e.senderName, 12), e.gift.name), tone: 'gift', racer: e.racer });
         cues.push({ kind: 'sound', name: 'gift', volume: e.tier?.announce ? 1 : 0.8 });

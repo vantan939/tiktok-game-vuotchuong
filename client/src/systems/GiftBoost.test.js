@@ -212,3 +212,20 @@ test('GiftBoost: nhận lúc chờ và đếm ngược (hiệu lực khi đua), 
   while (manager.state !== 'result') manager.update(1 / 30);
   assert.equal(giftBoost.handle(gift('u2', 10)), null);
 });
+
+test('GiftBoost: sự kiện nâng cấp cuối chuỗi quà chỉ áp dụng khi lên bậc cao hơn quà đầu chuỗi, không tính hai lần', () => {
+  const { manager, giftBoost } = setup(3);
+  const events = [];
+  manager.addListener((e) => e.type === 'boost' && events.push(e));
+  const mine = manager.racerOf('u0');
+  assert.ok(giftBoost.handle(gift('u0', 1)), 'quà đầu chuỗi (1 kim cương) có hiệu lực ngay');
+  assert.equal(mine.gift, SMALL);
+  // chuỗi dài 5 kim cương: vẫn cùng bậc nhỏ, không áp dụng lại
+  assert.equal(giftBoost.handle({ ...gift('u0', 5), followUp: true, unitDiamonds: 1 }), null);
+  assert.equal(events.length, 1);
+  // chuỗi dài 150 kim cương: lên bậc vừa, áp dụng bậc vừa
+  const res = giftBoost.handle({ ...gift('u0', 150), followUp: true, unitDiamonds: 1 });
+  assert.equal(res.tier, MEDIUM);
+  assert.equal(mine.gift, MEDIUM);
+  assert.equal(events.at(-1).followUp, true);
+});

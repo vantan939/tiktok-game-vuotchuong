@@ -81,7 +81,7 @@ export const CONFIG = {
   likeCooldownSeconds: 0.5,
   likeSpamDecay: 0.8,       // mỗi lần thả liên tục nhân hiệu quả với hệ số này mũ số lần thả gần đây
   likeStreakHalfLife: 5,    // giây để độ "nóng" của spam giảm một nửa
-  likeMaxTapsPerEvent: 5,   // một sự kiện like gộp nhiều lần chạm thì chỉ tính tối đa bấy nhiêu
+  likeMaxTapsPerEvent: 15,  // một sự kiện like gộp nhiều lần chạm thì chỉ tính tối đa bấy nhiêu (TikTok gửi tim theo lô khoảng 15 lần chạm mỗi lần nên phải tính đủ lô)
 
   // Quà: khiên (miễn nhiễm chướng ngại) + tăng tốc mạnh. Phân bậc theo số kim cương, xếp tăng dần.
   // fxScale: độ lớn của ánh sáng và vệt tốc độ; grow: nhân vật phóng to thêm bấy nhiêu; tint: màu ánh sáng;

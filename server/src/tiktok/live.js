@@ -1,4 +1,5 @@
-import { fromChat, fromGift, fromLike, fromMember } from './adapt.js';
+import { fromChat, fromLike, fromMember } from './adapt.js';
+import { GiftStreaks } from './gifts.js';
 import { LikeAggregator } from './likes.js';
 import { parseCommand } from '../../../shared/events.js';
 
@@ -22,6 +23,7 @@ export class TikTokLiveSource {
     now = () => Date.now(), setTimer = (fn, ms) => setTimeout(fn, ms), clearTimer = (t) => clearTimeout(t),
   } = {}) {
     Object.assign(this, { username, emit, onStatus, log, signApiKey, loadConnector, memberDedupeMs, retryMinMs, retryMaxMs, offlineRetryMs, now, setTimer, clearTimer });
+    this.gifts = new GiftStreaks();
     this.likes = new LikeAggregator((e) => this.send(e), { windowMs: likeWindowMs, setTimer, clearTimer });
     this.connection = null;
     this.stopped = false;
@@ -92,7 +94,7 @@ export class TikTokLiveSource {
     };
     connection.on(WebcastEvent.CHAT ?? 'chat', handle('chat', fromChat));
     connection.on(WebcastEvent.LIKE ?? 'like', handle('like', fromLike));
-    connection.on(WebcastEvent.GIFT ?? 'gift', handle('gift', fromGift));
+    connection.on(WebcastEvent.GIFT ?? 'gift', handle('gift', (d) => this.gifts.handle(d)));
     connection.on(WebcastEvent.MEMBER ?? 'member', handle('member', fromMember));
     connection.on(ControlEvent.DISCONNECTED ?? 'disconnected', (info) => {
       this.log(`[tiktok] bị ngắt kết nối${info?.code ? ` (mã ${info.code})` : ''}${info?.reason ? `: ${info.reason}` : ''}`);

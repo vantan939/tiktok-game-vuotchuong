@@ -79,6 +79,7 @@ export class McDirector {
     const gaps = this.cfg.gaps;
     const real = e.racer && !e.racer.isBot;
     if (e.type === 'boost' && e.source === 'gift') {
+      if (e.followUp && !e.tier?.announce) return []; // đã cảm ơn ở quà đầu chuỗi
       const n = spokenName(e.senderName);
       const g = spokenName(e.gift?.name, 20);
       return [{ text: this.pick(e.tier?.announce ? 'gift_large' : 'gift', n, g), priority: PRIORITY.event }];

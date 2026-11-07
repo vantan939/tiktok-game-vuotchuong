@@ -35,6 +35,8 @@ export class GiftBoost {
     if (!racer) return null;
 
     const tier = tierFor(event.diamonds, this.cfg);
+    // Sự kiện nâng cấp cuối chuỗi quà liên hoàn: quà đầu chuỗi đã được áp dụng rồi, chỉ áp dụng lại nếu chuỗi dài làm lên bậc cao hơn
+    if (event.followUp && tierFor(event.unitDiamonds ?? 0, this.cfg).id === tier.id) return null;
     giveGift(racer, tier);
     m.emit({
       type: 'boost',
@@ -44,6 +46,7 @@ export class GiftBoost {
       gift: { name: event.giftName, diamonds: event.diamonds },
       sender: event.userId,
       senderName: event.nickname,
+      followUp: Boolean(event.followUp),
     });
     return { racer, tier };
   }

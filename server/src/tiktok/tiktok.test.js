@@ -84,27 +84,29 @@ function fakeTimers() {
   };
 }
 
-test('LikeAggregator: gộp tim của cùng người trong 1 giây, người khác tách riêng, cửa sổ mới sau khi phát', () => {
+test('LikeAggregator: lần thả đầu phát ngay, các lần sau trong 1 giây gom thành một sự kiện, người khác tách riêng', () => {
   const tm = fakeTimers();
   const out = [];
   const agg = new LikeAggregator((e) => out.push(e), { windowMs: 1000, setTimer: tm.setTimer, clearTimer: tm.clearTimer });
   const like = (userId, n) => ({ type: 'like', userId, nickname: userId, avatarUrl: '', likeCount: n });
+  const summary = () => out.map((e) => [e.userId, e.likeCount]);
   agg.add(like('a', 1));
+  assert.deepEqual(summary(), [['a', 1]], 'báo ngay, không chờ');
   tm.advance(300);
   agg.add(like('a', 3));
   agg.add(like('b', 2));
+  assert.deepEqual(summary(), [['a', 1], ['b', 2]], 'b báo ngay; a đang trong cửa sổ nên gom');
   tm.advance(600);
-  assert.deepEqual(out, [], 'chưa hết cửa sổ');
-  tm.advance(200); // a hết cửa sổ (1000 ms từ lần đầu)
-  assert.deepEqual(out.map((e) => [e.userId, e.likeCount]), [['a', 4]]);
-  tm.advance(400); // b hết cửa sổ (từ 300)
-  assert.deepEqual(out.map((e) => [e.userId, e.likeCount]), [['a', 4], ['b', 2]]);
-  agg.add(like('a', 5)); // cửa sổ mới
-  tm.advance(1000);
-  assert.equal(out.at(-1).likeCount, 5);
-  agg.add(like('c', 1));
+  assert.equal(out.length, 2, 'chưa hết cửa sổ của a');
+  tm.advance(200); // a hết cửa sổ (1000 ms từ lần đầu): phát phần đã gom
+  assert.deepEqual(summary(), [['a', 1], ['b', 2], ['a', 3]]);
+  tm.advance(400); // b hết cửa sổ, không có gì gom thêm nên không phát
+  assert.equal(out.length, 3);
+  agg.add(like('a', 5)); // cửa sổ mới: báo ngay
+  assert.deepEqual(summary().at(-1), ['a', 5]);
+  agg.add(like('a', 2));
   agg.flushAll();
-  assert.equal(out.at(-1).userId, 'c', 'flushAll phát hết phần còn chờ');
+  assert.deepEqual(summary().at(-1), ['a', 2], 'flushAll phát hết phần còn chờ');
 });
 
 test('parseReplay: nhận định dạng ghi ({t, event}) và mảng sự kiện thẳng, bỏ sự kiện sai dạng, xếp theo thời gian', () => {
@@ -202,10 +204,15 @@ test('TikTokLiveSource: chuyển chat, quà, người vào phòng, gộp tim, b�
   c.fire('gift', { user: U, giftDetails: { giftType: 1, giftName: 'Hoa', diamondCount: 1 }, repeatCount: 2, repeatEnd: 0 });
   c.fire('gift', { user: U, giftDetails: { giftType: 1, giftName: 'Hoa', diamondCount: 1 }, repeatCount: 5, repeatEnd: 1 });
   c.fire('chat', { user: {}, comment: 'lỗi người dùng' }); // bị bỏ, không làm hỏng gì
+  // Tim và quà liên hoàn có hiệu lực NGAY ở lần đầu; phần gom và phần nâng cấp đến sau
+  assert.deepEqual(out.map((e) => e.type), ['chat', 'join', 'like', 'gift', 'gift']);
+  assert.equal(out[2].likeCount, 1, 'tim đầu phát ngay');
+  assert.equal(out[3].diamonds, 1, 'quà đầu chuỗi phát ngay với giá trị một quà');
+  assert.equal(out[3].followUp, undefined);
+  assert.deepEqual([out[4].diamonds, out[4].followUp, out[4].unitDiamonds], [5, true, 1], 'cuối chuỗi: tổng giá trị, đánh dấu nâng cấp');
   tm.advance(1000);
-  assert.deepEqual(out.map((e) => e.type), ['chat', 'join', 'gift', 'like']);
-  assert.equal(out.find((e) => e.type === 'like').likeCount, 5);
-  assert.equal(out.find((e) => e.type === 'gift').diamonds, 5);
+  assert.deepEqual(out.map((e) => e.type), ['chat', 'join', 'like', 'gift', 'gift', 'like']);
+  assert.equal(out.at(-1).likeCount, 4, 'các lần thả sau đó được gom phát một lần');
   assert.ok(out.every(isValidEvent));
   src.stop();
   assert.ok(c.disconnected);

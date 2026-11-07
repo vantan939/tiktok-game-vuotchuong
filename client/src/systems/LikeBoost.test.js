@@ -66,7 +66,7 @@ test('giveLike: thả liên tục thì hiệu quả giảm dần, nghỉ thì h�
 test('giveLike: sự kiện gộp nhiều lần chạm chỉ tính tối đa likeMaxTapsPerEvent', () => {
   const a = newRacer();
   const b = newRacer();
-  giveLike(a, 5, 0);
+  giveLike(a, CONFIG.likeMaxTapsPerEvent, 0);
   giveLike(b, 500, 0);
   assert.equal(a.boost, b.boost);
 });

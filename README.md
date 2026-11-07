@@ -35,8 +35,8 @@ Server chuyển sự kiện TikTok sang kiểu chung `GameEvent` (`shared/events
 | TikTok | GameEvent | Ghi chú |
 |---|---|---|
 | `chat` | `{ type: 'chat', text }` | Client chỉ nhận lệnh `join` và `s`, bình luận khác bỏ qua |
-| `like` | `{ type: 'like', likeCount }` | Gộp theo người dùng trong cửa sổ 1 giây (cộng dồn số lần chạm) |
-| `gift` | `{ type: 'gift', giftName, diamonds }` | Quà liên hoàn chỉ tính khi **kết thúc chuỗi**; `diamonds` = kim cương mỗi quà x số lần trong chuỗi |
+| `like` | `{ type: 'like', likeCount }` | Lần thả đầu của một người phát **ngay**; các lần sau trong cửa sổ 1 giây gom thành một sự kiện. TikTok tự gửi tim theo lô (khoảng 15 lần chạm mỗi lần) nên có độ trễ không tránh được ở phía TikTok |
+| `gift` | `{ type: 'gift', giftName, diamonds }` | Quà liên hoàn: sự kiện **đầu chuỗi** phát ngay với giá trị một quà (hiệu lực liền), giữa chuỗi bỏ qua, cuối chuỗi phát thêm một sự kiện `followUp: true` với tổng giá trị (kim cương mỗi quà x số lần) chỉ khi chuỗi dài đủ để lên bậc quà cao hơn; game không tính hai lần |
 | `member` | `{ type: 'join' }` | Người xem vào phòng live. **Không** tự cho vào đua: phải gõ `join` |
 
 Mỗi sự kiện có `userId`, `nickname`, `avatarUrl`. Tên trường của thư viện không chính thức có thể thay đổi giữa các phiên bản nên bộ chuyển đổi (`server/src/tiktok/adapt.js`) chấp nhận cả vài tên trường cũ và mới; nếu một bản thư viện mới đổi hẳn cấu trúc, sửa ở file đó (có test).
