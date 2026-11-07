@@ -57,6 +57,10 @@ export class SpeechQueue {
 //  1. Giọng genmax qua server (nếu server có GENMAX_API_KEY và GENMAX_VOICE_ID trong .env): tự nhiên hơn, tốn credit.
 //  2. Giọng đọc của trình duyệt (Web Speech API): miễn phí, cần giọng tiếng Việt cài trong máy.
 // Dùng nguồn 1 khi có; lỗi từng câu (hết hạn mức, mạng) thì câu đó đọc bằng nguồn 2. Không có nguồn nào thì im lặng.
+// WAV im lặng rất ngắn, dùng để thử xem trình duyệt có cho phát âm thanh không cần bấm gì (cờ --autoplay-policy)
+const SILENT_WAV = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
+const PROBE_EVERY_MS = 2000;
+
 export class Mc {
   constructor(cfg = CONFIG.mc, { isMuted = () => false, remote = null } = {}) {
     this.cfg = cfg;
@@ -66,6 +70,8 @@ export class Mc {
     this.queue = new SpeechQueue(cfg.maxQueue);
     this.voice = null;
     this.remote = remote;
+    this.autoplayOk = false; // đã chắc chắn trình duyệt cho phát âm thanh không cần người bấm
+    this.lastProbe = -Infinity;
     if (this.synth) {
       this.pickVoice();
       this.synth.addEventListener?.('voiceschanged', () => this.pickVoice());
@@ -111,10 +117,37 @@ export class Mc {
     if (!this.voice && this.synth) this.pickVoice();
     if (!this.available) return;
     this.unstick();
-    if (typeof navigator !== 'undefined' && navigator.userActivation && !navigator.userActivation.hasBeenActive) return;
+    if (!this.canPlay()) return;
     for (const line of lines) {
       const action = this.queue.offer(line, performance.now());
       if (action === 'speak') this.speak(line);
+    }
+  }
+
+  // Trình duyệt chỉ cho phát tiếng sau khi người dùng bấm vào trang, TRỪ khi mở bằng cờ --autoplay-policy=no-user-gesture-required
+  // (cửa sổ quay cho Live Studio, xem scripts/open-live-window.ps1) nên không đòi người dùng bấm. Thử phát một đoạn im lặng
+  // để biết có được không; chưa được thì bỏ câu nói và thử lại sau 2 giây hoặc khi người dùng bấm vào trang.
+  canPlay() {
+    if (this.autoplayOk) return true;
+    if (typeof navigator === 'undefined' || !navigator.userActivation || navigator.userActivation.hasBeenActive) return true;
+    this.probeAutoplay();
+    return false;
+  }
+
+  probeAutoplay() {
+    if (typeof Audio === 'undefined') return;
+    const t = performance.now();
+    if (t - this.lastProbe < PROBE_EVERY_MS) return;
+    this.lastProbe = t;
+    try {
+      const a = new Audio(SILENT_WAV);
+      a.volume = 0;
+      a.play().then(() => {
+        this.autoplayOk = true;
+        a.pause();
+      }).catch(() => {});
+    } catch {
+      // không thử được thì thôi, chờ người dùng bấm
     }
   }
 

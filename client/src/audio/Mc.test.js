@@ -69,3 +69,41 @@ test('Mc: câu không báo xong (kẹt) bị bỏ sau watchdog để MC nói ti�
   mc.say([{ text: 'ba', priority: 1 }]);
   assert.deepEqual(spoken, ['một', 'hai', 'ba']);
 });
+
+test('Mc: chưa ai bấm vào trang thì thử phát âm thanh im lặng; được (cờ autoplay) thì nói luôn, không được thì chờ người dùng bấm', async () => {
+  const { Mc } = await import('./Mc.js');
+  const realNav = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
+  const realAudio = Object.getOwnPropertyDescriptor(globalThis, 'Audio');
+  const setNav = (hasBeenActive) => Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { userActivation: { hasBeenActive } } });
+  const spoken = [];
+  const remote = { enabled: true, init: async () => {}, cancel() {}, speak: (text) => spoken.push(text) };
+  const cfg = { enabled: true, maxQueue: 2, watchdogMs: 1e9, lang: 'vi', rate: 1, pitch: 1, volume: 1 };
+  try {
+    // 1. Trình duyệt cho phát không cần bấm (mở bằng --autoplay-policy): thử im lặng thành công thì nói được
+    setNav(false);
+    Object.defineProperty(globalThis, 'Audio', { configurable: true, value: class { play() { return Promise.resolve(); } pause() {} } });
+    const a = new Mc(cfg, { remote });
+    a.say([{ text: 'một', priority: 2 }]);
+    assert.deepEqual(spoken, [], 'lần đầu chưa biết có được không nên bỏ');
+    await new Promise((r) => setTimeout(r, 10));
+    assert.equal(a.autoplayOk, true);
+    a.say([{ text: 'hai', priority: 2 }]);
+    assert.deepEqual(spoken, ['hai'], 'đã biết được phát thì nói không cần bấm');
+
+    // 2. Trình duyệt chặn: im lặng cho tới khi người dùng bấm vào trang
+    spoken.length = 0;
+    Object.defineProperty(globalThis, 'Audio', { configurable: true, value: class { play() { return Promise.reject(new Error('NotAllowedError')); } pause() {} } });
+    const b = new Mc(cfg, { remote });
+    b.say([{ text: 'ba', priority: 2 }]);
+    await new Promise((r) => setTimeout(r, 10));
+    b.say([{ text: 'bốn', priority: 2 }]);
+    assert.deepEqual(spoken, [], 'bị chặn thì không nói');
+    setNav(true); // người dùng đã bấm
+    b.say([{ text: 'năm', priority: 2 }]);
+    assert.deepEqual(spoken, ['năm']);
+  } finally {
+    if (realNav) Object.defineProperty(globalThis, 'navigator', realNav);
+    if (realAudio) Object.defineProperty(globalThis, 'Audio', realAudio);
+    else delete globalThis.Audio;
+  }
+});

@@ -13,6 +13,7 @@
     "build": "npm run build -w client",
     "test": "node --test",
     "sim": "node scripts/sim.js",
+    "live:window": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/open-live-window.ps1",
     "replay": "node server/src/index.js --replay server/replays/sample.json"
   },
   "devDependencies": {

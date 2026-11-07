@@ -75,9 +75,11 @@ Chế độ quay: mở `http://localhost:5173/?live=1`. Trang sẽ:
 2. Đặt khung hình của Live Studio là **dọc 9:16** (độ phân giải 1080x1920, hoặc 720x1280 nếu máy yếu).
 3. Thêm nguồn, chọn một trong hai cách:
    - **Web source** (nguồn web/trình duyệt): địa chỉ `http://localhost:5173/?live=1`, rộng 1080, cao 1920 (nếu có ô nhập kích thước). Đây là cách gọn nhất vì không cần mở cửa sổ trình duyệt.
-   - **Window capture** (chụp cửa sổ): mở Chrome hoặc Edge ở chế độ ứng dụng, không thanh địa chỉ, ví dụ `chrome --app="http://localhost:5173/?live=1&scale=0.5" --window-size=540,960`, rồi chụp cửa sổ đó. Màn hình thường không đủ cao cho 1920 px nên dùng `scale` rồi kéo khung nguồn giãn đầy khung dọc của Live Studio (hình sẽ bớt nét hơn một chút so với Web source).
+   - **Window capture** (chụp cửa sổ): chạy `npm run live:window` (thêm `-- -Scale 0.75 -Fps 60` nếu muốn khung to hơn hoặc 60 FPS) để mở cửa sổ game dành riêng cho quay, rồi chụp cửa sổ có tên "Đại Chiến Vượt Chướng Ngại". **Nên dùng lệnh này thay vì mở Chrome thường**, vì nó thêm các cờ cần thiết (xem bên dưới). Màn hình thường không đủ cao cho 1920 px nên mặc định dùng `scale` 0.5; kéo khung nguồn giãn đầy khung dọc của Live Studio (hình sẽ bớt nét hơn một chút so với Web source).
+
+   Lệnh `npm run live:window` (`scripts/open-live-window.ps1`) mở Chrome hoặc Edge ở chế độ ứng dụng với hồ sơ riêng và các cờ: `--autoplay-policy=no-user-gesture-required` (MC và âm thanh phát ngay, **không cần bấm vào cửa sổ**; mở Chrome thường thì MC im lặng cho tới khi bạn bấm vào trang), `--disable-features=CalculateNativeWinOcclusion` cùng các cờ `--disable-backgrounding-...` (Chrome mặc định **ngừng vẽ và ngừng chạy cửa sổ bị Live Studio hay cửa sổ khác che**, làm game đứng, MC im sau vài câu và hình chụp đứng hoặc đen), và `--force-device-scale-factor=1` (không bị lệch kích thước khi Windows đặt phóng to 125% hay 150%). Các cờ chỉ có hiệu lực nếu Chrome mở bằng hồ sơ riêng này, không phải Chrome đang chạy sẵn.
 4. Kéo nguồn đầy khung dọc, không để lòi viền đen và không kéo ra ngoài khung.
-5. Bấm vào trang game một lần (hoặc nhấn một phím) để trình duyệt cho phát âm thanh và MC. Kiểm tra Live Studio có thu được tiếng game không; nếu không thì bật thu âm thanh hệ thống hoặc âm thanh của nguồn.
+5. Nếu dùng Web source hoặc Chrome thường thì phải bấm vào trang game một lần (hoặc nhấn một phím) để trình duyệt cho phát âm thanh và MC; cửa sổ mở bằng `npm run live:window` thì không cần. Kiểm tra Live Studio có thu được tiếng game không; nếu không thì bật thu âm thanh hệ thống hoặc âm thanh của nguồn.
 
 ### Kiểm tra hình ảnh khi live thử
 
