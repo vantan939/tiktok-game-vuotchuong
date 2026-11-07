@@ -24,6 +24,8 @@ import { SpeedRays } from '../entities/SpeedRays.js';
 import { GiftBoost } from '../systems/GiftBoost.js';
 import { FxDirector } from '../systems/FxDirector.js';
 import { AudioEngine } from '../audio/AudioEngine.js';
+import { Mc } from '../audio/Mc.js';
+import { McDirector } from '../systems/McDirector.js';
 import { shortName } from '../systems/JoinMessage.js';
 import { CommandRouter } from '../systems/CommandRouter.js';
 import { RaceCamera } from '../systems/RaceCamera.js';
@@ -80,6 +82,10 @@ export class RaceScene extends Phaser.Scene {
     this.fxDirector = new FxDirector(CONFIG);
     this.audio = new AudioEngine();
     if (mockOn || params.get('mute') === '1') this.audio.enabled = false; // ?mock=1 và ?mute=1: im lặng
+    // MC dẫn chương trình (giọng đọc của trình duyệt); tắt khi tắt tiếng chung (phím M), ?mc=0 hoặc ?mock=1
+    this.mcDirector = new McDirector(CONFIG);
+    this.mc = new Mc(CONFIG.mc, { isMuted: () => !this.audio.enabled });
+    if (mockOn || params.get('mc') === '0') this.mc.enabled = false;
     this.lastCount = 0;
     this.bindAudioKeys();
 
@@ -124,7 +130,9 @@ export class RaceScene extends Phaser.Scene {
   }
 
   onJoin(user) {
-    this.toasts.show(joinMessage(this.manager.join(user), user.nickname));
+    const result = this.manager.join(user);
+    this.toasts.show(joinMessage(result, user.nickname));
+    if (result.status === 'racing') this.mc.say(this.mcDirector.onJoin(user.nickname, this.manager.now));
   }
 
   onCamCommand(user) {
@@ -133,11 +141,15 @@ export class RaceScene extends Phaser.Scene {
   }
 
   onGameEvent(e) {
-    if (e.type === 'round') this.buildViews();
+    if (e.type === 'round') {
+      this.buildViews();
+      this.mcDirector.onRound();
+    }
     else if (e.type === 'racer') this.swapView(e.added, e.removed);
     else if (e.type === 'hit') this.onRacerHit(e.racer);
     else if (e.type === 'boost') this.onBoost(e);
     else if (e.type === 'state') this.onStateChange(e.state);
+    if (e.type === 'dodge' || e.type === 'hit' || e.type === 'boost') this.mc.say(this.mcDirector.onEvent(e, this.manager.now));
     if (e.type === 'dodge' || e.type === 'hit' || e.type === 'boost') this.playCues(this.fxDirector.handle(e, this.manager.now), e.racer);
   }
 
@@ -152,6 +164,7 @@ export class RaceScene extends Phaser.Scene {
       const key = ev.key.toLowerCase();
       if (key === muteKey) this.audio.toggleAll();
       else if (key === musicKey) this.audio.toggleMusic();
+      else if (key === CONFIG.mc.key) this.mc.toggle();
     });
     this.audio.ensure();
   }
@@ -159,6 +172,7 @@ export class RaceScene extends Phaser.Scene {
   // Đổi trạng thái lượt: nhạc đổi nhịp, tiếng xuất phát và tiếng thắng
   onStateChange(state) {
     this.audio.setMood(state);
+    this.mc.say(this.mcDirector.onState(state, this.manager, this.manager.now));
     if (state === 'race') this.audio.play('go');
     else if (state === 'result') this.audio.play('win');
     if (state !== 'countdown') this.lastCount = 0;
@@ -223,6 +237,7 @@ export class RaceScene extends Phaser.Scene {
     this.overlay.update(this.manager);
     this.updateHud(dt);
     this.tickCountdown();
+    if (!this.mock) this.mc.say(this.mcDirector.update(this.manager, this.manager.now));
     this.debug.setStatus(this.statusLine());
   }
 
@@ -237,7 +252,7 @@ export class RaceScene extends Phaser.Scene {
   statusLine() {
     const m = this.manager;
     const real = m.racers.filter((r) => !r.isBot).length;
-    return `Lượt ${m.round} | ${STATE_LABEL[m.state]} ${m.stateTime.toFixed(1)}s | người thật ${real}, bot ${m.racers.length - real}, hàng đợi ${this.lobby.queue.length} | âm: ${this.audio.enabled ? 'bật' : 'tắt'}, nhạc: ${this.audio.musicOn ? 'bật' : 'tắt'} (M, N)`;
+    return `Lượt ${m.round} | ${STATE_LABEL[m.state]} ${m.stateTime.toFixed(1)}s | người thật ${real}, bot ${m.racers.length - real}, hàng đợi ${this.lobby.queue.length} | âm: ${this.audio.enabled ? 'bật' : 'tắt'}, nhạc: ${this.audio.musicOn ? 'bật' : 'tắt'} (M, N) | MC: ${this.mc.enabled ? (this.mc.available ? 'bật' : 'bật, chưa có giọng tiếng Việt') : 'tắt'} (V)`;
   }
 
   placeViews() {

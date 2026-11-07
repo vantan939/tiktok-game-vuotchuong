@@ -33,6 +33,10 @@ Atlas thật là `client/public/assets/atlas0.png` và `atlas.json` (độ phân
 
 Không có file âm thanh nào. Nhạc nền và mọi tiếng (đếm ngược, xuất phát, boost, quà, va chạm, búa, né, thắng) do `client/src/audio/AudioEngine.js` tổng hợp bằng Web Audio, giai điệu là mẫu tự soạn trong `client/src/audio/music.js`. Vì vậy không vướng giấy phép bên thứ ba. Phím M tắt/bật tất cả, N tắt/bật nhạc nền, `?mute=1` tắt từ đầu; chỉnh âm lượng ở `CONFIG.audio`.
 
+## Giọng MC
+
+Không có file giọng nói. MC đọc bằng giọng tổng hợp có sẵn trong trình duyệt/hệ điều hành (Web Speech API, `client/src/audio/Mc.js`), lời thoại ở `STR.mc` trong `client/src/strings.js`. Máy cần có giọng tiếng Việt (Windows: Cài đặt > Thời gian và ngôn ngữ > Giọng nói; thường là Microsoft An). Không có giọng thì MC tự im lặng. Phím `V` tắt/bật MC, `?mc=0` tắt từ đầu, chỉnh ở `CONFIG.mc`.
+
 ## Thư viện chương trình
 
 Phaser 3 (MIT), Vite (MIT), ws (MIT). Tiktok-live-connector sẽ được thêm ở task nối TikTok.

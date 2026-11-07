@@ -51,6 +51,29 @@ export const STR = {
     gift: (name, gift) => `${name} tặng ${gift}`,
   },
 
+  // Lời MC đọc to (giọng đọc của trình duyệt). Mỗi mục là danh sách câu để chọn ngẫu nhiên cho đỡ lặp.
+  mc: {
+    welcome: [
+      () => 'Chào mừng các bạn đến với Đại Chiến Vượt Chướng Ngại! Gõ join để vào đua nào!',
+      () => 'Xin chào cả nhà! Gõ join để tham gia cuộc đua ngay thôi!',
+    ],
+    ready: [() => 'Chuẩn bị nào! Các tay đua vào vị trí!', () => 'Sẵn sàng chưa? Các tay đua vào vị trí nhé!'],
+    countdown: [() => 'Ba! Hai! Một!'],
+    go: [() => 'Xuất phát!', () => 'Chạy thôi!'],
+    join: [(n) => `${n} vào đua rồi! Cố lên nào!`, (n) => `Chào mừng ${n} tham gia cuộc đua!`],
+    leader: [(n) => `${n} đang dẫn đầu!`, (n) => `Quá đỉnh! ${n} đang chạy đầu đoàn!`, (n) => `${n} vượt lên dẫn đầu rồi!`],
+    dodge: [() => 'Né đẹp quá!', (n) => `${n} né cực đỉnh!`, () => 'Né hoàn hảo luôn!'],
+    hit: [(n) => `Ối! ${n} dính chiêu rồi!`, () => 'Ui da! Choáng thật rồi!', (n) => `${n} bị choáng, cố lên nào!`],
+    boost: [(n) => `${n} tăng tốc, bay vút!`, (n) => `${n} lao đi như tên bắn!`],
+    gift: [(n, g) => `Cảm ơn ${n} đã tặng ${g}! Bay vút luôn!`, (n, g) => `${n} tặng ${g}! Quá tuyệt vời, cảm ơn bạn!`],
+    gift_large: [(n, g) => `Wow! ${n} tặng ${g}! Cảm ơn bạn rất nhiều, bay vút lên nào!`],
+    nearFinish: [() => 'Sắp về đích rồi! Ai sẽ về nhất đây?', () => 'Những mét cuối cùng! Hồi hộp quá!'],
+    lastSeconds: [() => 'Còn mười giây cuối cùng!'],
+    win: [(n) => `${n} về nhất! Chúc mừng nhà vô địch!`, (n) => `Chiến thắng thuộc về ${n}! Xin chúc mừng!`],
+    timeUp: [(n) => `Hết giờ! ${n} dẫn đầu và giành chiến thắng! Chúc mừng!`],
+    next: [() => 'Lượt mới sắp bắt đầu, gõ join để vào đua nhé!'],
+  },
+
   // Vòng lặp lượt đua
   round: (n) => `LƯỢT ${n}`,
   getReady: 'Chuẩn bị...',

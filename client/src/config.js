@@ -148,6 +148,21 @@ export const CONFIG = {
     musicBpm: 108,
   },
 
+  // MC đọc to bằng giọng của trình duyệt (Web Speech, cần giọng tiếng Việt cài trong máy). Phím V: tắt/bật MC. URL ?mc=0 tắt từ đầu
+  mc: {
+    enabled: true,
+    lang: 'vi',               // chọn giọng bắt đầu bằng mã này
+    volume: 1,
+    rate: 1.12,               // tốc độ nói, 1 là bình thường; cao hơn một chút cho sôi nổi
+    pitch: 1.1,
+    key: 'v',
+    maxQueue: 2,              // hàng đợi câu chờ nói tối đa; đầy thì bỏ câu phụ
+    leaderHoldSeconds: 1.5,   // người dẫn đầu giữ vị trí bấy lâu mới xướng tên
+    nearFinishFraction: 0.88, // người dẫn đầu chạy được bấy nhiêu phần đường thì báo sắp về đích
+    // Khoảng nghỉ tối thiểu (giây game) giữa hai câu cùng loại
+    gaps: { welcome: 120, join: 4, leader: 10, dodge: 14, hit: 12, boost: 16 },
+  },
+
   // Bình luận
   commandCooldownSeconds: 1,
   commandGateMaxEntries: 2000, // vượt số này thì dọn người đã hết cooldown
