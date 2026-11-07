@@ -69,7 +69,6 @@ export function mockHudModel(base) {
     time: formatClock(MOCK.elapsed),
     total: formatClock(MOCK.total),
     low: false,
-    cams: { used: MOCK.camsUsed, max: CONFIG.maxCloseCams },
     top: MOCK.top.map((t) => ({ id: `mock_${t.name}`, name: t.name, avatarUrl: '', percent: t.percent, cam: false })),
     queueTotal: MOCK.queueTotal,
     queueFirst: Array.from({ length: MOCK.queueShown }, (_, i) => ({ id: `mock_queue_${i}`, avatarUrl: '' })),

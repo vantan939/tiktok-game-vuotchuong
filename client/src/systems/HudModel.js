@@ -20,7 +20,7 @@ export function isTimeLow(manager, lowSeconds = 10) {
 }
 
 /** Dữ liệu cho HUD (Hud.update) lấy từ trạng thái game. Thuần logic, không đụng DOM. */
-export function buildHudModel(manager, lobby, closeCams, cfg = CONFIG) {
+export function buildHudModel(manager, lobby, cfg = CONFIG) {
   // Hàng đợi theo thứ tự gõ join. maxPlayers người đầu sẽ vào đua ở lượt kế (late: true, hiện dấu ✓), còn lại hiện số #4, #5...
   const waiting = lobby.queue.map((p, i) => (i < cfg.maxPlayers
     ? { id: p.userId, avatarUrl: p.avatarUrl, late: true }
@@ -31,13 +31,11 @@ export function buildHudModel(manager, lobby, closeCams, cfg = CONFIG) {
     time: formatClock(elapsedSeconds(manager)),
     total: formatClock(manager.cfg.roundSeconds),
     low: isTimeLow(manager),
-    cams: { used: closeCams.cams.length, max: cfg.maxCloseCams },
     top: manager.ranking.slice(0, cfg.topShown).map((r) => ({
       id: r.userId,
       name: r.nickname,
       avatarUrl: r.avatarUrl,
       percent: progressPercent(r, manager.cfg),
-      cam: closeCams.cams.some((c) => c.racer === r), // đang bật camera cận
     })),
     queueTotal: waiting.length,
     queueFirst: waiting.slice(0, cfg.queueShown),

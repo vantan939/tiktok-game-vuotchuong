@@ -19,7 +19,7 @@ export class RaceManager {
     this.skinCount = skinCount;
     this.startDist = startDist; // chỉ dùng khi debug (?start=N)
     this.onEvent = onEvent ?? (() => {});
-    this.listeners = []; // nơi khác muốn nghe sự kiện (vd. CloseCams)
+    this.listeners = []; // nơi khác muốn nghe sự kiện (vd. HUD, âm thanh)
 
     this.paused = false; // streamer tạm dừng: đồng hồ game đứng yên
     this.state = 'wait';

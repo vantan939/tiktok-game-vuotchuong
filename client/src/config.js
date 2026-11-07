@@ -40,7 +40,6 @@ export const CONFIG = {
   // Nhân vật mẫu (tới khi có join thật ở Task 8). Ghi đè bằng ?runners=N khi debug
   sampleRunners: 30,
   runnerHeight: 560,        // chiều cao nhân vật tại s = 1
-  closeCamRunnerHeight: 470, // chiều cao nhân vật trong cửa sổ camera cận (px tại s = 1, trước khi nhân unit)
   startRowGap: 18,          // khoảng cách giữa các hàng ở vạch xuất phát
   topNamesShown: 5,         // camera chính hiện tên top N (một lượt chỉ 3 người nên hiện hết để ai cũng tìm được mình)
   avatarTimeoutSeconds: 8,
@@ -51,13 +50,6 @@ export const CONFIG = {
   laneChangeSmooth: 4,      // độ mượt khi trượt sang làn khác
 
   // Camera cận tự động cho người đang chơi (không cần gõ lệnh). Khán giả vẫn xem cảnh toàn đoàn
-  maxCloseCams: 3,          // tối đa bấy nhiêu cửa sổ cận cảnh, bằng số người chơi tối đa mỗi lượt
-  closeCamWindow: { x: 700, y: 784, w: 370, h: 232, gap: 10 }, // cửa sổ đầu tiên (px khung 1080x1920), các cửa sổ sau xếp dọc xuống
-  closeCamFocal: 45,        // nhỏ = zoom gần
-  closeCamBackScale: 0.8,   // tỉ lệ phối cảnh của nhân vật được theo dõi
-  closeCamHorizon: 0.28,     // chân trời ở bấy nhiêu phần chiều cao cửa sổ
-  closeCamRoadHalfWidth: 185, // nửa bề rộng đường tại s = 1 trong cửa sổ (px)
-  closeCamSmooth: 10,
 
   // Chỉ số nhân vật
   speedMin: 33,

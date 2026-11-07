@@ -15,8 +15,6 @@ import { buildHudModel } from '../systems/HudModel.js';
 import { isMock } from '../systems/mockData.js';
 import { applyMock, mockHudModel, seedMockLobby } from './mockMode.js';
 import { joinMessage } from '../systems/JoinMessage.js';
-import { CloseCams } from '../systems/CloseCams.js';
-import { CloseCamPanel } from '../ui/CloseCamPanel.js';
 import { LikeBoost } from '../systems/LikeBoost.js';
 import { Hearts } from '../entities/Hearts.js';
 import { SpeedRays } from '../entities/SpeedRays.js';
@@ -123,8 +121,6 @@ export class RaceScene extends Phaser.Scene {
       startDist: Number(params.get('start')) || 0,
       onEvent: (e) => this.onGameEvent(e),
     });
-    this.closeCams = new CloseCams(this.manager);
-    this.closeCamPanel = new CloseCamPanel(this, hudRoot);
     this.toasts = new Toasts(hudRoot);
     this.overlay = new RoundOverlay(hudRoot);
     this.likeBoost = new LikeBoost(this.manager);
@@ -235,8 +231,10 @@ export class RaceScene extends Phaser.Scene {
   }
 
   collectDists() {
-    this.dists.length = this.racers.length;
-    this.racers.forEach((r, i) => {
+    // Camera bám người chơi thật (bot chỉ làm nền); chưa có ai thật thì ôm cả đoàn
+    const focus = this.racers.some((r) => !r.isBot) ? this.racers.filter((r) => !r.isBot) : this.racers;
+    this.dists.length = focus.length;
+    focus.forEach((r, i) => {
       this.dists[i] = r.dist;
     });
     return this.dists;
@@ -264,8 +262,6 @@ export class RaceScene extends Phaser.Scene {
     if (this.perf) this.logPerf(performance.now() - t0, delta);
 
     this.placeViews();
-    this.closeCams.update(this.manager.now);
-    this.closeCamPanel.update(this.closeCams, this.manager, dt);
     this.hearts.update(dt);
     this.resultFx.update(this.manager, dt);
     this.overlay.update(this.manager);
@@ -345,7 +341,7 @@ export class RaceScene extends Phaser.Scene {
 
   refreshHud() {
     this.reportLobby();
-    const model = buildHudModel(this.manager, this.lobby, this.closeCams);
+    const model = buildHudModel(this.manager, this.lobby);
     this.hud.update(this.mock ? mockHudModel(model) : model);
   }
 

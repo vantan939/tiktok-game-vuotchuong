@@ -53,17 +53,9 @@ export class Hud {
     this.timeFrame.append(timeBody);
 
     // Ba thẻ bên trái
-    this.camPill = el('div', 'toggle');
-    const camCard = createFrame({ variant: 'purple', className: 'card card--cam', rect: { x: 14, y: 435, w: 266, h: 158 } });
-    const camRow = el('div', 'row');
-    camRow.append(
-      el('div', 'card__icon', iconSvg('lock')),
-      el('div', 'card__text txt', `${H.camTitle}<br><em>${H.camHint}</em>`),
-    );
-    camCard.append(camRow, this.camPill);
-    const heartCard = createFrame({ variant: 'purple', className: 'card', rect: { x: 14, y: 610, w: 266, h: 88 } });
+    const heartCard = createFrame({ variant: 'purple', className: 'card', rect: { x: 14, y: 435, w: 266, h: 88 } });
     heartCard.append(el('div', 'card__icon', iconSvg('heart')), el('div', 'card__text txt', `${H.heartLine1}<br>${H.heartLine2}`));
-    const giftCard = createFrame({ variant: 'purple', className: 'card', rect: { x: 14, y: 712, w: 266, h: 112 } });
+    const giftCard = createFrame({ variant: 'purple', className: 'card', rect: { x: 14, y: 537, w: 266, h: 112 } });
     giftCard.append(el('div', 'card__icon', iconSvg('gift')), el('div', 'card__text txt', `${H.giftLine1}<br>${H.giftLine2}<br>${H.giftLine3}`));
 
     // Bảng xếp hạng TOP N (CONFIG.topShown)
@@ -101,21 +93,18 @@ export class Hud {
       el('div', 'rule__text', `${H.ruleRound(minutes)}<br>${H.ruleMax(CONFIG.maxPlayers)}`),
     );
 
-    parent.append(banner, racing, this.timeFrame, camCard, heartCard, giftCard, joinCard, top10, autoCard, queue, rule);
+    parent.append(banner, racing, this.timeFrame, heartCard, giftCard, joinCard, top10, autoCard, queue, rule);
     this.queueKey = '';
   }
 
   /**
-   * model: { racing, max, time, total, low, cams: { used, max }, top: [{ id, name, avatarUrl, percent }],
+   * model: { racing, max, time, total, low, top: [{ id, name, avatarUrl, percent }],
    *          queueTotal, queueFirst: [{ id, avatarUrl }], queueBase }
    */
   update(m) {
     setHtml(this.racingValue, `${m.racing} <small>/ ${m.max}</small>`);
     setHtml(this.timeValue, `<b>${m.time}</b> <small>/ ${m.total}</small>`);
     this.timeFrame.classList.toggle('is-low', m.low);
-
-    setText(this.camPill, `${m.cams.used}/${m.cams.max}`);
-    this.camPill.classList.toggle('is-off', m.cams.used === 0);
 
     this.updateTop(m.top);
     this.updateQueue(m);
@@ -143,7 +132,6 @@ export class Hud {
         row.badge.className = `row__rank ${i < 3 ? `r${i + 1}` : ''}`;
       }
       setText(row.pct, `${Math.floor(entry.percent)}%`);
-      row.cam.style.display = entry.cam ? '' : 'none';
     });
     for (const [id, row] of this.rows) {
       if (!seen.has(id)) {
@@ -163,11 +151,8 @@ export class Hud {
     label.textContent = entry.name;
     name.append(label);
     const pct = el('div', 'row__pct');
-    const cam = el('span', 'row__cam', iconSvg('camera')); // dấu hiệu đang bật camera cận
-    cam.style.display = 'none';
-    name.append(cam);
     node.append(badge, createAvatar(entry.id, entry.avatarUrl, 40), name, pct);
-    return { node, badge, pct, cam, rank: 0 };
+    return { node, badge, pct, rank: 0 };
   }
 
   // Hàng đợi: 5 người đầu theo dữ liệu thật. Giữ phần tử theo userId để người mới vào mờ hiện, người rời đi trượt ra

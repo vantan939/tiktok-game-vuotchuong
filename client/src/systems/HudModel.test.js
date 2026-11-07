@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import { CONFIG } from '../config.js';
 import { Lobby } from './Lobby.js';
 import { RaceManager } from './RaceManager.js';
-import { CloseCams } from './CloseCams.js';
 import { rankRacers } from './Ranking.js';
 import { buildHudModel, elapsedSeconds, formatClock, isTimeLow } from './HudModel.js';
 
@@ -24,9 +23,8 @@ function setup(cfg = BIG) {
   const rng = seeded(6);
   const lobby = new Lobby({ cfg, rng, botNames: NAMES });
   const manager = new RaceManager(lobby, { cfg, rng, skinCount: 8 });
-  const cams = new CloseCams(manager, cfg);
   manager.begin();
-  return { lobby, manager, cams };
+  return { lobby, manager };
 }
 
 const step = (m, until, dt = 1 / 30) => {
@@ -42,34 +40,34 @@ test('formatClock: mm:ss, làm tròn xuống, không âm', () => {
 });
 
 test('ĐANG ĐUA: số người trong đoàn đua trên tối đa 30, giữ 30/30 nhờ bot', () => {
-  const { lobby, manager, cams } = setup();
-  let model = buildHudModel(manager, lobby, cams, BIG);
+  const { lobby, manager } = setup();
+  let model = buildHudModel(manager, lobby, BIG);
   assert.equal(model.racing, 30);
   assert.equal(model.max, 30);
   // ít người hơn thì hiện đúng số thật có trong đoàn
   const small = setup({ ...BIG, botFillTo: 12 });
-  model = buildHudModel(small.manager, small.lobby, small.cams, BIG);
+  model = buildHudModel(small.manager, small.lobby, BIG);
   assert.equal(model.racing, 12);
   assert.equal(model.max, 30);
 });
 
 test('THỜI GIAN: 00:00 khi chờ và đếm ngược, chạy khi đua, đứng yên ở kết quả', () => {
-  const { lobby, manager, cams } = setup();
-  assert.equal(buildHudModel(manager, lobby, cams, BIG).time, '00:00');
+  const { lobby, manager } = setup();
+  assert.equal(buildHudModel(manager, lobby, BIG).time, '00:00');
   step(manager, () => manager.state === 'countdown');
-  assert.equal(buildHudModel(manager, lobby, cams, BIG).time, '00:00');
+  assert.equal(buildHudModel(manager, lobby, BIG).time, '00:00');
   step(manager, () => manager.state === 'race');
   step(manager, () => manager.raceTime >= 5);
-  assert.equal(buildHudModel(manager, lobby, cams, BIG).time, '00:05');
+  assert.equal(buildHudModel(manager, lobby, BIG).time, '00:05');
   step(manager, () => manager.raceTime >= 65.5);
-  assert.equal(buildHudModel(manager, lobby, cams, BIG).time, '01:05');
-  assert.equal(buildHudModel(manager, lobby, cams, BIG).total, '03:00');
+  assert.equal(buildHudModel(manager, lobby, BIG).time, '01:05');
+  assert.equal(buildHudModel(manager, lobby, BIG).total, '03:00');
 
   step(manager, () => manager.state === 'result');
-  const final = buildHudModel(manager, lobby, cams, BIG).time;
+  const final = buildHudModel(manager, lobby, BIG).time;
   assert.equal(final, formatClock(manager.result.raceSeconds));
   for (let i = 0; i < 30; i++) manager.update(1 / 30);
-  assert.equal(buildHudModel(manager, lobby, cams, BIG).time, final, 'màn kết quả không chạy tiếp');
+  assert.equal(buildHudModel(manager, lobby, BIG).time, final, 'màn kết quả không chạy tiếp');
 });
 
 test('THỜI GIAN: sang lượt mới thì về 00:00', () => {
@@ -82,9 +80,9 @@ test('THỜI GIAN: sang lượt mới thì về 00:00', () => {
 
 test('hết giờ thì thời gian dừng ở đúng độ dài lượt', () => {
   const cfg = { ...CONFIG, roundSeconds: 5 };
-  const { lobby, manager, cams } = setup(cfg);
+  const { lobby, manager } = setup(cfg);
   step(manager, () => manager.state === 'result');
-  const model = buildHudModel(manager, lobby, cams, BIG);
+  const model = buildHudModel(manager, lobby, BIG);
   assert.equal(model.time, '00:05');
   assert.equal(model.total, '00:05');
 });
@@ -102,29 +100,25 @@ test('dưới 10 giây cuối của lượt thì báo động (đỏ, nhấp nh�
   assert.equal(isTimeLow(manager), false, 'hết lượt thì tắt báo động');
 });
 
-test('các số liệu khác của HUD: camera cận, top 10, hàng đợi', () => {
-  const { lobby, manager, cams } = setup();
+test('các số liệu khác của HUD: top 10, hàng đợi', () => {
+  const { lobby, manager } = setup();
   for (let i = 0; i < 33; i++) manager.join({ userId: `u${i}`, nickname: `N${i}`, avatarUrl: '' });
-  cams.update(manager.now); // camera cận tự bật cho người đang chơi (tối đa maxCloseCams)
-  const withCam = cams.cams.map((c) => c.racer.userId);
-  const model = buildHudModel(manager, lobby, cams, BIG);
-  assert.deepEqual(model.cams, { used: BIG.maxCloseCams, max: BIG.maxCloseCams });
+  const model = buildHudModel(manager, lobby, BIG);
   assert.equal(model.top.length, 10);
   // Đưa u1 lên đầu bảng để chắc chắn nằm trong top 10, rồi kiểm tra dấu hiệu camera cận
   manager.racerOf('u1').dist = 9999;
   rankRacers(manager.racers, manager.ranking);
-  const flagged = buildHudModel(manager, lobby, cams, BIG);
+  const flagged = buildHudModel(manager, lobby, BIG);
   assert.equal(flagged.top[0].id, 'u1');
-  assert.ok(flagged.top.every((e) => e.cam === withCam.includes(e.id)), 'chỉ người có camera cận mới có dấu hiệu');
   assert.equal(model.queueTotal, 3);
   assert.deepEqual(model.queueFirst.map((q) => q.id), ['u30', 'u31', 'u32']);
   assert.equal(model.queueBase, 30);
 });
 
 test('hàng đợi 12 người: chỉ hiện 5 người đầu, đếm đủ 12, số thứ tự bắt đầu từ #31', () => {
-  const { lobby, manager, cams } = setup();
+  const { lobby, manager } = setup();
   for (let i = 0; i < 42; i++) manager.join({ userId: `u${i}`, nickname: `N${i}`, avatarUrl: `http://x/${i}.png` });
-  const model = buildHudModel(manager, lobby, cams, BIG);
+  const model = buildHudModel(manager, lobby, BIG);
   assert.equal(model.queueTotal, 12);
   assert.deepEqual(model.queueFirst.map((q) => q.id), ['u30', 'u31', 'u32', 'u33', 'u34']);
   assert.equal(model.queueFirst[0].avatarUrl, 'http://x/30.png');
@@ -132,14 +126,14 @@ test('hàng đợi 12 người: chỉ hiện 5 người đầu, đếm đủ 12,
 
   // Có người rời đi thì tổng giảm, 5 người đầu cập nhật theo
   lobby.leave('u30');
-  const after = buildHudModel(manager, lobby, cams, BIG);
+  const after = buildHudModel(manager, lobby, BIG);
   assert.equal(after.queueTotal, 11);
   assert.deepEqual(after.queueFirst.map((q) => q.id), ['u31', 'u32', 'u33', 'u34', 'u35']);
 });
 
 test('hàng đợi trống thì không có ai', () => {
-  const { lobby, manager, cams } = setup();
-  const model = buildHudModel(manager, lobby, cams, BIG);
+  const { lobby, manager } = setup();
+  const model = buildHudModel(manager, lobby, BIG);
   assert.equal(model.queueTotal, 0);
   assert.deepEqual(model.queueFirst, []);
 });
@@ -147,9 +141,9 @@ test('hàng đợi trống thì không có ai', () => {
 test('cấu hình hiện tại: một lượt 3 người, bảng xếp hạng chỉ top 1, hàng đợi bắt đầu từ #4', () => {
   assert.equal(CONFIG.maxPlayers, 3);
   assert.equal(CONFIG.topShown, 1);
-  const { lobby, manager, cams } = setup(CONFIG);
+  const { lobby, manager } = setup(CONFIG);
   for (let i = 0; i < 8; i++) manager.join({ userId: `u${i}`, nickname: `N${i}`, avatarUrl: '' });
-  const model = buildHudModel(manager, lobby, cams);
+  const model = buildHudModel(manager, lobby);
   assert.equal(model.racing, 3);
   assert.equal(model.max, 3);
   assert.equal(model.top.length, 1);
@@ -159,14 +153,14 @@ test('cấu hình hiện tại: một lượt 3 người, bảng xếp hạng ch
 
 test('hàng đợi: maxPlayers người đầu hiện dấu ✓ (vào đua lượt kế), còn lại đánh số #4, #5...; sang lượt mới người vào đua bị xóa khỏi hàng', () => {
   const cfg = { ...BIG, maxPlayers: 3, botFillTo: 3 };
-  const { lobby, manager, cams } = setup(cfg);
+  const { lobby, manager } = setup(cfg);
   step(manager, () => manager.state === 'race');
   for (const i of [0, 1, 2, 3, 4]) manager.join({ userId: `u${i}`, nickname: `N${i}`, avatarUrl: '' }); // giữa lượt đua: tất cả vào hàng đợi
-  const model = buildHudModel(manager, lobby, cams, cfg);
+  const model = buildHudModel(manager, lobby, cfg);
   assert.equal(model.queueTotal, 5);
   assert.deepEqual(model.queueFirst.map((q) => [q.id, q.late, q.n]), [['u0', true, undefined], ['u1', true, undefined], ['u2', true, undefined], ['u3', false, 4], ['u4', false, 5]]);
   step(manager, () => manager.round === 2);
-  const next = buildHudModel(manager, lobby, cams, cfg);
+  const next = buildHudModel(manager, lobby, cfg);
   assert.deepEqual(next.queueFirst.map((q) => q.id), ['u3', 'u4'], 'u0 đến u2 đã vào đua nên rời hàng đợi');
   assert.ok(next.queueFirst.every((q) => q.late), 'hàng chỉ còn 2 người nên đều vào đua lượt kế');
 });

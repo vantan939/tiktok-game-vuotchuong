@@ -8,8 +8,6 @@ export const STR = {
     titleLine2: 'VƯỢT CHƯỚNG NGẠI',
     racing: 'ĐANG ĐUA',
     time: 'THỜI GIAN',
-    camTitle: 'Camera cận',
-    camHint: '(người chơi)',
     heartLine1: 'Thả tim =',
     heartLine2: 'Tăng tốc',
     giftLine1: 'Tặng quà =',
