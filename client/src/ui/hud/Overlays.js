@@ -83,9 +83,9 @@ export class FloatTexts {
   }
 }
 
-/** Thông báo ngắn xếp dọc ở góc dưới trái, mỗi cái tự biến mất sau vài giây. */
+/** Thông báo ngắn xếp dọc ở góc dưới phải, mỗi cái tự biến mất sau vài giây. */
 export class Toasts {
-  constructor(parent, { max = 5, seconds = 2.8 } = {}) {
+  constructor(parent, { max = 3, seconds = 2.8 } = {}) {
     this.box = el('div', 'toasts');
     parent.append(this.box);
     this.max = max;
