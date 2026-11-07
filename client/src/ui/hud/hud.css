@@ -125,7 +125,8 @@
 
 /* ---------- Nhãn tên trên đầu nhân vật ---------- */
 #hud .nametag { position: absolute; left: 0; top: 0; padding: 0 22px; height: 52px; display: flex; align-items: center; font-size: 36px; line-height: 1; white-space: nowrap; border-radius: 26px; will-change: transform; border-width: 4px; }
-.nametag.is-hidden { display: none; }
+/* Phải có #hud để thắng độ ưu tiên của "#hud .nametag { display: flex }"; thiếu thì nhãn ẩn vẫn hiện thành chấm tròn xanh ở góc trên trái */
+#hud .nametag.is-hidden { display: none; }
 
 /* ---------- Thông báo ngắn ---------- */
 /* Thông báo ở góc dưới phải (dễ thấy hơn, tối đa 3 cái để không đè lên cửa sổ camera cận phía trên) */
