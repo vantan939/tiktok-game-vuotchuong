@@ -60,6 +60,7 @@ export class RaceScene extends Phaser.Scene {
     // ?speed=N (chạy nhanh N lần), ?round=N (độ dài lượt, giây), ?hold=result (dừng ở trạng thái đó sau 3 giây để xem), ?avatars=1 (thử avatar), ?bots=N (số người tối thiểu, còn lại thiếu thì bot), ?perf=1 (in thời gian vẽ), ?mock=1 (cảnh đóng băng đúng như mockup để so sánh)
     const params = new URLSearchParams(location.search);
     this.perf = params.get('perf') === '1';
+    this.overview = params.get('cam') === 'overview'; // ?cam=overview hoặc phím C: góc khán giả (toàn cảnh) thay vì đuổi theo người chơi
     this.perfAcc = { n: 0, draw: 0, frame: 0 };
     this.speed = Math.max(1, Number(params.get('speed')) || 1);
     this.hold = params.get('hold');
@@ -182,6 +183,7 @@ export class RaceScene extends Phaser.Scene {
       if (key === muteKey) this.audio.toggleAll();
       else if (key === musicKey) this.audio.toggleMusic();
       else if (key === CONFIG.mc.key) this.mc.toggle();
+      else if (key === 'c') this.overview = !this.overview; // C: đổi góc người chơi / khán giả
       else if (key === CONFIG.net.statusKey) this.netDot?.toggle();
       else if (!this.mock && key === CONFIG.live.pauseKey) this.manager.togglePause(); // P: tạm dừng / tiếp tục
       else if (!this.mock && key === CONFIG.live.restartKey) this.manager.restartRound(); // R: bắt đầu lại lượt
@@ -231,10 +233,10 @@ export class RaceScene extends Phaser.Scene {
   }
 
   collectDists() {
-    // Có người chơi thật: camera đuổi theo nhân vật của họ (góc nhìn thứ ba); chưa có ai thật thì ôm cả đoàn
+    // Góc người chơi: camera đuổi theo nhân vật thật (góc nhìn thứ ba). Góc khán giả hoặc chưa có ai thật: ôm cả đoàn
     const real = this.racers.filter((r) => !r.isBot);
-    this.camera.chase = real.length > 0;
-    if (real.length) {
+    this.camera.chase = real.length > 0 && !this.overview;
+    if (this.camera.chase) {
       let lead = real[0];
       for (const r of real) if (r.dist > lead.dist) lead = r;
       const cur = this.chaseTarget;
