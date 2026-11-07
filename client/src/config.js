@@ -16,7 +16,7 @@ export const CONFIG = {
   botFillTo: 3,             // thiếu người thật thì thêm bot cho đủ số này, để luôn có đoàn đua
   queueShown: 5,
   topShown: 1,              // bảng xếp hạng hiển thị bấy nhiêu người đứng đầu (cũng là số người trong kết quả lượt)
-  trackLength: 5500,
+  trackLength: 6200,        // chọn để người thắng về đích khoảng 2 phút 40 đến 3 phút khi chạy bình thường (đo bằng client/scripts/tracklen.js)
   lanes: 3,
 
   // Đường đua: hiển thị (px tính tại tỉ lệ phối cảnh s = 1, tức mép dưới màn hình)
