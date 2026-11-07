@@ -30,6 +30,23 @@
 }
 .title-text--blue { --g1: #ffffff; --g2: #e2f1ff; --g3: #9cc8ff; --stroke: #1f4fd8; --stroke-deep: #0f2a8a; --halo: rgba(90,170,255,.85); }
 
+/* ---------- Chữ nổi trên đầu nhân vật ---------- */
+#hud .floattext { position: absolute; left: 0; top: 0; pointer-events: none; will-change: transform, opacity; }
+.floattext.is-hidden { display: none; }
+.floattext .title-text { font-size: 50px; --stroke-w: 12px; --drop: 5px; }
+.floattext.is-playing { animation: float-text var(--dur, 1.2s) cubic-bezier(.2,.9,.3,1) forwards; }
+.floattext--good .title-text { --g1: #f4fff0; --g2: #8dffb0; --g3: #35d37a; --stroke: #0d6b3d; --stroke-deep: #064a29; --halo: rgba(80,255,160,.7); }
+.floattext--bad .title-text { --g1: #fff0f0; --g2: #ff9a9a; --g3: #ff4d5e; --stroke: #8a1230; --stroke-deep: #560a1e; --halo: rgba(255,80,100,.65); }
+.floattext--boost .title-text { --g1: #fff7ff; --g2: #ff9be0; --g3: #b07bff; --stroke: #5a1fa8; --stroke-deep: #36106e; --halo: rgba(200,120,255,.75); }
+.floattext--gift .title-text { font-size: 40px; --stroke-w: 10px; }
+@keyframes float-text {
+  0% { opacity: 0; transform: translate(var(--x), var(--y)) translate(-50%, -100%) scale(calc(var(--k) * .4)); }
+  14% { opacity: 1; transform: translate(var(--x), calc(var(--y) - 14px)) translate(-50%, -100%) scale(calc(var(--k) * 1.15)); }
+  28% { transform: translate(var(--x), calc(var(--y) - 28px)) translate(-50%, -100%) scale(var(--k)); }
+  78% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--x), calc(var(--y) - 130px)) translate(-50%, -100%) scale(var(--k)); }
+}
+
 /* ---------- Khung trạng thái trên cùng ---------- */
 .stat { display: flex; align-items: center; gap: 14px; padding: 0 18px 0 16px; height: 92px; }
 .stat__icon { width: 60px; height: 60px; flex: none; filter: drop-shadow(0 3px 4px rgba(0,0,40,.5)); }

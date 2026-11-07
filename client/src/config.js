@@ -117,6 +117,33 @@ export const CONFIG = {
   obstacleMinScale: 0.07,    // chướng ngại xa hơn mức này thì không vẽ
   obstaclePoolSize: 24,
 
+  // Hiệu ứng "độ phê": chữ nổi, rung màn hình, pháo giấy. Chỉnh nhỏ lại nếu thấy chói hoặc giật.
+  fx: {
+    floatTextSeconds: 1.2,    // chữ nổi bay lên và mờ dần trong bấy lâu
+    floatTextPool: 8,         // tối đa bấy nhiêu chữ nổi cùng lúc
+    floatTextGap: 0.35,       // hai chữ nổi (không phải quà) cách nhau tối thiểu bấy nhiêu giây, tránh dày đặc
+    floatTextPerRacer: 2.5,   // một nhân vật không nhận chữ nổi liên tiếp trong khoảng này
+    floatTextTopRank: 3,      // bot chỉ nhận chữ nổi khi đang trong top này; người thật luôn được
+    likeTextGap: 3,           // "Bay vút!" cho tim: cùng một nhân vật cách nhau tối thiểu
+    shakeScale: 1,            // hệ số rung màn hình khi búa đập (0 = tắt rung)
+    winnerBursts: [0, 0.9],   // giây (từ lúc vào màn kết quả) bắn pháo giấy; mỗi lần 70 mảnh
+  },
+
+  // Âm thanh tổng hợp bằng Web Audio (không dùng file). Phím M: tắt/bật tất cả, N: tắt/bật nhạc nền. URL ?mute=1 tắt từ đầu
+  audio: {
+    enabled: true,
+    music: true,
+    sfx: true,
+    master: 0.8,
+    musicVolume: 0.2,         // nhạc nền nhỏ để không lấn tiếng người dẫn
+    sfxVolume: 0.55,
+    muteKey: 'm',
+    musicKey: 'n',
+    sfxMinGap: 0.07,          // cùng một tiếng không phát dày hơn mức này (giây)
+    maxVoices: 14,            // số tiếng chồng nhau tối đa
+    musicBpm: 108,
+  },
+
   // Bình luận
   commandCooldownSeconds: 1,
   commandGateMaxEntries: 2000, // vượt số này thì dọn người đã hết cooldown

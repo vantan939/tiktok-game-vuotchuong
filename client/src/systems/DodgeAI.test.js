@@ -216,3 +216,28 @@ test('khi cao nhất 0,9, vẫn có xác suất dính khoảng 10%', () => {
 test('búa: hammerPhaseAt dùng đúng cho kịch bản chờ (sanity)', () => {
   assert.equal(hammerPhaseAt(hammer(0, 0, 0, 0.8), 0.1), 'up');
 });
+
+test('né hoàn hảo: báo đúng một lần sau khi chạy qua hết chướng ngại đã né, không báo khi dính', () => {
+  const dodged = [];
+  const ctxFor = (field, rng) => (now) => ({ now, cfg: CONFIG, rng, field, onDodge: (r, o) => dodged.push(o.id) });
+  const f = new ObstacleField([spike(100, 1, 7)]);
+  const r = racer({ dist: 0, lane: 1 });
+  const make = ctxFor(f, () => 0);
+  let now = 0;
+  for (let t = 0; t < 8; t += 1 / 60) {
+    now += 1 / 60;
+    stepRacer(r, 1 / 60, make(now));
+  }
+  assert.deepEqual(dodged, [7]);
+
+  dodged.length = 0;
+  const hit = racer({ dist: 0, lane: 1, skill: 0.4 });
+  const miss = ctxFor(new ObstacleField([spike(100, 1, 8)]), () => 0.99); // luôn lơ đễnh nên dính
+  now = 0;
+  for (let t = 0; t < 8; t += 1 / 60) {
+    now += 1 / 60;
+    stepRacer(hit, 1 / 60, miss(now));
+  }
+  assert.ok(hit.hits >= 1);
+  assert.deepEqual(dodged, []);
+});

@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { CONFIG } from '../config.js';
 
 const RAYS = 21;
-const COLORS = [0xffc23a, 0xfff2b0, 0xff6ad0, 0xff9a2a, 0xffd86a];
+const COLORS = [0xffc23a, 0xfff2b0, 0xff6ad0, 0xb07bff, 0xffd86a];
 
 // Tia tốc độ tỏa xuống dưới từ chân người đang boost mạnh và gần camera nhất (như mockup): vàng, trắng, hồng,
 // cộng sáng, dài tới mép dưới màn hình. Một Graphics dùng chung, vẽ lại mỗi frame.

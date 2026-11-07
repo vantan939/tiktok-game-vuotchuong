@@ -1,6 +1,7 @@
 import { CONFIG } from '../config.js';
 import { applyHit, findHit } from './Collision.js';
 import { nominalSpeed, perceive, runPlan, waitControl } from './DodgeAI.js';
+import { halfLength } from './Obstacles.js';
 
 const noObstacles = () => false;
 
@@ -45,6 +46,13 @@ export function stepRacer(r, dt, ctx) {
       applyHit(r, cfg);
       ctx.onHit?.(r, hit);
     }
+  }
+
+  // Đã chạy qua hết chướng ngại đang né mà không dính: né hoàn hảo
+  if (r.dodging && r.dist > r.dodging.dist + halfLength(r.dodging, cfg) + cfg.runnerRadius + cfg.spikeRollAmp) {
+    const o = r.dodging;
+    r.dodging = null;
+    ctx.onDodge?.(r, o);
   }
 
   smoothLane(r, dt, cfg);

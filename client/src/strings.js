@@ -40,6 +40,14 @@ export const STR = {
   // Thông báo quà lớn
   giftAnnounce: (name, gift) => `${name} tặng ${gift}, bay vút!`,
 
+  // Chữ nổi trên đầu nhân vật
+  fx: {
+    dodge: 'Né hoàn hảo!',
+    stun: 'Choáng!',
+    boost: 'Bay vút!',
+    gift: (name, gift) => `${name} tặng ${gift}`,
+  },
+
   // Vòng lặp lượt đua
   round: (n) => `LƯỢT ${n}`,
   getReady: 'Chuẩn bị...',

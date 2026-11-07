@@ -72,6 +72,7 @@ export function resetRacer(racer, index, rng = Math.random, cfg = CONFIG) {
   racer.waitFor = null; // búa đang canh nhịp chờ qua
   racer.waitCap = Infinity;
   racer.evading = false;
+  racer.dodging = null; // chướng ngại đã bắt đầu né, chờ chạy qua hết để tính "né hoàn hảo"
   racer.rolled = racer.rolled ?? new Set(); // id chướng ngại đã tung xác suất nhận diện
   racer.rolled.clear();
   // Thống kê một lượt

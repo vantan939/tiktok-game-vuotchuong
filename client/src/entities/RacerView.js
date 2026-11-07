@@ -9,6 +9,7 @@ export const HEAD_TOP_Y = -TEX_H + 70; // đỉnh đầu (tọa độ cục bộ
 const STAR_CENTER_Y = -TEX_H + 62; // sao quay quanh đầu khi choáng
 const STAR_COUNT = 3;
 const STREAK_COUNT = 5;
+const STREAK_COLORS = [0xff6ad0, 0xffd23a, 0xa56bff, 0xff6ad0, 0xffd23a]; // vệt tốc độ: hồng, vàng, tím
 
 // Phần hiển thị của một nhân vật: bóng mềm, thân (theo skin), vương miện, sao choáng, khiên và hiệu ứng boost.
 // Không chứa logic game; nhận vị trí đã chiếu từ scene. Nhãn tên là HTML (xem NameTags).
@@ -159,7 +160,7 @@ export class RacerView {
       .setScale((2.2 + 0.2 * Math.sin(clock * 12)) * (0.75 + 0.35 * size));
     this.streaks.forEach((s, i) => {
       const p = (clock * 2.4 + i * 0.37) % 1; // mỗi vệt chạy từ chân xuống dưới rồi lặp
-      s.setTint(tint)
+      s.setTint(STREAK_COLORS[i % STREAK_COLORS.length])
         .setAlpha(Math.min(1, power * (1 - p) * (0.9 + 0.2 * size)))
         .setScale(0.8 * (0.8 + 0.3 * size), (0.45 + 0.75 * p) * size)
         .setY(-60 + p * 70);

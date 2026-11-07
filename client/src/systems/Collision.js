@@ -27,6 +27,7 @@ export function applyHit(r, cfg = CONFIG) {
   r.hits++;
   r.plan = null;
   r.waitFor = null;
+  r.dodging = null;
   r.jump = 0;
   r.pending = null;
   r.rolled.clear();

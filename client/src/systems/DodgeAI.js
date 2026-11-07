@@ -81,6 +81,7 @@ export function runPlan(r, dt, ctx) {
   p.delay -= dt;
   if (p.delay > 0) return;
   if (p.kind === 'lane') {
+    r.dodging = p.o;
     r.targetLane = p.lane;
     r.pending = null;
     r.evading = true;
@@ -89,10 +90,12 @@ export function runPlan(r, dt, ctx) {
     // Bật nhảy sao cho đang lơ lửng đúng lúc băng qua cầu gai
     const lead = (nominalSpeed(r) * cfg.jumpSeconds) / 2;
     if (p.o.dist - r.dist <= lead) {
+      r.dodging = p.o;
       r.jump = cfg.jumpSeconds;
       r.plan = null;
     }
   } else {
+    r.dodging = p.o;
     r.waitFor = p.o;
     r.plan = null;
   }

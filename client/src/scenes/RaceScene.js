@@ -10,7 +10,7 @@ import { SKINS } from '../entities/skins.js';
 import { DebugOverlay } from '../ui/DebugOverlay.js';
 import { createHudRoot } from '../ui/hud/root.js';
 import { Hud } from '../ui/hud/Hud.js';
-import { GiftBanner, NameTags, RoundOverlay, Toasts } from '../ui/hud/Overlays.js';
+import { FloatTexts, GiftBanner, NameTags, RoundOverlay, Toasts } from '../ui/hud/Overlays.js';
 import { buildHudModel } from '../systems/HudModel.js';
 import { isMock } from '../systems/mockData.js';
 import { applyMock, mockHudModel, seedMockLobby } from './mockMode.js';
@@ -22,6 +22,8 @@ import { LikeBoost } from '../systems/LikeBoost.js';
 import { Hearts } from '../entities/Hearts.js';
 import { SpeedRays } from '../entities/SpeedRays.js';
 import { GiftBoost } from '../systems/GiftBoost.js';
+import { FxDirector } from '../systems/FxDirector.js';
+import { AudioEngine } from '../audio/AudioEngine.js';
 import { shortName } from '../systems/JoinMessage.js';
 import { CommandRouter } from '../systems/CommandRouter.js';
 import { RaceCamera } from '../systems/RaceCamera.js';
@@ -73,7 +75,13 @@ export class RaceScene extends Phaser.Scene {
     const hudRoot = createHudRoot();
     this.nameTags = new NameTags(hudRoot, 4);
     this.hud = new Hud(hudRoot);
+    this.floatTexts = new FloatTexts(hudRoot); // sau HUD để chữ nổi nằm trên các khung
     this.hudTimer = 0;
+    this.fxDirector = new FxDirector(CONFIG);
+    this.audio = new AudioEngine();
+    if (mockOn || params.get('mute') === '1') this.audio.enabled = false; // ?mock=1 và ?mute=1: im lặng
+    this.lastCount = 0;
+    this.bindAudioKeys();
 
     // Người thật giả lập cho tới khi có join thật (Task 8); không có thì toàn bot
     const botFillTo = params.has('bots') ? Number(params.get('bots')) : CONFIG.botFillTo; // ?bots=N: ít bot hơn cho dễ nhìn
@@ -129,6 +137,45 @@ export class RaceScene extends Phaser.Scene {
     else if (e.type === 'racer') this.swapView(e.added, e.removed);
     else if (e.type === 'hit') this.onRacerHit(e.racer);
     else if (e.type === 'boost') this.onBoost(e);
+    else if (e.type === 'state') this.onStateChange(e.state);
+    if (e.type === 'dodge' || e.type === 'hit' || e.type === 'boost') this.playCues(this.fxDirector.handle(e, this.manager.now), e.racer);
+  }
+
+  // Phím tắt âm thanh (M: tất cả, N: nhạc nền) và mở khóa âm thanh ở lần tương tác đầu tiên của trình duyệt
+  bindAudioKeys() {
+    const { muteKey, musicKey } = CONFIG.audio;
+    const unlock = () => this.audio.unlock();
+    window.addEventListener('pointerdown', unlock);
+    window.addEventListener('keydown', (ev) => {
+      unlock();
+      if (ev.repeat || ev.ctrlKey || ev.metaKey || ev.altKey || /^(INPUT|TEXTAREA)$/.test(ev.target?.tagName ?? '')) return;
+      const key = ev.key.toLowerCase();
+      if (key === muteKey) this.audio.toggleAll();
+      else if (key === musicKey) this.audio.toggleMusic();
+    });
+    this.audio.ensure();
+  }
+
+  // Đổi trạng thái lượt: nhạc đổi nhịp, tiếng xuất phát và tiếng thắng
+  onStateChange(state) {
+    this.audio.setMood(state);
+    if (state === 'race') this.audio.play('go');
+    else if (state === 'result') this.audio.play('win');
+    if (state !== 'countdown') this.lastCount = 0;
+    if (state === 'wait') this.fxDirector.reset();
+  }
+
+  // Thực hiện các cue của FxDirector: chữ nổi trên đầu nhân vật và tiếng. Nhân vật ngoài khung hình thì bỏ qua (trừ tiếng quà).
+  playCues(cues, racer) {
+    const view = this.views.get(racer);
+    const on = !!view?.visible;
+    for (const cue of cues) {
+      if (cue.kind === 'sound') {
+        if (on || cue.name === 'gift') this.audio.play(cue.name, cue.volume);
+      } else if (on) {
+        this.floatTexts.show(cue.text, cue.tone, view.top.x, view.top.y, view.s);
+      }
+    }
   }
 
   // Lượt mới: dựng lại hình nhân vật theo đoàn đua mới và đặt camera về vạch xuất phát
@@ -175,13 +222,22 @@ export class RaceScene extends Phaser.Scene {
     this.resultFx.update(this.manager, dt);
     this.overlay.update(this.manager);
     this.updateHud(dt);
+    this.tickCountdown();
     this.debug.setStatus(this.statusLine());
+  }
+
+  // Tiếng tích mỗi lần số đếm ngược đổi (3, 2, 1)
+  tickCountdown() {
+    const m = this.manager;
+    if (m.state !== 'countdown' || m.countdownValue === this.lastCount) return;
+    this.lastCount = m.countdownValue;
+    this.audio.play('tick');
   }
 
   statusLine() {
     const m = this.manager;
     const real = m.racers.filter((r) => !r.isBot).length;
-    return `Lượt ${m.round} | ${STATE_LABEL[m.state]} ${m.stateTime.toFixed(1)}s | người thật ${real}, bot ${m.racers.length - real}, hàng đợi ${this.lobby.queue.length}`;
+    return `Lượt ${m.round} | ${STATE_LABEL[m.state]} ${m.stateTime.toFixed(1)}s | người thật ${real}, bot ${m.racers.length - real}, hàng đợi ${this.lobby.queue.length} | âm: ${this.audio.enabled ? 'bật' : 'tắt'}, nhạc: ${this.audio.musicOn ? 'bật' : 'tắt'} (M, N)`;
   }
 
   placeViews() {
@@ -258,7 +314,8 @@ export class RaceScene extends Phaser.Scene {
   // Búa chạm sàn: rung nhẹ màn hình và bụi
   onHammerImpact(x, y, s) {
     if (s < SHAKE_MIN_SCALE) return;
-    this.cameras.main.shake(120, 0.0025 + 0.003 * Math.min(1, s));
+    this.audio.play('hammer', 0.4 + 0.6 * Math.min(1, s));
+    if (CONFIG.fx.shakeScale > 0) this.cameras.main.shake(120, (0.0025 + 0.003 * Math.min(1, s)) * CONFIG.fx.shakeScale);
     this.effects.dust(x, y, s * 0.9);
   }
 

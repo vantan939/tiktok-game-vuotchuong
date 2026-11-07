@@ -30,7 +30,7 @@ export class RaceManager {
     this.ranking = [];
     this.field = null;
     this.result = null;
-    this.ctx = { now: 0, cfg, rng, field: null, onHit: (racer, obstacle) => this.emit({ type: 'hit', racer, obstacle }) };
+    this.ctx = { now: 0, cfg, rng, field: null, onHit: (racer, obstacle) => this.emit({ type: 'hit', racer, obstacle }), onDodge: (racer, obstacle) => this.emit({ type: 'dodge', racer, obstacle }) };
   }
 
   /** Giây đã đua trong lượt hiện tại (0 khi chưa đua). */

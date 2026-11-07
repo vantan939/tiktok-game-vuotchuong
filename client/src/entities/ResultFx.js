@@ -10,6 +10,7 @@ export class ResultFx {
     this.confetti = new Confetti(scene);
     this.lastState = null;
     this.rainDebt = 0;
+    this.bursts = 0;
   }
 
   update(m, dt) {
@@ -17,10 +18,16 @@ export class ResultFx {
       this.lastState = m.state;
       this.confetti.clear();
       this.dim.setFillStyle(0x0a0a30, 0);
-      if (m.state === 'result') this.confetti.burst();
+      this.bursts = 0;
     }
     this.confetti.update(dt);
     if (m.state !== 'result') return;
+    // Pháo giấy bắn đợt đầu ngay khi có người thắng, đợt sau theo CONFIG.fx.winnerBursts
+    const times = CONFIG.fx.winnerBursts;
+    while (this.bursts < times.length && m.stateTime >= times[this.bursts]) {
+      this.confetti.burst();
+      this.bursts++;
+    }
     this.dim.setFillStyle(0x0a0a30, Math.min(0.62, m.stateTime * 2));
     if (m.stateTime < m.cfg.resultSeconds - 1) {
       this.rainDebt += dt * RAIN_PER_SECOND;

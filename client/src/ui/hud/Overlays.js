@@ -41,6 +41,35 @@ export class NameTags {
   }
 }
 
+/**
+ * Chữ nổi ngắn bay lên từ đầu nhân vật ("Né hoàn hảo!", "Choáng!", "Bay vút!", tên người tặng quà).
+ * Pool node cố định, mỗi chữ chạy một animation CSS rồi tự ẩn; không tạo node mới giữa trận.
+ */
+export class FloatTexts {
+  constructor(parent, count = CONFIG.fx.floatTextPool) {
+    this.items = Array.from({ length: count }, () => {
+      const node = el('div', 'floattext is-hidden');
+      node.style.setProperty('--dur', `${CONFIG.fx.floatTextSeconds}s`);
+      node.addEventListener('animationend', () => node.classList.add('is-hidden'));
+      parent.append(node);
+      return node;
+    });
+    this.next = 0;
+  }
+
+  /** tone: good | bad | boost | gift. (x, y) là đỉnh đầu trên màn hình, s là tỉ lệ phối cảnh. */
+  show(text, tone, x, y, s) {
+    const node = this.items[this.next++ % this.items.length];
+    node.className = `floattext floattext--${tone}`;
+    node.innerHTML = title(text);
+    node.style.setProperty('--x', `${Math.round(x)}px`);
+    node.style.setProperty('--y', `${Math.round(y - 20)}px`);
+    node.style.setProperty('--k', String(Math.max(0.8, Math.min(1.25, 0.5 + 0.9 * s)).toFixed(2)));
+    void node.offsetWidth; // khởi động lại animation khi tái sử dụng node
+    node.classList.add('is-playing');
+  }
+}
+
 /** Thông báo ngắn xếp dọc ở góc dưới trái, mỗi cái tự biến mất sau vài giây. */
 export class Toasts {
   constructor(parent, { max = 5, seconds = 2.8 } = {}) {

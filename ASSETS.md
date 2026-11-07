@@ -29,6 +29,10 @@ Atlas thật là `client/public/assets/atlas0.png` và `atlas.json` (độ phân
 2. Chạy `npm run dev`, mở `http://localhost:5173/tools/bake.html` để bake lại atlas. Bake xong, `npm test` kiểm tra atlas khớp nguồn.
 3. Muốn dùng hình do họa sĩ hoặc công cụ tạo ảnh làm: giữ đúng tên khung và tỉ lệ kích thước trong `client/art/index.js`, đưa PNG 2x vào atlas, và **ghi nguồn và giấy phép vào bảng trên** (xem Task 24).
 
+## Âm thanh
+
+Không có file âm thanh nào. Nhạc nền và mọi tiếng (đếm ngược, xuất phát, boost, quà, va chạm, búa, né, thắng) do `client/src/audio/AudioEngine.js` tổng hợp bằng Web Audio, giai điệu là mẫu tự soạn trong `client/src/audio/music.js`. Vì vậy không vướng giấy phép bên thứ ba. Phím M tắt/bật tất cả, N tắt/bật nhạc nền, `?mute=1` tắt từ đầu; chỉnh âm lượng ở `CONFIG.audio`.
+
 ## Thư viện chương trình
 
 Phaser 3 (MIT), Vite (MIT), ws (MIT). Tiktok-live-connector sẽ được thêm ở task nối TikTok.
