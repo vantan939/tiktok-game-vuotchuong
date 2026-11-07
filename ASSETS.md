@@ -35,7 +35,12 @@ Không có file âm thanh nào. Nhạc nền và mọi tiếng (đếm ngược,
 
 ## Giọng MC
 
-Không có file giọng nói. MC đọc bằng giọng tổng hợp có sẵn trong trình duyệt/hệ điều hành (Web Speech API, `client/src/audio/Mc.js`), lời thoại ở `STR.mc` trong `client/src/strings.js`. Máy cần có giọng tiếng Việt (Windows: Cài đặt > Thời gian và ngôn ngữ > Giọng nói; thường là Microsoft An). Không có giọng thì MC tự im lặng. Phím `V` tắt/bật MC, `?mc=0` tắt từ đầu, chỉnh ở `CONFIG.mc`.
+Hai nguồn, không có file giọng nói nào trong repo:
+
+1. **genmax** (https://api.genmax.io): server gọi API text-to-speech bằng GENMAX_API_KEY và GENMAX_VOICE_ID trong `.env` (xem `.env.example`), lưu mp3 vào `server/.cache/tts/` (không commit). Âm thanh tạo ra tuân theo điều khoản của genmax và nhà cung cấp giọng (ElevenLabs, MiniMax hoặc CapCut); kiểm tra giấy phép giọng đã chọn trước khi dùng thương mại. Tốn credit theo ký tự nên có cache và hạn mức mỗi giờ (`GENMAX_BUDGET_CHARS_PER_HOUR`).
+2. **Giọng của trình duyệt** (Web Speech API): dự phòng khi server chưa có khóa hoặc genmax lỗi; cần giọng tiếng Việt cài trong máy (thường là Microsoft An trên Windows).
+
+Lời thoại ở `STR.mc` trong `client/src/strings.js`. Phím `V` tắt/bật MC, `?mc=0` tắt từ đầu, `CONFIG.mc.provider = 'browser'` để luôn dùng giọng trình duyệt.
 
 ## Thư viện chương trình
 

@@ -1,4 +1,5 @@
 import { CONFIG } from '../config.js';
+import { STR } from '../strings.js';
 
 const STALE_MS = 6000; // câu chờ quá lâu thì bỏ, nói ra đã lỗi thời
 
@@ -52,30 +53,44 @@ export class SpeechQueue {
   }
 }
 
-// MC dẫn chương trình bằng giọng đọc của trình duyệt (Web Speech API). Không có file âm thanh, không cần mạng
-// khi dùng giọng cài sẵn trong máy. Nếu máy không có giọng tiếng Việt thì tự im lặng (không đọc sai bằng giọng nước khác).
+// MC dẫn chương trình. Hai nguồn giọng:
+//  1. Giọng genmax qua server (nếu server có GENMAX_API_KEY và GENMAX_VOICE_ID trong .env): tự nhiên hơn, tốn credit.
+//  2. Giọng đọc của trình duyệt (Web Speech API): miễn phí, cần giọng tiếng Việt cài trong máy.
+// Dùng nguồn 1 khi có; lỗi từng câu (hết hạn mức, mạng) thì câu đó đọc bằng nguồn 2. Không có nguồn nào thì im lặng.
 export class Mc {
-  constructor(cfg = CONFIG.mc, { isMuted = () => false } = {}) {
+  constructor(cfg = CONFIG.mc, { isMuted = () => false, remote = null } = {}) {
     this.cfg = cfg;
     this.enabled = cfg.enabled;
     this.isMuted = isMuted;
     this.synth = typeof window !== 'undefined' ? window.speechSynthesis : null;
     this.queue = new SpeechQueue(cfg.maxQueue);
     this.voice = null;
+    this.remote = remote;
     if (this.synth) {
       this.pickVoice();
       this.synth.addEventListener?.('voiceschanged', () => this.pickVoice());
     }
   }
 
-  // Giọng tiếng Việt: ưu tiên giọng cài sẵn trong máy (không cần mạng)
+  /** Kết nối server giọng genmax (không bắt buộc) và nhờ tạo sẵn các câu cố định. Gọi một lần lúc khởi động. */
+  async init() {
+    if (this.remote) await this.remote.init(staticLines());
+  }
+
+  // Giọng tiếng Việt của trình duyệt: ưu tiên giọng cài sẵn trong máy (không cần mạng)
   pickVoice() {
     const voices = this.synth.getVoices().filter((v) => v.lang.toLowerCase().startsWith(this.cfg.lang));
     this.voice = voices.find((v) => v.localService) ?? voices[0] ?? null;
   }
 
+  /** Nguồn giọng đang dùng: 'genmax', 'trình duyệt' hoặc null (không có). */
+  get source() {
+    if (this.remote?.enabled) return 'genmax';
+    return this.voice ? 'trình duyệt' : null;
+  }
+
   get available() {
-    return !!this.voice;
+    return this.source !== null;
   }
 
   toggle() {
@@ -86,14 +101,15 @@ export class Mc {
 
   stop() {
     this.queue.clear();
+    this.remote?.cancel();
     this.synth?.cancel();
   }
 
   /** Cho MC nói các câu { text, priority } (bỏ qua khi tắt, tắt tiếng, chưa có giọng hoặc trình duyệt chưa cho phát). */
   say(lines) {
-    if (!this.enabled || this.isMuted() || !this.synth) return;
-    if (!this.voice) this.pickVoice();
-    if (!this.voice) return;
+    if (!this.enabled || this.isMuted()) return;
+    if (!this.voice && this.synth) this.pickVoice();
+    if (!this.available) return;
     if (typeof navigator !== 'undefined' && navigator.userActivation && !navigator.userActivation.hasBeenActive) return;
     for (const line of lines) {
       const action = this.queue.offer(line, performance.now());
@@ -102,24 +118,39 @@ export class Mc {
   }
 
   speak(line) {
+    // Cắt câu đang đọc (nếu có) trước khi đọc câu mới
+    this.remote?.cancel();
+    const finish = () => {
+      if (this.queue.current?.text !== line.text) return; // câu này đã bị câu khác cắt ngang
+      const next = this.queue.next(performance.now());
+      if (next) this.speak(next);
+    };
+    if (this.remote?.enabled) this.remote.speak(line.text, finish, () => this.browserSpeak(line, finish));
+    else this.browserSpeak(line, finish);
+  }
+
+  browserSpeak(line, finish) {
+    if (!this.voice || !this.synth) return finish();
     const u = new SpeechSynthesisUtterance(line.text);
     u.voice = this.voice;
     u.lang = this.voice.lang;
     u.rate = this.cfg.rate;
     u.pitch = this.cfg.pitch;
     u.volume = this.cfg.volume;
-    const done = () => {
-      if (this.queue.current?.text !== line.text) return; // câu này đã bị câu khác cắt ngang
-      const next = this.queue.next(performance.now());
-      if (next) this.speak(next);
-    };
-    u.onend = done;
-    u.onerror = done;
+    u.onend = finish;
+    u.onerror = finish;
     if (this.synth.speaking || this.synth.pending) {
-      this.synth.cancel(); // cắt câu đang nói; chờ một nhịp ngắn vì Chrome hay bỏ câu nói ngay sau cancel
+      this.synth.cancel(); // chờ một nhịp ngắn vì Chrome hay bỏ câu nói ngay sau cancel
       setTimeout(() => this.synth.speak(u), 60);
     } else {
       this.synth.speak(u);
     }
   }
+}
+
+/** Các câu cố định (không chèn tên) để server tạo sẵn giọng. */
+export function staticLines() {
+  const out = new Set();
+  for (const list of Object.values(STR.mc)) for (const fn of list) if (fn.length === 0) out.add(fn());
+  return [...out];
 }

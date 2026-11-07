@@ -25,6 +25,7 @@ import { GiftBoost } from '../systems/GiftBoost.js';
 import { FxDirector } from '../systems/FxDirector.js';
 import { AudioEngine } from '../audio/AudioEngine.js';
 import { Mc } from '../audio/Mc.js';
+import { RemoteVoice } from '../audio/RemoteVoice.js';
 import { McDirector } from '../systems/McDirector.js';
 import { shortName } from '../systems/JoinMessage.js';
 import { CommandRouter } from '../systems/CommandRouter.js';
@@ -84,7 +85,9 @@ export class RaceScene extends Phaser.Scene {
     if (mockOn || params.get('mute') === '1') this.audio.enabled = false; // ?mock=1 và ?mute=1: im lặng
     // MC dẫn chương trình (giọng đọc của trình duyệt); tắt khi tắt tiếng chung (phím M), ?mc=0 hoặc ?mock=1
     this.mcDirector = new McDirector(CONFIG);
-    this.mc = new Mc(CONFIG.mc, { isMuted: () => !this.audio.enabled });
+    const remote = CONFIG.mc.provider === 'browser' ? null : new RemoteVoice({ baseUrl: CONFIG.serverUrl.replace(/^ws/, 'http'), volume: CONFIG.mc.volume, timeoutMs: CONFIG.mc.remoteTimeoutMs });
+    this.mc = new Mc(CONFIG.mc, { isMuted: () => !this.audio.enabled, remote });
+    if (!mockOn) this.mc.init(); // hỏi server có giọng genmax không và tạo sẵn các câu cố định
     if (mockOn || params.get('mc') === '0') this.mc.enabled = false;
     this.lastCount = 0;
     this.bindAudioKeys();
@@ -252,7 +255,7 @@ export class RaceScene extends Phaser.Scene {
   statusLine() {
     const m = this.manager;
     const real = m.racers.filter((r) => !r.isBot).length;
-    return `Lượt ${m.round} | ${STATE_LABEL[m.state]} ${m.stateTime.toFixed(1)}s | người thật ${real}, bot ${m.racers.length - real}, hàng đợi ${this.lobby.queue.length} | âm: ${this.audio.enabled ? 'bật' : 'tắt'}, nhạc: ${this.audio.musicOn ? 'bật' : 'tắt'} (M, N) | MC: ${this.mc.enabled ? (this.mc.available ? 'bật' : 'bật, chưa có giọng tiếng Việt') : 'tắt'} (V)`;
+    return `Lượt ${m.round} | ${STATE_LABEL[m.state]} ${m.stateTime.toFixed(1)}s | người thật ${real}, bot ${m.racers.length - real}, hàng đợi ${this.lobby.queue.length} | âm: ${this.audio.enabled ? 'bật' : 'tắt'}, nhạc: ${this.audio.musicOn ? 'bật' : 'tắt'} (M, N) | MC: ${this.mc.enabled ? (this.mc.source ? `bật, giọng ${this.mc.source}` : 'bật, chưa có giọng') : 'tắt'} (V)`;
   }
 
   placeViews() {

@@ -151,7 +151,9 @@ export const CONFIG = {
   // MC đọc to bằng giọng của trình duyệt (Web Speech, cần giọng tiếng Việt cài trong máy). Phím V: tắt/bật MC. URL ?mc=0 tắt từ đầu
   mc: {
     enabled: true,
-    lang: 'vi',               // chọn giọng bắt đầu bằng mã này
+    provider: 'auto',         // 'auto': dùng giọng genmax từ server nếu server có khóa trong .env, không thì giọng trình duyệt; 'browser': luôn dùng giọng trình duyệt
+    remoteTimeoutMs: 8000,    // chờ server tạo giọng tối đa bấy lâu cho mỗi câu
+    lang: 'vi',               // giọng trình duyệt: chọn giọng bắt đầu bằng mã này
     volume: 1,
     rate: 1.12,               // tốc độ nói, 1 là bình thường; cao hơn một chút cho sôi nổi
     pitch: 1.1,
