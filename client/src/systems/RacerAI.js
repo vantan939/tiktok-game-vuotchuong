@@ -1,7 +1,7 @@
 import { CONFIG } from '../config.js';
 import { applyHit, findHit } from './Collision.js';
 import { nominalSpeed, perceive, runPlan, waitControl } from './DodgeAI.js';
-import { halfLength } from './Obstacles.js';
+import { hitReach } from './Obstacles.js';
 
 const noObstacles = () => false;
 
@@ -16,6 +16,7 @@ export function stepRacer(r, dt, ctx) {
   const c = ctx.cfg && ctx.rng ? ctx : { ...ctx, cfg: ctx.cfg ?? CONFIG, rng: ctx.rng ?? Math.random };
   const { cfg } = c;
   const field = ctx.field ?? null;
+  const prevDist = r.dist;
 
   r.shield = Math.max(0, r.shield - dt);
   r.boost = Math.max(0, r.boost - dt);
@@ -41,7 +42,7 @@ export function stepRacer(r, dt, ctx) {
   wander(r, dt, c, isBlocked);
 
   if (field) {
-    const hit = findHit(r, field, ctx.now, cfg);
+    const hit = findHit(r, field, ctx.now, cfg, prevDist);
     if (hit) {
       applyHit(r, cfg);
       ctx.onHit?.(r, hit);
@@ -49,7 +50,7 @@ export function stepRacer(r, dt, ctx) {
   }
 
   // Đã chạy qua hết chướng ngại đang né mà không dính: né hoàn hảo
-  if (r.dodging && r.dist > r.dodging.dist + halfLength(r.dodging, cfg) + cfg.runnerRadius + cfg.spikeRollAmp) {
+  if (r.dodging && r.dist > r.dodging.dist + hitReach(r.dodging, cfg) + cfg.spikeRollAmp) {
     const o = r.dodging;
     r.dodging = null;
     ctx.onDodge?.(r, o);

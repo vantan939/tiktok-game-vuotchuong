@@ -99,8 +99,8 @@ export const CONFIG = {
   obstacleEndMargin: 200,    // chừa đoạn cuối trước đích không có chướng ngại
   obstacleDoubleChance: 0,    // xác suất một hàng có 2 làn bị chặn (luôn chừa ít nhất 1 làn trống)
   hammerChance: 0.5,         // còn lại là quả cầu gai
-  hammerHalfLength: 5,       // nửa chiều dài vùng búa đập (đơn vị đường đua)
-  spikeHalfLength: 3.5,
+  hammerHalfLength: 3,       // nửa chiều dài vùng búa đập (đơn vị đường đua); cùng bán kính nhân vật = vùng đỏ trên đường
+  spikeHalfLength: 2,
   spikeRollAmp: 5,           // cầu gai lăn qua lại quanh vị trí gốc ± đoạn này
   spikeRollPeriod: 3.6,
   hammerCycleSeconds: 2,
@@ -109,7 +109,7 @@ export const CONFIG = {
   hammerFallSeconds: 0.15,   // thời gian búa giáng xuống
   hammerWarnMin: 0.5,        // vùng đỏ cảnh báo hiện trước khi đập, mỗi búa chọn một giá trị trong khoảng này
   hammerWarnMax: 1.0,
-  runnerRadius: 1.5,         // bán kính nhân vật khi xét va chạm (đơn vị đường đua)
+  runnerRadius: 1,           // bán kính nhân vật khi xét va chạm (đơn vị đường đua)
   hitLaneWidth: 0.65,        // lệch làn nhỏ hơn mức này thì coi là cùng làn (khớp bề rộng hình: nhân vật khoảng 0,8 làn, cầu gai 0,7, búa 0,9)
   stunSeconds: 1,
   knockback: 25,

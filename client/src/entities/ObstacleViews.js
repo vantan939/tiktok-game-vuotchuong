@@ -1,6 +1,6 @@
 import { CONFIG } from '../config.js';
 import { ART, ATLAS } from './art.js';
-import { hammerLift, hammerPhaseAt, spikeDist } from '../systems/Obstacles.js';
+import { hammerLift, hammerPhaseAt, hitReach, spikeDist } from '../systems/Obstacles.js';
 import { MAIN_VIEWPORT, depthForDist, laneCenter, laneWidthPx, project, screenX, screenY, scaleAt } from '../systems/Projection.js';
 
 const HEAD_H = 150;
@@ -87,7 +87,7 @@ export class ObstacleViews {
   // Vùng đỏ cảnh báo trên mặt đường dưới búa, nhấp nháy dần khi sắp đập
   drawZone(o, cam, now, phase) {
     const f = cam.focal;
-    const half = CONFIG.hammerHalfLength + 1;
+    const half = hitReach(o); // đúng bằng vùng gây dính, đứng ngoài vùng đỏ thì không bao giờ bị đập
     const sNear = scaleAt(o.dist - half - cam.z0, f);
     const sFar = scaleAt(o.dist + half - cam.z0, f);
     if (sFar < this.minScale) return;

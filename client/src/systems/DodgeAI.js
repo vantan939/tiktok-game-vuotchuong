@@ -1,5 +1,5 @@
 import { CONFIG } from '../config.js';
-import { halfLength, hammerLethalDuring } from './Obstacles.js';
+import { hammerLethalDuring, hitReach } from './Obstacles.js';
 
 // Tự né thông minh. Logic thuần.
 // Nhìn trước lookAheadSeconds; gặp chướng ngại trên làn mình thì tung xác suất theo dodgeSkill
@@ -19,7 +19,7 @@ export function noticeChance(r, cfg = CONFIG) {
 
 // Dự đoán: nếu cứ chạy thẳng với tốc độ v thì lúc băng qua vùng búa có đúng lúc búa đập không
 function crossingLethal(o, r, v, now, cfg) {
-  const reach = halfLength(o, cfg) + cfg.runnerRadius;
+  const reach = hitReach(o, cfg);
   const tEnter = Math.max(0, o.dist - reach - r.dist) / v;
   const tExit = Math.max(0, o.dist + reach - r.dist) / v;
   const margin = 0.05;
@@ -60,7 +60,7 @@ export function perceive(r, ctx) {
     if (o.dist - r.dist > ahead) break;
     if (o.lane !== r.targetLane || r.rolled.has(o.id)) continue;
     // Còn khiên tới lúc chạy qua hết chướng ngại này thì không cần né, cứ lao thẳng
-    if (r.shield > (o.dist - r.dist + halfLength(o, cfg) + cfg.runnerRadius + cfg.spikeRollAmp) / speed) continue;
+    if (r.shield > (o.dist - r.dist + hitReach(o, cfg) + cfg.spikeRollAmp) / speed) continue;
     r.rolled.add(o.id);
     r.encounters++;
     if (rng() >= noticeChance(r, cfg)) return; // lơ đễnh, không nhận ra
@@ -111,7 +111,7 @@ export function waitControl(r, ctx) {
   const o = r.waitFor;
   if (!o) return 1;
   const { cfg, now } = ctx;
-  const reach = halfLength(o, cfg) + cfg.runnerRadius;
+  const reach = hitReach(o, cfg);
   if (r.dist > o.dist + reach) {
     r.waitFor = null;
     return 1;

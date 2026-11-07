@@ -49,6 +49,11 @@ export function halfLength(o, cfg = CONFIG) {
   return o.type === 'hammer' ? cfg.hammerHalfLength : cfg.spikeHalfLength;
 }
 
+/** Vùng gây dính theo chiều dọc: nửa chiều dài chướng ngại cộng bán kính nhân vật. Vùng đỏ cảnh báo của búa vẽ đúng bằng vùng này. */
+export function hitReach(o, cfg = CONFIG) {
+  return halfLength(o, cfg) + cfg.runnerRadius;
+}
+
 function shuffled(n, rng) {
   const a = Array.from({ length: n }, (_, i) => i);
   for (let i = n - 1; i > 0; i--) {
