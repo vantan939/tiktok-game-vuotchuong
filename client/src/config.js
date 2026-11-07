@@ -37,6 +37,7 @@ export const CONFIG = {
   cameraMinFocal: 110,      // nhỏ nhất = zoom gần nhất; càng lớn càng zoom xa
   chaseFocal: 70,           // camera đuổi theo nhân vật (góc nhìn thứ ba): nhỏ = zoom gần
   chaseBackScale: 0.6,      // tỉ lệ phối cảnh của nhân vật được đuổi theo (lớn = to, sát mép dưới)
+  chaseSwitchGap: 60,       // người thật khác phải vượt xa chừng này thì camera mới đổi sang theo người đó
   cameraSmooth: 6,          // độ mượt (lớn = bám nhanh)
 
   // Nhân vật mẫu (tới khi có join thật ở Task 8). Ghi đè bằng ?runners=N khi debug

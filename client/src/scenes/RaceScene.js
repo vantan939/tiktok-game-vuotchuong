@@ -63,6 +63,8 @@ export class RaceScene extends Phaser.Scene {
     // ?speed=N (chạy nhanh N lần), ?round=N (độ dài lượt, giây), ?hold=result (dừng ở trạng thái đó sau 3 giây để xem), ?avatars=1 (thử avatar), ?bots=N (số người tối thiểu, còn lại thiếu thì bot), ?perf=1 (in thời gian vẽ), ?mock=1 (cảnh đóng băng đúng như mockup để so sánh)
     const params = new URLSearchParams(location.search);
     this.perf = params.get('perf') === '1';
+    const camParam = params.get('cam');
+    this.autoFollow = camParam === 'player' || (camParam !== 'overview' && params.get('demo') !== '1'); // live thật tự theo người chơi
     if (params.get('me')) viewer.nickname = params.get('me'); // ?me=Tên: xem như người chơi tên đó (camera đuổi theo)
     this.perfAcc = { n: 0, draw: 0, frame: 0 };
     this.speed = Math.max(1, Number(params.get('speed')) || 1);
@@ -253,20 +255,35 @@ export class RaceScene extends Phaser.Scene {
   }
 
   collectDists() {
-    // Góc người chơi: người ngồi máy này đang đua thì camera đuổi theo nhân vật của họ (góc nhìn thứ ba).
-    // Góc khán giả (mặc định, và trên live thật): ôm cả đoàn
-    const me = this.racers.find((r) => !r.isBot && (r.userId === viewer.userId || (viewer.nickname && r.nickname === viewer.nickname)));
-    this.camera.chase = !!me;
-    if (me) {
+    // Góc người chơi: camera đuổi theo nhân vật người chơi thật (góc nhìn thứ ba, cận cảnh).
+    //  - Máy này xác định được "mình" (panel debug demo, ?me=Tên): theo nhân vật của mình.
+    //  - Live thật (không phải demo): game biết ai đang chơi qua sự kiện join nên tự theo người thật đang dẫn đầu; ?cam=overview để luôn toàn cảnh.
+    //  - Demo: mặc định toàn cảnh; ?cam=player để thử chế độ tự theo người thật.
+    // Không có người thật nào, hoặc ở góc khán giả: ôm cả đoàn.
+    const real = this.racers.filter((r) => !r.isBot);
+    const me = real.find((r) => r.userId === viewer.userId || (viewer.nickname && r.nickname === viewer.nickname));
+    const target = me ?? (this.autoFollow ? this.followLeader(real) : null);
+    this.camera.chase = !!target;
+    if (target) {
       this.dists.length = 1;
-      this.dists[0] = me.dist;
+      this.dists[0] = target.dist;
       return this.dists;
     }
+    this.followed = null;
     this.dists.length = this.racers.length;
     this.racers.forEach((r, i) => {
       this.dists[i] = r.dist;
     });
     return this.dists;
+  }
+
+  // Người thật đang dẫn đầu; giữ người đang theo, chỉ đổi khi người khác vượt xa chaseSwitchGap (tránh camera nhảy qua lại)
+  followLeader(real) {
+    if (!real.length) return null;
+    let lead = real[0];
+    for (const r of real) if (r.dist > lead.dist) lead = r;
+    if (!this.followed || !real.includes(this.followed) || lead.dist - this.followed.dist > CONFIG.chaseSwitchGap) this.followed = lead;
+    return this.followed;
   }
 
   // Phaser dừng hẳn vòng lặp nếu update ném lỗi (không đặt lịch khung hình kế): game đứng, HUD, MC, nhân vật đều im trong khi
