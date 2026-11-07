@@ -12,10 +12,10 @@ export const CONFIG = {
   waitSeconds: 2,           // nghỉ ngắn trước khi đếm ngược, để người xem thấy đoàn đua mới
   countdownSeconds: 3,
   resultSeconds: 8,
-  maxPlayers: 5,
-  botFillTo: 5,             // thiếu người thật thì thêm bot cho đủ số này, để luôn có đoàn đua
+  maxPlayers: 3,
+  botFillTo: 3,             // thiếu người thật thì thêm bot cho đủ số này, để luôn có đoàn đua
   queueShown: 5,
-  topShown: 3,              // bảng xếp hạng hiển thị bấy nhiêu người đứng đầu (cũng là số người trong kết quả lượt)
+  topShown: 1,              // bảng xếp hạng hiển thị bấy nhiêu người đứng đầu (cũng là số người trong kết quả lượt)
   trackLength: 5500,
   lanes: 3,
 
@@ -42,7 +42,7 @@ export const CONFIG = {
   runnerHeight: 560,        // chiều cao nhân vật tại s = 1
   closeCamRunnerHeight: 380, // chiều cao nhân vật trong cửa sổ camera cận (px tại s = 1, trước khi nhân unit)
   startRowGap: 18,          // khoảng cách giữa các hàng ở vạch xuất phát
-  topNamesShown: 5,         // camera chính hiện tên top N (một lượt chỉ 5 người nên hiện hết để ai cũng tìm được mình)
+  topNamesShown: 5,         // camera chính hiện tên top N (một lượt chỉ 3 người nên hiện hết để ai cũng tìm được mình)
   avatarTimeoutSeconds: 8,
 
   // Hành vi tự đổi làn "sống động" khi đường phía trước thoáng
@@ -53,7 +53,7 @@ export const CONFIG = {
   // Camera cận (lệnh s)
   maxCloseCams: 4,
   closeCamSeconds: 30,      // tự tắt sau bấy lâu để không chiếm chỗ; 0 = không tự tắt
-  closeCamWindow: { x: 730, y: 660, w: 340, h: 168, gap: 12 }, // cửa sổ đầu tiên (px khung 1080x1920), các cửa sổ sau xếp dọc xuống
+  closeCamWindow: { x: 730, y: 566, w: 340, h: 168, gap: 12 }, // cửa sổ đầu tiên (px khung 1080x1920), các cửa sổ sau xếp dọc xuống
   closeCamFocal: 55,        // nhỏ = zoom gần
   closeCamBackScale: 0.8,   // tỉ lệ phối cảnh của nhân vật được theo dõi
   closeCamHorizon: 0.3,     // chân trời ở bấy nhiêu phần chiều cao cửa sổ
@@ -93,11 +93,11 @@ export const CONFIG = {
   giftBannerSeconds: 2.8,   // thông báo quà lớn hiện bấy lâu
 
   // Chướng ngại
-  obstacleGapMin: 100,
-  obstacleGapMax: 160,
+  obstacleGapMin: 160,
+  obstacleGapMax: 240,
   obstacleFirstDist: 160,    // hàng chướng ngại đầu tiên
   obstacleEndMargin: 200,    // chừa đoạn cuối trước đích không có chướng ngại
-  obstacleDoubleChance: 0.1,  // xác suất một hàng có 2 làn bị chặn (luôn chừa ít nhất 1 làn trống)
+  obstacleDoubleChance: 0,    // xác suất một hàng có 2 làn bị chặn (luôn chừa ít nhất 1 làn trống)
   hammerChance: 0.5,         // còn lại là quả cầu gai
   hammerHalfLength: 5,       // nửa chiều dài vùng búa đập (đơn vị đường đua)
   spikeHalfLength: 3.5,

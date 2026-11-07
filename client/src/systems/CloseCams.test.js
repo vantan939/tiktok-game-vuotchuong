@@ -16,7 +16,7 @@ function seeded(seed = 1) {
 }
 
 const NAMES = Array.from({ length: 60 }, (_, i) => `Bot${i}`);
-const SHORT = { ...CONFIG, trackLength: 500, obstacleEndMargin: 100, roundSeconds: 60 };
+const SHORT = { ...CONFIG, maxPlayers: 30, botFillTo: 30, trackLength: 500, obstacleEndMargin: 100, roundSeconds: 60 };
 
 function setup(cfg = SHORT) {
   const rng = seeded(4);
