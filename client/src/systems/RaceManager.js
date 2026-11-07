@@ -141,7 +141,7 @@ export class RaceManager {
    */
   join(user) {
     const status = this.lobby.join(user);
-    if (status === 'duplicate') return { status, late: false, queuePosition: 0 };
+    if (status === 'duplicate') return { status, late: false, queuePosition: this.lobby.queuePosition(user.userId), where: this.lobby.where(user.userId) };
     if (status === 'queued') return { status, late: false, queuePosition: this.lobby.queuePosition(user.userId) };
     if (this.state === 'wait' || this.state === 'countdown') this.seatBeforeRace(this.lobby.players.at(-1));
     return { status, late: this.state === 'race', queuePosition: 0 };

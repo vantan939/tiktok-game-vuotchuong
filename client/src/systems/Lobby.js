@@ -38,6 +38,12 @@ export class Lobby {
     return 'queued';
   }
 
+  /** Người này đang ở đâu: 'racing' (có suất đua), 'queued' (đang xếp hàng) hoặc null. */
+  where(userId) {
+    if (this.players.some((p) => p.userId === userId)) return 'racing';
+    return this.queue.some((p) => p.userId === userId) ? 'queued' : null;
+  }
+
   /** Vị trí của người trong hàng đợi (1 là đầu hàng), 0 nếu không đang xếp hàng. */
   queuePosition(userId) {
     return this.queue.findIndex((p) => p.userId === userId) + 1;

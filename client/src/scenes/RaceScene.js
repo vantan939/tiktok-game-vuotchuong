@@ -96,6 +96,9 @@ export class RaceScene extends Phaser.Scene {
     if (mockOn || params.get('mc') === '0') this.mc.enabled = false;
     this.lastCount = 0;
     this.bindAudioKeys();
+    // Nhịp dự phòng: HUD luôn được làm mới ít nhất mỗi 0,5 giây kể cả khi trình duyệt làm chậm vòng lặp game
+    this.hudBackup = setInterval(() => this.refreshHud(), 500);
+    this.events.once('shutdown', () => clearInterval(this.hudBackup));
 
     // Người thật giả lập cho tới khi có join thật (Task 8); không có thì toàn bot
     const botFillTo = params.has('bots') ? Number(params.get('bots')) : CONFIG.botFillTo; // ?bots=N: ít bot hơn cho dễ nhìn
@@ -141,6 +144,7 @@ export class RaceScene extends Phaser.Scene {
     const result = this.manager.join(user);
     console.log(`[join] ${user.nickname} (${user.userId}): ${result.status}, đang đua ${this.lobby.players.length}/${CONFIG.maxPlayers} người thật, hàng đợi ${this.lobby.queue.length}`);
     this.toasts.show(joinMessage(result, user.nickname));
+    this.refreshHud(); // cập nhật hàng đợi ngay, không chờ vòng lặp game (vòng lặp có thể bị trình duyệt làm chậm khi cửa sổ bị che)
     if (result.status === 'racing') this.mc.say(this.mcDirector.onJoin(user.nickname, this.manager.now));
   }
 
@@ -321,6 +325,10 @@ export class RaceScene extends Phaser.Scene {
     this.hudTimer += dt;
     if (this.hudTimer < 0.12) return;
     this.hudTimer = 0;
+    this.refreshHud();
+  }
+
+  refreshHud() {
     const model = buildHudModel(this.manager, this.lobby, this.closeCams);
     this.hud.update(this.mock ? mockHudModel(model) : model);
   }

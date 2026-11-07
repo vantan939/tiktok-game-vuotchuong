@@ -304,6 +304,8 @@ test('joinMessage: đúng ba thông báo và cắt tên quá dài', () => {
   assert.equal(joinMessage({ status: 'racing', late: false }, 'Lan').text, 'Lan vào đua');
   assert.equal(joinMessage({ status: 'queued' }, 'Lan').text, 'Lan vào hàng đợi');
   assert.equal(joinMessage({ status: 'duplicate' }, 'Lan').text, 'Lan đã tham gia rồi');
+  assert.equal(joinMessage({ status: 'duplicate', where: 'queued', queuePosition: 2 }, 'Lan').text, 'Lan đã tham gia rồi (đang chờ, số 2)');
+  assert.equal(joinMessage({ status: 'duplicate', where: 'racing', queuePosition: 0 }, 'Lan').text, 'Lan đã tham gia rồi (đã có suất đua)');
   assert.equal(shortName('Nguyễn Thị Hồng Nhung Xinh Đẹp Quá Trời'), 'Nguyễn Thị Hồng N…');
   assert.equal(shortName('Ngắn'), 'Ngắn');
 });

@@ -32,7 +32,12 @@ export const STR = {
   joinRacing: (name) => `${name} vào đua`,
   joinRacingNext: (name) => `${name} vào đua ở lượt sau`,
   joinQueued: (name, position) => (position ? `${name} vào hàng đợi (số ${position})` : `${name} vào hàng đợi`),
-  joinDuplicate: (name) => `${name} đã tham gia rồi`,
+  // where: 'racing' (đã có suất đua) hoặc 'queued' (đang xếp hàng, kèm số thứ tự); thiếu thì chỉ báo chung
+  joinDuplicate: (name, where, position) => {
+    if (where === 'queued') return `${name} đã tham gia rồi (đang chờ, số ${position})`;
+    if (where === 'racing') return `${name} đã tham gia rồi (đã có suất đua)`;
+    return `${name} đã tham gia rồi`;
+  },
 
   paused: 'TẠM DỪNG',
   pausedHint: 'Streamer sẽ tiếp tục ngay thôi',
