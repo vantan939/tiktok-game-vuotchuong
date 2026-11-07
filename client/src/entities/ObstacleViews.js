@@ -1,10 +1,10 @@
 import { CONFIG } from '../config.js';
 import { ART, ATLAS } from './art.js';
 import { hammerLift, hammerPhaseAt, spikeDist } from '../systems/Obstacles.js';
-import { MAIN_VIEWPORT, laneCenter, laneWidthPx, project, screenX, screenY, scaleAt } from '../systems/Projection.js';
+import { MAIN_VIEWPORT, depthForDist, laneCenter, laneWidthPx, project, screenX, screenY, scaleAt } from '../systems/Projection.js';
 
 const HEAD_H = 150;
-const LIFT_PX = 330; // độ cao đầu búa khi nâng hết cỡ (px tại s = 1)
+const LIFT_PX = 400; // độ cao đầu búa khi nâng hết cỡ (px thiết kế tại s = 1); cao hơn nhân vật nên chạy dưới búa không bị cắt ngang
 
 // Vẽ búa đập và cầu gai. Dùng pool view cố định: mỗi frame gán cho các chướng ngại gần camera nhất.
 // Vùng đỏ cảnh báo vẽ trên mặt đường bằng một Graphics chung.
@@ -50,7 +50,7 @@ export class ObstacleViews {
       const view = this.pool[used++];
       project(laneCenter(o.lane), dist, cam, this.point, this.vp);
       const { x, y } = this.point;
-      view.root.setVisible(true).setPosition(x, y).setScale(s * this.vp.unit).setDepth(10 + dist / 1000 - 0.0005);
+      view.root.setVisible(true).setPosition(x, y).setScale(s * this.vp.unit).setDepth(depthForDist(dist) - 0.0001); // ngang hàng thì nhân vật nằm trên
       if (o.type === 'hammer') this.updateHammer(view, o, now, cam, x, y, s);
       else this.updateSpike(view, dist, now);
     }

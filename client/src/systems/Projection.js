@@ -18,6 +18,14 @@ export const MAIN_VIEWPORT = makeViewport({
   roadHalfWidth: CONFIG.roadHalfWidth,
 });
 
+/**
+ * Thứ tự vẽ theo quãng đường: càng gần camera (dist nhỏ) càng nằm trên, trong khoảng 10 đến 11.
+ * Nhân vật, chướng ngại và camera cận đều dùng chung để che nhau đúng chiều phối cảnh.
+ */
+export function depthForDist(dist, trackLength = CONFIG.trackLength) {
+  return 10 + (trackLength - dist) / trackLength;
+}
+
 export function scaleAt(z, focal) {
   return focal / (focal + z);
 }

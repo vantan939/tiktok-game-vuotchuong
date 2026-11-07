@@ -110,11 +110,11 @@ export const CONFIG = {
   hammerWarnMin: 0.5,        // vùng đỏ cảnh báo hiện trước khi đập, mỗi búa chọn một giá trị trong khoảng này
   hammerWarnMax: 1.0,
   runnerRadius: 1.5,         // bán kính nhân vật khi xét va chạm (đơn vị đường đua)
-  hitLaneWidth: 0.45,        // lệch làn nhỏ hơn mức này thì coi là cùng làn
+  hitLaneWidth: 0.65,        // lệch làn nhỏ hơn mức này thì coi là cùng làn (khớp bề rộng hình: nhân vật khoảng 0,8 làn, cầu gai 0,7, búa 0,9)
   stunSeconds: 1,
   knockback: 25,
   jumpSeconds: 0.8,
-  jumpHeight: 150,           // độ cao nhảy (px tại s = 1)
+  jumpHeight: 230,           // độ cao nhảy (px thiết kế tại s = 1, nhân với unit); phải cao hơn quả cầu gai (khoảng 200) để thấy rõ nhảy qua
   dodgeLaneSmooth: 8,        // trượt sang làn khác nhanh hơn khi đang né
   obstacleMinScale: 0.07,    // chướng ngại xa hơn mức này thì không vẽ
   obstaclePoolSize: 24,

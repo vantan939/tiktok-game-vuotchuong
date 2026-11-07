@@ -4,7 +4,7 @@ import { ART, ATLAS } from '../entities/art.js';
 import { SHADOW_Y } from '../entities/RacerView.js';
 import { drawRoad } from '../entities/roadDrawing.js';
 import { SKINS, TEX_H } from '../entities/skins.js';
-import { laneCenter, makeViewport, project } from '../systems/Projection.js';
+import { depthForDist, laneCenter, makeViewport, project } from '../systems/Projection.js';
 import { shortName } from '../systems/JoinMessage.js';
 import { createFrame, el } from './hud/Frame.js';
 
@@ -133,7 +133,7 @@ export class CloseCamPanel {
       } else if (r.jump > 0) {
         hop = Math.sin(Math.PI * (1 - r.jump / CONFIG.jumpSeconds)) * CONFIG.jumpHeight * s * vp.unit;
       }
-      sprite.root.setVisible(true).setPosition(x, y - hop).setScale(k).setAngle(wobble).setDepth(10 + r.dist / 1000);
+      sprite.root.setVisible(true).setPosition(x, y - hop).setScale(k).setAngle(wobble).setDepth(depthForDist(r.dist));
       sprite.shadow.y = SHADOW_Y + hop / k;
       if (r === target) {
         // Mũi tên vàng đánh dấu người đang theo dõi

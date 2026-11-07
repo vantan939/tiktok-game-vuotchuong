@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { CONFIG } from '../config.js';
+import { MAIN_VIEWPORT } from '../systems/Projection.js';
 import { ART, ATLAS } from './art.js';
 import { SKINS, TEX_H } from './skins.js';
 
@@ -108,7 +109,7 @@ export class RacerView {
       wobble = Math.sin(clock * 22) * 9; // choáng: lảo đảo
       squash = 0.92;
     } else if (r.jump > 0) {
-      hop = Math.sin(Math.PI * (1 - r.jump / CONFIG.jumpSeconds)) * CONFIG.jumpHeight * s; // nhảy: vòng cung
+      hop = Math.sin(Math.PI * (1 - r.jump / CONFIG.jumpSeconds)) * CONFIG.jumpHeight * s * MAIN_VIEWPORT.unit; // nhảy: vòng cung, cùng tỉ lệ với chướng ngại
     } else {
       hop = Math.abs(Math.sin(bob)) * 18 * k;
     }

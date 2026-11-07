@@ -27,7 +27,7 @@ import { AudioEngine } from '../audio/AudioEngine.js';
 import { shortName } from '../systems/JoinMessage.js';
 import { CommandRouter } from '../systems/CommandRouter.js';
 import { RaceCamera } from '../systems/RaceCamera.js';
-import { laneCenter, project } from '../systems/Projection.js';
+import { depthForDist, laneCenter, project } from '../systems/Projection.js';
 import { Lobby } from '../systems/Lobby.js';
 import { RaceManager } from '../systems/RaceManager.js';
 
@@ -261,7 +261,7 @@ export class RaceScene extends Phaser.Scene {
       }
       view.setCrown(racing && r.rank === 1);
       view.extraScale = this.mockScale.get(r);
-      view.place(x, y, s, m.now * 14 + i * 1.3, 10 + r.dist / 1000, m.now);
+      view.place(x, y, s, m.now * 14 + i * 1.3, depthForDist(r.dist), m.now);
       view.s = s;
       if (r.boost > 0 && s > 0.3 && (!rayTarget || s > rayTarget.s)) rayTarget = { x, y, s, power: Math.min(1, r.boost / 0.5) };
       this.debug.racer(r, this.camera, x, y, s);
