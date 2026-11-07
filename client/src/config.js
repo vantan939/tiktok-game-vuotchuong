@@ -192,4 +192,6 @@ export const CONFIG = {
   demoLike: [0.3, 1],
   demoLikeMax: 15,
   demoGift: [4, 9],
+  soakReportSeconds: 300,   // ?demo=1&soak=1: ghi mức RAM vào memory-log.csv mỗi bấy nhiêu giây (đổi bằng ?soakEvery=giây)
+  spamStreams: { likes: 40, gifts: 6, joins: 4 }, // ?spam=1: số luồng thả tim, tặng quà, gõ join chạy song song (mỗi luồng 0,3 đến 1 giây một lần)
 };

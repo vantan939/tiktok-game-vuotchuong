@@ -14,11 +14,13 @@ export const GIFTS = [
 // Logic thuần, không phụ thuộc Phaser. "join" và "s" được phát dưới dạng bình luận (chat),
 // giống TikTok thật vì người xem gõ chữ vào ô bình luận.
 export class DemoSource {
-  constructor(bus, random = Math.random) {
+  // users: số người dùng giả (mặc định CONFIG.demoUserCount, vượt số tên có sẵn thì đặt tên Khán giả N); spam: bật nhiều luồng sự kiện song song để thử tải
+  constructor(bus, random = Math.random, { users = CONFIG.demoUserCount, spam = false } = {}) {
     this.bus = bus;
+    this.spam = spam;
     this.random = random;
     this.timers = new Set();
-    this.users = STR.demoNames.slice(0, CONFIG.demoUserCount).map((nickname, i) => ({
+    this.users = Array.from({ length: users }, (_, i) => STR.demoNames[i] ?? `Khán giả ${i + 1}`).map((nickname, i) => ({
       userId: `demo_${i + 1}`,
       nickname,
       avatarUrl: '',
@@ -31,8 +33,11 @@ export class DemoSource {
     this.users.forEach((u) => {
       this.after(this.rand(CONFIG.demoFirstJoinSeconds, CONFIG.demoJoinSpreadSeconds), () => this.chat(u, 'join'));
     });
-    this.loop(CONFIG.demoLike, (u) => this.like(u, 1 + Math.floor(this.random() * CONFIG.demoLikeMax)));
-    this.loop(CONFIG.demoGift, (u) => this.gift(u, this.randomGift()));
+    const { likes, gifts, joins } = this.spam ? CONFIG.spamStreams : { likes: 1, gifts: 1, joins: 0 };
+    const rate = (n, normal) => (this.spam ? [0.3, 1] : normal);
+    for (let i = 0; i < likes; i++) this.loop(rate(likes, CONFIG.demoLike), (u) => this.like(u, 1 + Math.floor(this.random() * CONFIG.demoLikeMax)));
+    for (let i = 0; i < gifts; i++) this.loop(rate(gifts, CONFIG.demoGift), (u) => this.gift(u, this.randomGift()));
+    for (let i = 0; i < joins; i++) this.loop([0.3, 1], (u) => this.chat(u, 'join')); // gõ join liên tục (cả người đang chờ lẫn đang đua)
   }
 
   stop() {

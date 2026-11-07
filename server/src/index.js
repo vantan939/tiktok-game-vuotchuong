@@ -2,7 +2,7 @@ import { createServer } from 'node:http';
 import { fileURLToPath } from 'node:url';
 import { WebSocketServer } from 'ws';
 import { genmaxFromEnv } from './tts/genmax.js';
-import { createClientLogHandler, createTtsHandler } from './tts/routes.js';
+import { createClientLogHandler, createMemLogHandler, createTtsHandler } from './tts/routes.js';
 import { isValidEvent } from '../../shared/events.js';
 import { TikTokLiveSource } from './tiktok/live.js';
 import { createRecorder, loadReplay, playReplay } from './tiktok/replay.js';
@@ -28,10 +28,11 @@ const argValue = (name) => {
 const tts = genmaxFromEnv(process.env, { cacheDir: fileURLToPath(new URL('../.cache/tts', import.meta.url)) });
 const handleTts = createTtsHandler(tts);
 const handleClientLog = createClientLogHandler();
+const handleMemLog = createMemLogHandler({ file: fileURLToPath(new URL('../../memory-log.csv', import.meta.url)) }); // chế độ soak của client
 
 // Một cổng cho cả WebSocket (sự kiện game) và HTTP (giọng nói)
 const http = createServer(async (req, res) => {
-  if (await handleTts(req, res) || await handleClientLog(req, res)) return;
+  if (await handleTts(req, res) || await handleClientLog(req, res) || await handleMemLog(req, res)) return;
   res.writeHead(404);
   res.end('Not found');
 });

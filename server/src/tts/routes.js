@@ -1,3 +1,4 @@
+import { appendFile, access } from 'node:fs/promises';
 import { TtsError } from './genmax.js';
 
 const MAX_BODY = 8192;
@@ -108,6 +109,42 @@ export function createClientLogHandler({ log = console.log } = {}) {
       const body = await readJson(req);
       if (body.kind === 'info') log(`[game] ${clean(body.message, 500)}`); // trạng thái game để streamer xem trong terminal
       else log(`[client] lỗi ${clean(body.source, 40)}: ${clean(body.message, 300)}${body.stack ? ` | ${clean(body.stack, 400)}` : ''}`);
+      send(res, 204, '', cors);
+    } catch (err) {
+      send(res, err instanceof TtsError ? err.status : 500, JSON.stringify({ error: 'Lỗi' }), { ...cors, 'Content-Type': 'application/json' });
+    }
+    return true;
+  };
+}
+
+/**
+ * POST /memlog { header, line }: chế độ soak của client (?demo=1&soak=1) gửi mỗi dòng đo bộ nhớ để server ghi nối vào file CSV.
+ * Dòng tiêu đề chỉ được ghi khi file chưa có. Chỉ nhận từ trang chạy trên máy này; dòng chỉ gồm ký tự an toàn cho CSV.
+ */
+export function createMemLogHandler({ file, log = console.log, append = appendFile, exists = (f) => access(f).then(() => true, () => false) } = {}) {
+  const SAFE = /^[\w .:+,\-]{1,300}$/;
+  return async function handle(req, res) {
+    const url = new URL(req.url, 'http://localhost');
+    if (url.pathname !== '/memlog') return false;
+    const origin = allowOrigin(req);
+    if (origin === false) {
+      send(res, 403, 'Forbidden');
+      return true;
+    }
+    const cors = origin ? { 'Access-Control-Allow-Origin': origin, Vary: 'Origin' } : {};
+    if (req.method === 'OPTIONS') {
+      send(res, 204, '', { ...cors, 'Access-Control-Allow-Methods': 'POST', 'Access-Control-Allow-Headers': 'Content-Type' });
+      return true;
+    }
+    try {
+      if (req.method !== 'POST') throw new TtsError(405, 'Chỉ nhận POST');
+      const { header, line } = await readJson(req);
+      if (typeof line !== 'string' || !SAFE.test(line) || (header != null && (typeof header !== 'string' || !SAFE.test(header)))) throw new TtsError(400, 'Dòng không hợp lệ');
+      const text = `${header && !(await exists(file)) ? `${header}
+` : ''}${line}
+`;
+      await append(file, text, 'utf8');
+      log(`[soak] ${line}`);
       send(res, 204, '', cors);
     } catch (err) {
       send(res, err instanceof TtsError ? err.status : 500, JSON.stringify({ error: 'Lỗi' }), { ...cors, 'Content-Type': 'application/json' });

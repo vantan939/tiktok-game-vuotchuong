@@ -45,10 +45,10 @@ async function main() {
   await loadFonts();
 
   if (params.get('demo') === '1') {
-    const demo = new DemoSource(bus);
+    const demo = new DemoSource(bus, Math.random, { users: Number(params.get('users')) || CONFIG.demoUserCount, spam: params.get('spam') === '1' }); // ?users=N, ?spam=1: thử tải
     if (!mode.live) new DebugPanel(demo); // quay thì ẩn panel debug
-    // In luồng sự kiện ra console để kiểm tra
-    bus.on('*', (e) => {
+    // In luồng sự kiện ra console để kiểm tra (tắt khi thử tải / soak: hàng nghìn dòng log tự nó làm chậm trang)
+    if (params.get('spam') !== '1' && params.get('soak') !== '1') bus.on('*', (e) => {
       const detail = e.text ?? e.likeCount ?? `${e.giftName} (${e.diamonds} kim cương)`;
       console.log(`[sự kiện] ${e.type.padEnd(4)} ${e.nickname}: ${detail}`);
     });

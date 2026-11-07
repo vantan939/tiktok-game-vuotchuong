@@ -21,6 +21,7 @@ import { Hearts } from '../entities/Hearts.js';
 import { SpeedRays } from '../entities/SpeedRays.js';
 import { GiftBoost } from '../systems/GiftBoost.js';
 import { FxDirector } from '../systems/FxDirector.js';
+import { SoakLog } from '../core/SoakLog.js';
 import { BackgroundTicker } from '../core/BackgroundTicker.js';
 import { AudioEngine } from '../audio/AudioEngine.js';
 import { Mc } from '../audio/Mc.js';
@@ -113,8 +114,11 @@ export class RaceScene extends Phaser.Scene {
     });
 
     // Người thật giả lập cho tới khi có join thật (Task 8); không có thì toàn bot
-    const botFillTo = params.has('bots') ? Number(params.get('bots')) : CONFIG.botFillTo; // ?bots=N: ít bot hơn cho dễ nhìn
-    this.lobby = new Lobby({ cfg: { ...CONFIG, botFillTo }, botNames: STR.demoNames });
+    // ?racers=N: đoàn đua N nhân vật (thử tải, vd. 30); ?bots=N: ít bot hơn cho dễ nhìn
+    const racersN = Number(params.get('racers')) || 0;
+    this.runCfg = racersN ? { ...CONFIG, maxPlayers: racersN, botFillTo: racersN } : CONFIG;
+    const botFillTo = params.has('bots') ? Number(params.get('bots')) : this.runCfg.botFillTo; // ?bots=N: ít bot hơn cho dễ nhìn
+    this.lobby = new Lobby({ cfg: { ...this.runCfg, botFillTo }, botNames: STR.demoNames });
     if (mockOn) seedMockLobby(this.lobby);
     const useAvatars = params.get('avatars') === '1';
     for (let i = 0; i < (Number(params.get('players')) || 0); i++) {
@@ -127,11 +131,18 @@ export class RaceScene extends Phaser.Scene {
     // ?round=N: rút ngắn lượt đua (giây) để thử báo động hết giờ
     const roundSeconds = Number(params.get('round')) || CONFIG.roundSeconds;
     this.manager = new RaceManager(this.lobby, {
-      cfg: { ...CONFIG, roundSeconds },
+      cfg: { ...this.runCfg, roundSeconds },
       skinCount: SKINS.length,
       startDist: Number(params.get('start')) || 0,
       onEvent: (e) => this.onGameEvent(e),
     });
+    // ?demo=1&soak=1: ghi mức RAM định kỳ vào memory-log.csv (xem README)
+    if (params.get('soak') === '1') {
+      this.soak = new SoakLog({
+        reportEverySeconds: Number(params.get('soakEvery')) || CONFIG.soakReportSeconds,
+        getExtra: () => ({ round: this.manager.round, phaser: this.children.list.length, dom: document.getElementsByTagName('*').length, racers: this.manager.racers.length }),
+      });
+    }
     this.toasts = new Toasts(hudRoot);
     this.overlay = new RoundOverlay(hudRoot);
     this.likeBoost = new LikeBoost(this.manager);
@@ -277,6 +288,7 @@ export class RaceScene extends Phaser.Scene {
 
   tick(_time, delta) {
     this.bgTicker?.frame();
+    this.soak?.frame();
     const dt = Math.min(delta / 1000, 0.05);
     const held = this.hold && this.manager.state === this.hold && this.manager.stateTime >= 3;
     if (!held && !this.mock) for (let i = 0; i < this.speed; i++) this.manager.update(dt);

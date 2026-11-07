@@ -130,3 +130,27 @@ test('POST /log kind=info: in trạng thái game ra terminal với tiền tố [
     await new Promise((r) => server.close(r));
   }
 });
+
+test('POST /memlog: ghi tiêu đề một lần rồi nối từng dòng; từ chối dòng có ký tự lạ', async () => {
+  const { createMemLogHandler } = await import('./routes.js');
+  const writes = [];
+  let has = false;
+  const handle = createMemLogHandler({
+    file: 'x.csv', log: () => {},
+    exists: async () => has,
+    append: async (f, t) => { writes.push([f, t]); has = true; },
+  });
+  const server = createServer(async (req, res) => { if (!(await handle(req, res))) { res.writeHead(404); res.end(); } });
+  await new Promise((r) => server.listen(0, r));
+  const url = `http://127.0.0.1:${server.address().port}/memlog`;
+  const post = (body) => fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  try {
+    assert.equal((await post({ header: 'a,b', line: '1,2' })).status, 204);
+    assert.equal((await post({ header: 'a,b', line: '3,4' })).status, 204);
+    assert.deepEqual(writes.map((w) => w[1]), ['a,b\n1,2\n', '3,4\n']);
+    assert.equal((await post({ line: '1,2\n=cmd|x' })).status, 400);
+    assert.equal(writes.length, 2);
+  } finally {
+    await new Promise((r) => server.close(r));
+  }
+});

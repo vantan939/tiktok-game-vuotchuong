@@ -99,6 +99,15 @@ Chế độ quay: mở `http://localhost:5173/?live=1`. Trang sẽ:
 
 Phím chỉ có tác dụng khi cửa sổ game đang được chọn (bấm vào cửa sổ trước), không có tác dụng khi gõ vào ô nhập.
 
+## Thử tải và đo bộ nhớ (soak)
+
+Chỉ dùng khi phát triển, chạy ở chế độ demo (`npm run dev`, nên mở bằng `npm run live:window` hoặc Chrome/Edge và để cửa sổ hiện ra, vì tab ẩn thì trình duyệt ngừng vẽ nên FPS đo được sai):
+
+- `http://localhost:5173/?demo=1&soak=1`: demo tự chạy liên tục và **ghi mức RAM (JS heap) mỗi 5 phút** vào `memory-log.csv` ở thư mục gốc (server phải đang chạy; file bị git bỏ qua). Không có server thì in dòng CSV ra Console và gom vào `window.__soakCsv`, gõ `downloadSoakLog()` ở Console để tải về. Heap chỉ đọc được ở Chrome/Edge. `&soakEvery=20` ghi mỗi 20 giây (để thử nhanh).
+- Cột của file: `time` (giờ), `minutes` (phút từ lúc mở), `round` (lượt), `heap_min_mb` (RAM thấp nhất trong khoảng, gần mức sau khi trình duyệt dọn rác, dùng cái này để xem xu hướng), `heap_peak_mb` (cao nhất), `phaser_objects` (số đối tượng Phaser trong màn đua), `dom_nodes` (số phần tử DOM), `racers` (số nhân vật), `fps` (trung bình trong khoảng). Rò bộ nhớ thường lộ ra ở chỗ `heap_min_mb`, `phaser_objects` hoặc `dom_nodes` tăng đều qua các dòng.
+- Thử tải: `&racers=30` (đoàn đua 30 nhân vật), `&users=100` (100 người dùng giả), `&spam=1` (nhiều luồng thả tim, tặng quà, gõ join chạy song song, khoảng vài chục sự kiện mỗi giây), `&perf=1` (in FPS ra Console mỗi 2 giây). Ví dụ: `?demo=1&soak=1&racers=30&users=100&spam=1&perf=1&live=1&scale=0.5&mute=1`.
+- Chạy thử ngắn (2 phút, `soakEvery=20`, 30 nhân vật, 100 người dùng giả spam) cho thấy heap dao động 26 đến 56 MB không tăng dần, số đối tượng Phaser giữ ở 443; số phần tử DOM tăng nhẹ từ 435 lên 471 (cần theo dõi ở lần chạy dài). FPS đo trong khung xem trước của Claude không đáng tin (khung hiện lúc ẩn lúc hiện), cần đo lại trên máy thật.
+
 ## Giọng MC, âm thanh
 
 Xem `ASSETS.md` (mục Giọng MC, Âm thanh) và `.env.example` (`GENMAX_*`). Phím tắt: `M` tắt/bật tiếng, `N` tắt/bật nhạc, `V` tắt/bật MC.
