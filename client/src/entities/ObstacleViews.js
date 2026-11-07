@@ -4,7 +4,7 @@ import { hammerLift, hammerPhaseAt, hitReach, spikeDist } from '../systems/Obsta
 import { MAIN_VIEWPORT, depthForDist, laneCenter, laneWidthPx, project, screenX, screenY, scaleAt } from '../systems/Projection.js';
 
 const HEAD_H = 150;
-const LIFT_PX = 400; // độ cao đầu búa khi nâng hết cỡ (px thiết kế tại s = 1); cao hơn nhân vật nên chạy dưới búa không bị cắt ngang
+const LIFT_PX = 520; // độ cao đầu búa khi nâng hết cỡ (px thiết kế tại s = 1); cao hơn nhân vật nên chạy dưới búa không bị cắt ngang
 
 // Vẽ búa đập và cầu gai. Dùng pool view cố định: mỗi frame gán cho các chướng ngại gần camera nhất.
 // Vùng đỏ cảnh báo vẽ trên mặt đường bằng một Graphics chung.
