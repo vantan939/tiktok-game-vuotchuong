@@ -57,6 +57,8 @@ export class AudioEngine {
     this.ctx = ctx;
     this.applyVolumes();
     this.nextStepAt = ctx.currentTime + 0.1;
+    // Nhịp xếp lịch nhạc do RaceScene (BackgroundTicker, chạy trong Worker) gọi scheduleMusic để không bị chậm khi tab ẩn;
+    // setInterval này chỉ là dự phòng khi chưa có ai gọi
     this.timer = setInterval(() => this.scheduleMusic(), TICK_MS);
     return ctx;
   }

@@ -21,6 +21,7 @@ import { Hearts } from '../entities/Hearts.js';
 import { SpeedRays } from '../entities/SpeedRays.js';
 import { GiftBoost } from '../systems/GiftBoost.js';
 import { FxDirector } from '../systems/FxDirector.js';
+import { BackgroundTicker } from '../core/BackgroundTicker.js';
 import { AudioEngine } from '../audio/AudioEngine.js';
 import { Mc } from '../audio/Mc.js';
 import { RemoteVoice } from '../audio/RemoteVoice.js';
@@ -101,7 +102,15 @@ export class RaceScene extends Phaser.Scene {
     this.bindAudioKeys();
     // Nhịp dự phòng: HUD luôn được làm mới ít nhất mỗi 0,5 giây kể cả khi trình duyệt làm chậm vòng lặp game
     this.hudBackup = setInterval(() => this.refreshHud(), 500);
-    this.events.once('shutdown', () => clearInterval(this.hudBackup));
+    // Tab ẩn / cửa sổ bị che: Phaser ngừng vẽ nhưng game, MC và nhạc vẫn chạy nhờ nhịp từ Worker
+    this.bgTicker = new BackgroundTicker({
+      onBeat: () => this.audio.scheduleMusic(),
+      onStale: (dt) => this.backgroundStep(dt),
+    });
+    this.events.once('shutdown', () => {
+      clearInterval(this.hudBackup);
+      this.bgTicker.stop();
+    });
 
     // Người thật giả lập cho tới khi có join thật (Task 8); không có thì toàn bot
     const botFillTo = params.has('bots') ? Number(params.get('bots')) : CONFIG.botFillTo; // ?bots=N: ít bot hơn cho dễ nhìn
@@ -259,7 +268,15 @@ export class RaceScene extends Phaser.Scene {
     }
   }
 
+  // Chạy logic khi không có khung hình (tab ẩn): bước nhỏ như bình thường, không vẽ
+  backgroundStep(seconds) {
+    if (this.mock || this.hold) return;
+    for (let left = seconds; left > 1e-6; left -= 0.05) this.manager.update(Math.min(left, 0.05));
+    this.mc.say(this.mcDirector.update(this.manager, this.manager.now));
+  }
+
   tick(_time, delta) {
+    this.bgTicker?.frame();
     const dt = Math.min(delta / 1000, 0.05);
     const held = this.hold && this.manager.state === this.hold && this.manager.stateTime >= 3;
     if (!held && !this.mock) for (let i = 0; i < this.speed; i++) this.manager.update(dt);
