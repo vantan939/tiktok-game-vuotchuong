@@ -41,7 +41,7 @@ async function main() {
     });
     demo.start();
   } else {
-    new WebSocketSource(bus).start();
+    new WebSocketSource(bus, params.get('server') ?? undefined).start(); // ?server=ws://host:cổng để trỏ tới server khác
   }
 
   new Phaser.Game({

@@ -1,14 +1,14 @@
 import { CommandGate } from './CommandGate.js';
 
 // Nghe EventBus, lọc bằng CommandGate rồi gọi handler cho từng lệnh hợp lệ.
-// Sự kiện type 'join' (nếu nguồn nào đó phát) được coi như lệnh join.
+// Chỉ bình luận (chat) mới là lệnh. Sự kiện type 'join' (người xem vào phòng live, TikTok member) KHÔNG tự động
+// cho vào đua: luật là phải gõ join; không thì ai vào phòng cũng chiếm suất.
 export class CommandRouter {
   constructor(bus, now = () => performance.now()) {
     this.gate = new CommandGate();
     this.now = now;
     this.handlers = [];
     bus.on('chat', (e) => this.route(e, e.text));
-    bus.on('join', (e) => this.route(e, 'join'));
   }
 
   /** handler({ command: 'join'|'s', user: { userId, nickname, avatarUrl } }) */

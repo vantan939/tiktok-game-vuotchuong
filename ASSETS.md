@@ -44,4 +44,4 @@ Lời thoại ở `STR.mc` trong `client/src/strings.js`. Phím `V` tắt/bật 
 
 ## Thư viện chương trình
 
-Phaser 3 (MIT), Vite (MIT), ws (MIT). Tiktok-live-connector sẽ được thêm ở task nối TikTok.
+Phaser 3 (MIT), Vite (MIT), ws (MIT). tiktok-live-connector 2.5.0 (MIT, phía server; kéo theo tiktok-live-proto theo giấy phép AGPL-3.0 và gọi máy chủ ký của Euler Stream). Xem README mục TikTok Live.

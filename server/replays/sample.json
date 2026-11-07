@@ -1,0 +1,1140 @@
+[
+ {
+  "t": 1600,
+  "event": {
+   "type": "join",
+   "userId": "rp_1",
+   "nickname": "Lan Anh",
+   "avatarUrl": ""
+  }
+ },
+ {
+  "t": 2200,
+  "event": {
+   "type": "join",
+   "userId": "rp_2",
+   "nickname": "MinhGaming",
+   "avatarUrl": ""
+  }
+ },
+ {
+  "t": 2800,
+  "event": {
+   "type": "join",
+   "userId": "rp_3",
+   "nickname": "Cherry",
+   "avatarUrl": ""
+  }
+ },
+ {
+  "t": 3400,
+  "event": {
+   "type": "join",
+   "userId": "rp_4",
+   "nickname": "KhoaVN",
+   "avatarUrl": ""
+  }
+ },
+ {
+  "t": 4000,
+  "event": {
+   "type": "join",
+   "userId": "rp_5",
+   "nickname": "Gamer88",
+   "avatarUrl": ""
+  }
+ },
+ {
+  "t": 4900,
+  "event": {
+   "type": "chat",
+   "userId": "rp_1",
+   "nickname": "Lan Anh",
+   "avatarUrl": "",
+   "text": "join"
+  }
+ },
+ {
+  "t": 5800,
+  "event": {
+   "type": "chat",
+   "userId": "rp_2",
+   "nickname": "MinhGaming",
+   "avatarUrl": "",
+   "text": "join"
+  }
+ },
+ {
+  "t": 6700,
+  "event": {
+   "type": "chat",
+   "userId": "rp_3",
+   "nickname": "Cherry",
+   "avatarUrl": "",
+   "text": "join"
+  }
+ },
+ {
+  "t": 7600,
+  "event": {
+   "type": "chat",
+   "userId": "rp_4",
+   "nickname": "KhoaVN",
+   "avatarUrl": "",
+   "text": "join"
+  }
+ },
+ {
+  "t": 8500,
+  "event": {
+   "type": "chat",
+   "userId": "rp_5",
+   "nickname": "Gamer88",
+   "avatarUrl": "",
+   "text": "join"
+  }
+ },
+ {
+  "t": 10000,
+  "event": {
+   "type": "chat",
+   "userId": "rp_2",
+   "nickname": "MinhGaming",
+   "avatarUrl": "",
+   "text": "s"
+  }
+ },
+ {
+  "t": 10700,
+  "event": {
+   "type": "like",
+   "userId": "rp_1",
+   "nickname": "Lan Anh",
+   "avatarUrl": "",
+   "likeCount": 1
+  }
+ },
+ {
+  "t": 11400,
+  "event": {
+   "type": "like",
+   "userId": "rp_2",
+   "nickname": "MinhGaming",
+   "avatarUrl": "",
+   "likeCount": 2
+  }
+ },
+ {
+  "t": 12100,
+  "event": {
+   "type": "like",
+   "userId": "rp_3",
+   "nickname": "Cherry",
+   "avatarUrl": "",
+   "likeCount": 3
+  }
+ },
+ {
+  "t": 12800,
+  "event": {
+   "type": "like",
+   "userId": "rp_1",
+   "nickname": "Lan Anh",
+   "avatarUrl": "",
+   "likeCount": 4
+  }
+ },
+ {
+  "t": 13500,
+  "event": {
+   "type": "like",
+   "userId": "rp_2",
+   "nickname": "MinhGaming",
+   "avatarUrl": "",
+   "likeCount": 5
+  }
+ },
+ {
+  "t": 14200,
+  "event": {
+   "type": "like",
+   "userId": "rp_3",
+   "nickname": "Cherry",
+   "avatarUrl": "",
+   "likeCount": 1
+  }
+ },
+ {
+  "t": 14900,
+  "event": {
+   "type": "like",
+   "userId": "rp_1",
+   "nickname": "Lan Anh",
+   "avatarUrl": "",
+   "likeCount": 2
+  }
+ },
+ {
+  "t": 15600,
+  "event": {
+   "type": "like",
+   "userId": "rp_2",
+   "nickname": "MinhGaming",
+   "avatarUrl": "",
+   "likeCount": 3
+  }
+ },
+ {
+  "t": 16300,
+  "event": {
+   "type": "like",
+   "userId": "rp_3",
+   "nickname": "Cherry",
+   "avatarUrl": "",
+   "likeCount": 4
+  }
+ },
+ {
+  "t": 17000,
+  "event": {
+   "type": "like",
+   "userId": "rp_1",
+   "nickname": "Lan Anh",
+   "avatarUrl": "",
+   "likeCount": 5
+  }
+ },
+ {
+  "t": 17700,
+  "event": {
+   "type": "like",
+   "userId": "rp_2",
+   "nickname": "MinhGaming",
+   "avatarUrl": "",
+   "likeCount": 1
+  }
+ },
+ {
+  "t": 18400,
+  "event": {
+   "type": "like",
+   "userId": "rp_3",
+   "nickname": "Cherry",
+   "avatarUrl": "",
+   "likeCount": 2
+  }
+ },
+ {
+  "t": 19100,
+  "event": {
+   "type": "like",
+   "userId": "rp_1",
+   "nickname": "Lan Anh",
+   "avatarUrl": "",
+   "likeCount": 3
+  }
+ },
+ {
+  "t": 19800,
+  "event": {
+   "type": "like",
+   "userId": "rp_2",
+   "nickname": "MinhGaming",
+   "avatarUrl": "",
+   "likeCount": 4
+  }
+ },
+ {
+  "t": 20500,
+  "event": {
+   "type": "like",
+   "userId": "rp_3",
+   "nickname": "Cherry",
+   "avatarUrl": "",
+   "likeCount": 5
+  }
+ },
+ {
+  "t": 21200,
+  "event": {
+   "type": "like",
+   "userId": "rp_1",
+   "nickname": "Lan Anh",
+   "avatarUrl": "",
+   "likeCount": 1
+  }
+ },
+ {
+  "t": 21900,
+  "event": {
+   "type": "like",
+   "userId": "rp_2",
+   "nickname": "MinhGaming",
+   "avatarUrl": "",
+   "likeCount": 2
+  }
+ },
+ {
+  "t": 22600,
+  "event": {
+   "type": "like",
+   "userId": "rp_3",
+   "nickname": "Cherry",
+   "avatarUrl": "",
+   "likeCount": 3
+  }
+ },
+ {
+  "t": 23300,
+  "event": {
+   "type": "like",
+   "userId": "rp_1",
+   "nickname": "Lan Anh",
+   "avatarUrl": "",
+   "likeCount": 4
+  }
+ },
+ {
+  "t": 24000,
+  "event": {
+   "type": "like",
+   "userId": "rp_2",
+   "nickname": "MinhGaming",
+   "avatarUrl": "",
+   "likeCount": 5
+  }
+ },
+ {
+  "t": 24700,
+  "event": {
+   "type": "like",
+   "userId": "rp_3",
+   "nickname": "Cherry",
+   "avatarUrl": "",
+   "likeCount": 1
+  }
+ },
+ {
+  "t": 25400,
+  "event": {
+   "type": "like",
+   "userId": "rp_1",
+   "nickname": "Lan Anh",
+   "avatarUrl": "",
+   "likeCount": 2
+  }
+ },
+ {
+  "t": 26100,
+  "event": {
+   "type": "like",
+   "userId": "rp_2",
+   "nickname": "MinhGaming",
+   "avatarUrl": "",
+   "likeCount": 3
+  }
+ },
+ {
+  "t": 26800,
+  "event": {
+   "type": "like",
+   "userId": "rp_3",
+   "nickname": "Cherry",
+   "avatarUrl": "",
+   "likeCount": 4
+  }
+ },
+ {
+  "t": 27500,
+  "event": {
+   "type": "like",
+   "userId": "rp_1",
+   "nickname": "Lan Anh",
+   "avatarUrl": "",
+   "likeCount": 5
+  }
+ },
+ {
+  "t": 28200,
+  "event": {
+   "type": "like",
+   "userId": "rp_2",
+   "nickname": "MinhGaming",
+   "avatarUrl": "",
+   "likeCount": 1
+  }
+ },
+ {
+  "t": 28900,
+  "event": {
+   "type": "like",
+   "userId": "rp_3",
+   "nickname": "Cherry",
+   "avatarUrl": "",
+   "likeCount": 2
+  }
+ },
+ {
+  "t": 29600,
+  "event": {
+   "type": "like",
+   "userId": "rp_1",
+   "nickname": "Lan Anh",
+   "avatarUrl": "",
+   "likeCount": 3
+  }
+ },
+ {
+  "t": 30300,
+  "event": {
+   "type": "like",
+   "userId": "rp_2",
+   "nickname": "MinhGaming",
+   "avatarUrl": "",
+   "likeCount": 4
+  }
+ },
+ {
+  "t": 31000,
+  "event": {
+   "type": "like",
+   "userId": "rp_3",
+   "nickname": "Cherry",
+   "avatarUrl": "",
+   "likeCount": 5
+  }
+ },
+ {
+  "t": 33000,
+  "event": {
+   "type": "gift",
+   "userId": "rp_1",
+   "nickname": "Lan Anh",
+   "avatarUrl": "",
+   "giftName": "Hoa hồng",
+   "diamonds": 5
+  }
+ },
+ {
+  "t": 33900,
+  "event": {
+   "type": "like",
+   "userId": "rp_2",
+   "nickname": "MinhGaming",
+   "avatarUrl": "",
+   "likeCount": 2
+  }
+ },
+ {
+  "t": 34800,
+  "event": {
+   "type": "like",
+   "userId": "rp_3",
+   "nickname": "Cherry",
+   "avatarUrl": "",
+   "likeCount": 3
+  }
+ },
+ {
+  "t": 35700,
+  "event": {
+   "type": "like",
+   "userId": "rp_4",
+   "nickname": "KhoaVN",
+   "avatarUrl": "",
+   "likeCount": 4
+  }
+ },
+ {
+  "t": 36600,
+  "event": {
+   "type": "like",
+   "userId": "rp_1",
+   "nickname": "Lan Anh",
+   "avatarUrl": "",
+   "likeCount": 5
+  }
+ },
+ {
+  "t": 37500,
+  "event": {
+   "type": "like",
+   "userId": "rp_2",
+   "nickname": "MinhGaming",
+   "avatarUrl": "",
+   "likeCount": 2
+  }
+ },
+ {
+  "t": 38400,
+  "event": {
+   "type": "like",
+   "userId": "rp_3",
+   "nickname": "Cherry",
+   "avatarUrl": "",
+   "likeCount": 3
+  }
+ },
+ {
+  "t": 39300,
+  "event": {
+   "type": "like",
+   "userId": "rp_4",
+   "nickname": "KhoaVN",
+   "avatarUrl": "",
+   "likeCount": 4
+  }
+ },
+ {
+  "t": 40200,
+  "event": {
+   "type": "like",
+   "userId": "rp_1",
+   "nickname": "Lan Anh",
+   "avatarUrl": "",
+   "likeCount": 5
+  }
+ },
+ {
+  "t": 41100,
+  "event": {
+   "type": "like",
+   "userId": "rp_2",
+   "nickname": "MinhGaming",
+   "avatarUrl": "",
+   "likeCount": 2
+  }
+ },
+ {
+  "t": 42000,
+  "event": {
+   "type": "like",
+   "userId": "rp_3",
+   "nickname": "Cherry",
+   "avatarUrl": "",
+   "likeCount": 3
+  }
+ },
+ {
+  "t": 42900,
+  "event": {
+   "type": "like",
+   "userId": "rp_4",
+   "nickname": "KhoaVN",
+   "avatarUrl": "",
+   "likeCount": 4
+  }
+ },
+ {
+  "t": 43800,
+  "event": {
+   "type": "like",
+   "userId": "rp_1",
+   "nickname": "Lan Anh",
+   "avatarUrl": "",
+   "likeCount": 5
+  }
+ },
+ {
+  "t": 44700,
+  "event": {
+   "type": "like",
+   "userId": "rp_2",
+   "nickname": "MinhGaming",
+   "avatarUrl": "",
+   "likeCount": 2
+  }
+ },
+ {
+  "t": 45600,
+  "event": {
+   "type": "like",
+   "userId": "rp_3",
+   "nickname": "Cherry",
+   "avatarUrl": "",
+   "likeCount": 3
+  }
+ },
+ {
+  "t": 46500,
+  "event": {
+   "type": "like",
+   "userId": "rp_4",
+   "nickname": "KhoaVN",
+   "avatarUrl": "",
+   "likeCount": 4
+  }
+ },
+ {
+  "t": 47400,
+  "event": {
+   "type": "like",
+   "userId": "rp_1",
+   "nickname": "Lan Anh",
+   "avatarUrl": "",
+   "likeCount": 5
+  }
+ },
+ {
+  "t": 48300,
+  "event": {
+   "type": "like",
+   "userId": "rp_2",
+   "nickname": "MinhGaming",
+   "avatarUrl": "",
+   "likeCount": 2
+  }
+ },
+ {
+  "t": 49200,
+  "event": {
+   "type": "like",
+   "userId": "rp_3",
+   "nickname": "Cherry",
+   "avatarUrl": "",
+   "likeCount": 3
+  }
+ },
+ {
+  "t": 50100,
+  "event": {
+   "type": "like",
+   "userId": "rp_4",
+   "nickname": "KhoaVN",
+   "avatarUrl": "",
+   "likeCount": 4
+  }
+ },
+ {
+  "t": 51000,
+  "event": {
+   "type": "like",
+   "userId": "rp_1",
+   "nickname": "Lan Anh",
+   "avatarUrl": "",
+   "likeCount": 5
+  }
+ },
+ {
+  "t": 51900,
+  "event": {
+   "type": "like",
+   "userId": "rp_2",
+   "nickname": "MinhGaming",
+   "avatarUrl": "",
+   "likeCount": 2
+  }
+ },
+ {
+  "t": 52800,
+  "event": {
+   "type": "like",
+   "userId": "rp_3",
+   "nickname": "Cherry",
+   "avatarUrl": "",
+   "likeCount": 3
+  }
+ },
+ {
+  "t": 53700,
+  "event": {
+   "type": "like",
+   "userId": "rp_4",
+   "nickname": "KhoaVN",
+   "avatarUrl": "",
+   "likeCount": 4
+  }
+ },
+ {
+  "t": 54600,
+  "event": {
+   "type": "like",
+   "userId": "rp_1",
+   "nickname": "Lan Anh",
+   "avatarUrl": "",
+   "likeCount": 5
+  }
+ },
+ {
+  "t": 55500,
+  "event": {
+   "type": "like",
+   "userId": "rp_2",
+   "nickname": "MinhGaming",
+   "avatarUrl": "",
+   "likeCount": 2
+  }
+ },
+ {
+  "t": 56400,
+  "event": {
+   "type": "like",
+   "userId": "rp_3",
+   "nickname": "Cherry",
+   "avatarUrl": "",
+   "likeCount": 3
+  }
+ },
+ {
+  "t": 57300,
+  "event": {
+   "type": "like",
+   "userId": "rp_4",
+   "nickname": "KhoaVN",
+   "avatarUrl": "",
+   "likeCount": 4
+  }
+ },
+ {
+  "t": 58200,
+  "event": {
+   "type": "like",
+   "userId": "rp_1",
+   "nickname": "Lan Anh",
+   "avatarUrl": "",
+   "likeCount": 5
+  }
+ },
+ {
+  "t": 59100,
+  "event": {
+   "type": "like",
+   "userId": "rp_2",
+   "nickname": "MinhGaming",
+   "avatarUrl": "",
+   "likeCount": 2
+  }
+ },
+ {
+  "t": 60000,
+  "event": {
+   "type": "like",
+   "userId": "rp_3",
+   "nickname": "Cherry",
+   "avatarUrl": "",
+   "likeCount": 3
+  }
+ },
+ {
+  "t": 62000,
+  "event": {
+   "type": "gift",
+   "userId": "rp_3",
+   "nickname": "Cherry",
+   "avatarUrl": "",
+   "giftName": "Gấu bông",
+   "diamonds": 99
+  }
+ },
+ {
+  "t": 70000,
+  "event": {
+   "type": "gift",
+   "userId": "rp_2",
+   "nickname": "MinhGaming",
+   "avatarUrl": "",
+   "giftName": "Sư tử",
+   "diamonds": 29999
+  }
+ },
+ {
+  "t": 71000,
+  "event": {
+   "type": "like",
+   "userId": "rp_1",
+   "nickname": "Lan Anh",
+   "avatarUrl": "",
+   "likeCount": 1
+  }
+ },
+ {
+  "t": 72000,
+  "event": {
+   "type": "like",
+   "userId": "rp_2",
+   "nickname": "MinhGaming",
+   "avatarUrl": "",
+   "likeCount": 2
+  }
+ },
+ {
+  "t": 73000,
+  "event": {
+   "type": "like",
+   "userId": "rp_3",
+   "nickname": "Cherry",
+   "avatarUrl": "",
+   "likeCount": 3
+  }
+ },
+ {
+  "t": 74000,
+  "event": {
+   "type": "like",
+   "userId": "rp_4",
+   "nickname": "KhoaVN",
+   "avatarUrl": "",
+   "likeCount": 1
+  }
+ },
+ {
+  "t": 75000,
+  "event": {
+   "type": "like",
+   "userId": "rp_5",
+   "nickname": "Gamer88",
+   "avatarUrl": "",
+   "likeCount": 2
+  }
+ },
+ {
+  "t": 76000,
+  "event": {
+   "type": "like",
+   "userId": "rp_1",
+   "nickname": "Lan Anh",
+   "avatarUrl": "",
+   "likeCount": 3
+  }
+ },
+ {
+  "t": 77000,
+  "event": {
+   "type": "like",
+   "userId": "rp_2",
+   "nickname": "MinhGaming",
+   "avatarUrl": "",
+   "likeCount": 1
+  }
+ },
+ {
+  "t": 78000,
+  "event": {
+   "type": "like",
+   "userId": "rp_3",
+   "nickname": "Cherry",
+   "avatarUrl": "",
+   "likeCount": 2
+  }
+ },
+ {
+  "t": 79000,
+  "event": {
+   "type": "like",
+   "userId": "rp_4",
+   "nickname": "KhoaVN",
+   "avatarUrl": "",
+   "likeCount": 3
+  }
+ },
+ {
+  "t": 80000,
+  "event": {
+   "type": "like",
+   "userId": "rp_5",
+   "nickname": "Gamer88",
+   "avatarUrl": "",
+   "likeCount": 1
+  }
+ },
+ {
+  "t": 81000,
+  "event": {
+   "type": "like",
+   "userId": "rp_1",
+   "nickname": "Lan Anh",
+   "avatarUrl": "",
+   "likeCount": 2
+  }
+ },
+ {
+  "t": 82000,
+  "event": {
+   "type": "like",
+   "userId": "rp_2",
+   "nickname": "MinhGaming",
+   "avatarUrl": "",
+   "likeCount": 3
+  }
+ },
+ {
+  "t": 83000,
+  "event": {
+   "type": "like",
+   "userId": "rp_3",
+   "nickname": "Cherry",
+   "avatarUrl": "",
+   "likeCount": 1
+  }
+ },
+ {
+  "t": 84000,
+  "event": {
+   "type": "like",
+   "userId": "rp_4",
+   "nickname": "KhoaVN",
+   "avatarUrl": "",
+   "likeCount": 2
+  }
+ },
+ {
+  "t": 85000,
+  "event": {
+   "type": "like",
+   "userId": "rp_5",
+   "nickname": "Gamer88",
+   "avatarUrl": "",
+   "likeCount": 3
+  }
+ },
+ {
+  "t": 86000,
+  "event": {
+   "type": "like",
+   "userId": "rp_1",
+   "nickname": "Lan Anh",
+   "avatarUrl": "",
+   "likeCount": 1
+  }
+ },
+ {
+  "t": 87000,
+  "event": {
+   "type": "like",
+   "userId": "rp_2",
+   "nickname": "MinhGaming",
+   "avatarUrl": "",
+   "likeCount": 2
+  }
+ },
+ {
+  "t": 88000,
+  "event": {
+   "type": "like",
+   "userId": "rp_3",
+   "nickname": "Cherry",
+   "avatarUrl": "",
+   "likeCount": 3
+  }
+ },
+ {
+  "t": 89000,
+  "event": {
+   "type": "like",
+   "userId": "rp_4",
+   "nickname": "KhoaVN",
+   "avatarUrl": "",
+   "likeCount": 1
+  }
+ },
+ {
+  "t": 90000,
+  "event": {
+   "type": "like",
+   "userId": "rp_5",
+   "nickname": "Gamer88",
+   "avatarUrl": "",
+   "likeCount": 2
+  }
+ },
+ {
+  "t": 91000,
+  "event": {
+   "type": "like",
+   "userId": "rp_1",
+   "nickname": "Lan Anh",
+   "avatarUrl": "",
+   "likeCount": 3
+  }
+ },
+ {
+  "t": 92000,
+  "event": {
+   "type": "like",
+   "userId": "rp_2",
+   "nickname": "MinhGaming",
+   "avatarUrl": "",
+   "likeCount": 1
+  }
+ },
+ {
+  "t": 93000,
+  "event": {
+   "type": "like",
+   "userId": "rp_3",
+   "nickname": "Cherry",
+   "avatarUrl": "",
+   "likeCount": 2
+  }
+ },
+ {
+  "t": 94000,
+  "event": {
+   "type": "like",
+   "userId": "rp_4",
+   "nickname": "KhoaVN",
+   "avatarUrl": "",
+   "likeCount": 3
+  }
+ },
+ {
+  "t": 95000,
+  "event": {
+   "type": "like",
+   "userId": "rp_5",
+   "nickname": "Gamer88",
+   "avatarUrl": "",
+   "likeCount": 1
+  }
+ },
+ {
+  "t": 96000,
+  "event": {
+   "type": "like",
+   "userId": "rp_1",
+   "nickname": "Lan Anh",
+   "avatarUrl": "",
+   "likeCount": 2
+  }
+ },
+ {
+  "t": 97000,
+  "event": {
+   "type": "like",
+   "userId": "rp_2",
+   "nickname": "MinhGaming",
+   "avatarUrl": "",
+   "likeCount": 3
+  }
+ },
+ {
+  "t": 98000,
+  "event": {
+   "type": "like",
+   "userId": "rp_3",
+   "nickname": "Cherry",
+   "avatarUrl": "",
+   "likeCount": 1
+  }
+ },
+ {
+  "t": 99000,
+  "event": {
+   "type": "like",
+   "userId": "rp_4",
+   "nickname": "KhoaVN",
+   "avatarUrl": "",
+   "likeCount": 2
+  }
+ },
+ {
+  "t": 100000,
+  "event": {
+   "type": "like",
+   "userId": "rp_5",
+   "nickname": "Gamer88",
+   "avatarUrl": "",
+   "likeCount": 3
+  }
+ },
+ {
+  "t": 101000,
+  "event": {
+   "type": "like",
+   "userId": "rp_1",
+   "nickname": "Lan Anh",
+   "avatarUrl": "",
+   "likeCount": 1
+  }
+ },
+ {
+  "t": 102000,
+  "event": {
+   "type": "like",
+   "userId": "rp_2",
+   "nickname": "MinhGaming",
+   "avatarUrl": "",
+   "likeCount": 2
+  }
+ },
+ {
+  "t": 103000,
+  "event": {
+   "type": "like",
+   "userId": "rp_3",
+   "nickname": "Cherry",
+   "avatarUrl": "",
+   "likeCount": 3
+  }
+ },
+ {
+  "t": 104000,
+  "event": {
+   "type": "like",
+   "userId": "rp_4",
+   "nickname": "KhoaVN",
+   "avatarUrl": "",
+   "likeCount": 1
+  }
+ },
+ {
+  "t": 105000,
+  "event": {
+   "type": "like",
+   "userId": "rp_5",
+   "nickname": "Gamer88",
+   "avatarUrl": "",
+   "likeCount": 2
+  }
+ },
+ {
+  "t": 106000,
+  "event": {
+   "type": "like",
+   "userId": "rp_1",
+   "nickname": "Lan Anh",
+   "avatarUrl": "",
+   "likeCount": 3
+  }
+ },
+ {
+  "t": 107000,
+  "event": {
+   "type": "like",
+   "userId": "rp_2",
+   "nickname": "MinhGaming",
+   "avatarUrl": "",
+   "likeCount": 1
+  }
+ },
+ {
+  "t": 108000,
+  "event": {
+   "type": "like",
+   "userId": "rp_3",
+   "nickname": "Cherry",
+   "avatarUrl": "",
+   "likeCount": 2
+  }
+ },
+ {
+  "t": 109000,
+  "event": {
+   "type": "like",
+   "userId": "rp_4",
+   "nickname": "KhoaVN",
+   "avatarUrl": "",
+   "likeCount": 3
+  }
+ },
+ {
+  "t": 110000,
+  "event": {
+   "type": "like",
+   "userId": "rp_5",
+   "nickname": "Gamer88",
+   "avatarUrl": "",
+   "likeCount": 1
+  }
+ }
+]

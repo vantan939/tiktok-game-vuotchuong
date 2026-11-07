@@ -8,6 +8,7 @@
     "start": "node src/index.js"
   },
   "dependencies": {
+    "tiktok-live-connector": "^2.5.0",
     "ws": "^8.18.0"
   }
 }
