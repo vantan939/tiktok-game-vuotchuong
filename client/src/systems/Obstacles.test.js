@@ -22,8 +22,8 @@ const racerAt = (dist, lane) => {
   return r;
 };
 
-test('generateObstacles: khoảng cách hàng 55 đến 90, luôn chừa ít nhất 1 làn, có hàng đơn và hàng đôi', () => {
-  const field = generateObstacles(seeded(5));
+test('generateObstacles: khoảng cách hàng theo config, luôn chừa ít nhất 1 làn, có hàng đơn và hàng đôi', () => {
+  const field = generateObstacles(seeded(5), { ...CONFIG, obstacleDoubleChance: 0.25 });
   const rows = new Map();
   for (const o of field.list) rows.set(o.dist, [...(rows.get(o.dist) ?? []), o]);
   const dists = [...rows.keys()];

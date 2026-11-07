@@ -73,7 +73,7 @@ export class RaceScene extends Phaser.Scene {
 
     // HUD và các lớp chữ là HTML/CSS đặt chồng lên canvas
     const hudRoot = createHudRoot();
-    this.nameTags = new NameTags(hudRoot, 4);
+    this.nameTags = new NameTags(hudRoot, Math.max(4, CONFIG.topNamesShown));
     this.hud = new Hud(hudRoot);
     this.floatTexts = new FloatTexts(hudRoot); // sau HUD để chữ nổi nằm trên các khung
     this.hudTimer = 0;
@@ -269,14 +269,12 @@ export class RaceScene extends Phaser.Scene {
 
     this.rays.update(rayTarget, m.now);
 
-    // Nhãn tên chỉ cho top N khi đang đua
+    // Nhãn tên cho top N (một lượt 5 người nên hiện đủ), cả lúc chờ và đếm ngược để ai cũng tìm được mình
     let tags = 0;
-    if (racing) {
-      const tagged = this.mock ? this.racers.filter((r) => this.mock.tagged.includes(r.nickname)) : m.ranking.slice(0, topNamesShown);
-      for (const r of tagged) {
-        const view = this.views.get(r);
-        if (view?.visible) this.nameTags.show(tags++, r.nickname, view.top.x, view.top.y, view.s);
-      }
+    const tagged = this.mock ? this.racers.filter((r) => this.mock.tagged.includes(r.nickname)) : m.ranking.slice(0, topNamesShown);
+    for (const r of tagged) {
+      const view = this.views.get(r);
+      if (view?.visible) this.nameTags.show(tags++, r.nickname, view.top.x, view.top.y, view.s);
     }
     this.nameTags.hideFrom(tags);
   }

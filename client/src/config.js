@@ -32,7 +32,7 @@ export const CONFIG = {
   gateArcHeight: 330,
 
   // Camera chính: nhân vật cuối ở tỉ lệ cameraBackScale, người đầu ở cameraFarScale khi đoàn dàn dài
-  cameraBackScale: 0.6,
+  cameraBackScale: 0.52,
   cameraFarScale: 0.25,
   cameraMinFocal: 110,      // nhỏ nhất = zoom gần nhất; càng lớn càng zoom xa
   cameraSmooth: 6,          // độ mượt (lớn = bám nhanh)
@@ -41,12 +41,13 @@ export const CONFIG = {
   sampleRunners: 30,
   runnerHeight: 560,        // chiều cao nhân vật tại s = 1
   closeCamRunnerHeight: 380, // chiều cao nhân vật trong cửa sổ camera cận (px tại s = 1, trước khi nhân unit)
-  startRowGap: 12,          // khoảng cách giữa các hàng ở vạch xuất phát
-  topNamesShown: 3,         // camera chính chỉ hiện tên top N
+  startRowGap: 18,          // khoảng cách giữa các hàng ở vạch xuất phát
+  topNamesShown: 5,         // camera chính hiện tên top N (một lượt chỉ 5 người nên hiện hết để ai cũng tìm được mình)
   avatarTimeoutSeconds: 8,
 
   // Hành vi tự đổi làn "sống động" khi đường phía trước thoáng
   wanderInterval: [3, 8],   // [min, max] giây giữa hai lần cân nhắc đổi làn
+  crowdRange: 14,           // hai nhân vật cùng làn và cách nhau dưới mức này (đơn vị) thì coi là chen nhau; tự đổi làn để tách ra
   laneChangeSmooth: 4,      // độ mượt khi trượt sang làn khác
 
   // Camera cận (lệnh s)
@@ -92,11 +93,11 @@ export const CONFIG = {
   giftBannerSeconds: 2.8,   // thông báo quà lớn hiện bấy lâu
 
   // Chướng ngại
-  obstacleGapMin: 55,
-  obstacleGapMax: 90,
+  obstacleGapMin: 100,
+  obstacleGapMax: 160,
   obstacleFirstDist: 160,    // hàng chướng ngại đầu tiên
   obstacleEndMargin: 200,    // chừa đoạn cuối trước đích không có chướng ngại
-  obstacleDoubleChance: 0.25, // xác suất một hàng có 2 làn bị chặn (luôn chừa ít nhất 1 làn trống)
+  obstacleDoubleChance: 0.1,  // xác suất một hàng có 2 làn bị chặn (luôn chừa ít nhất 1 làn trống)
   hammerChance: 0.5,         // còn lại là quả cầu gai
   hammerHalfLength: 5,       // nửa chiều dài vùng búa đập (đơn vị đường đua)
   spikeHalfLength: 3.5,

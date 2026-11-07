@@ -62,6 +62,15 @@ export function stepRacer(r, dt, ctx) {
   }
 }
 
+// Số nhân vật khác đang chạy trong làn lane và ở gần r (trong crowdRange)
+function crowd(r, lane, others, cfg) {
+  let n = 0;
+  for (const o of others) {
+    if (o !== r && !o.finished && Math.abs(o.targetLane - lane) < 0.5 && Math.abs(o.dist - r.dist) < cfg.crowdRange) n++;
+  }
+  return n;
+}
+
 function smoothLane(r, dt, cfg) {
   const rate = r.evading ? cfg.dodgeLaneSmooth : cfg.laneChangeSmooth;
   r.lane += (r.targetLane - r.lane) * (1 - Math.exp(-rate * dt));
@@ -77,7 +86,8 @@ function wander(r, dt, ctx, isBlocked) {
     r.pending.delay -= dt;
     if (r.pending.delay <= 0) {
       // Kiểm tra lại: lúc thực hiện làn đó phải còn trống
-      if (!isBlocked(r.pending.lane, r.dist, r.dist + ahead)) r.targetLane = r.pending.lane;
+      // và không có ai vừa chuyển sang đó (hai người cùng chọn một làn thì người sau ở lại)
+      if (!isBlocked(r.pending.lane, r.dist, r.dist + ahead) && crowd(r, r.pending.lane, ctx.racers ?? [], cfg) === 0) r.targetLane = r.pending.lane;
       r.pending = null;
     }
     return;
@@ -86,17 +96,20 @@ function wander(r, dt, ctx, isBlocked) {
   if (r.wanderTimer > 0) return;
   r.wanderTimer = cfg.wanderInterval[0] + rng() * (cfg.wanderInterval[1] - cfg.wanderInterval[0]);
   if (r.plan || r.waitFor || r.jump > 0 || r.evading) return;
-  considerWander(r, ahead, rng, cfg, isBlocked);
+  considerWander(r, ahead, rng, cfg, isBlocked, ctx.racers ?? []);
 }
 
 // Chỉ đổi làn khi làn hiện tại thoáng phía trước; chỉ sang làn kề cũng thoáng
-function considerWander(r, ahead, rng, cfg, isBlocked) {
+function considerWander(r, ahead, rng, cfg, isBlocked, others) {
   if (isBlocked(r.targetLane, r.dist, r.dist + ahead)) return;
-  const options = [];
+  const here = crowd(r, r.targetLane, others, cfg);
+  let options = [];
   for (const lane of [r.targetLane - 1, r.targetLane + 1]) {
     if (lane < 0 || lane >= cfg.lanes) continue;
     if (!isBlocked(lane, r.dist, r.dist + ahead)) options.push(lane);
   }
+  // Tránh chồng lên nhau: không sang làn đã có người ngay cạnh; đang bị chen thì ưu tiên làn thoáng hơn
+  options = options.filter((lane) => crowd(r, lane, others, cfg) < Math.max(1, here));
   if (!options.length) return;
   r.pending = { lane: options[Math.floor(rng() * options.length)], delay: r.stats.reaction };
 }

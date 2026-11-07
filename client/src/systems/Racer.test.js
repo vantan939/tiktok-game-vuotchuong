@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { CONFIG } from '../config.js';
-import { applyWin, createRacer, hashString, randomStats } from './Racer.js';
+import { applyWin, createRacer, hashString, randomStats, startSlot } from './Racer.js';
 import { stepRacer } from './RacerAI.js';
 import { progressPercent, rankRacers } from './Ranking.js';
 import { AvatarCache } from '../core/AvatarCache.js';
@@ -35,13 +35,32 @@ test('applyWin: +0,02 mỗi lần thắng, tối đa 0,9', () => {
   assert.equal(s.speed, 36);
 });
 
-test('createRacer: 30 người xếp lên 3 làn, 10 hàng; skin ổn định theo userId', () => {
-  const racers = Array.from({ length: 30 }, (_, i) => createRacer(user(i), { index: i, skinCount: 8, rng: seeded(i + 1) }));
-  for (let lane = 0; lane < 3; lane++) assert.equal(racers.filter((r) => r.targetLane === lane).length, 10);
-  assert.equal(racers[0].dist, 0);
-  assert.equal(racers[29].dist, -9 * CONFIG.startRowGap);
+test('createRacer: 5 người xếp so le (3 + 2), hàng sau lọt giữa các làn hàng trước; skin ổn định theo userId', () => {
+  const racers = Array.from({ length: 5 }, (_, i) => createRacer(user(i), { index: i, skinCount: 8, rng: seeded(i + 1) }));
+  assert.deepEqual(racers.map((r) => r.lane), [0, 1, 2, 0.5, 1.5]);
+  assert.deepEqual(racers.map((r) => r.targetLane), [0, 1, 2, 0, 2]);
+  assert.deepEqual(racers.map((r) => r.dist), [0, 0, 0, -CONFIG.startRowGap, -CONFIG.startRowGap]);
+  assert.deepEqual([0, 3, 5, 8].map((i) => startSlot(i, 3).row), [0, 1, 2, 3]);
   assert.equal(hashString('abc'), hashString('abc'));
   assert.equal(createRacer(user(5), { skinCount: 8 }).skinIndex, createRacer(user(5), { index: 9, skinCount: 8 }).skinIndex);
+});
+
+test('đoàn đua tự tách nhau: nhân vật đang chen cùng làn sẽ sang làn thoáng thay vì chồng lên', () => {
+  const crowded = { ...CONFIG, wanderInterval: [0.01, 0.01] };
+  const a = createRacer(user(1), { stats: { speed: 36, dodgeSkill: 0.5, reaction: 0.2 }, cfg: crowded });
+  const b = createRacer(user(2), { stats: { speed: 36, dodgeSkill: 0.5, reaction: 0.2 }, cfg: crowded });
+  for (const r of [a, b]) {
+    r.dist = 100;
+    r.lane = r.targetLane = 1;
+    r.wanderTimer = 0;
+  }
+  const ctx = { now: 1, cfg: crowded, rng: () => 0, racers: [a, b] };
+  for (let t = 0; t < 120; t++) {
+    ctx.now += 1 / 60;
+    stepRacer(a, 1 / 60, ctx);
+    stepRacer(b, 1 / 60, ctx);
+  }
+  assert.notEqual(a.targetLane, b.targetLane, 'hai người không còn chung làn');
 });
 
 test('stepRacer: chạy đúng tốc độ và dừng ở vạch đích', () => {

@@ -94,6 +94,7 @@ export class RaceManager {
     this.round++;
     const roster = this.shuffled(this.lobby.prepareRound());
     this.racers = roster.map((user, i) => this.spawnRacer(user, i));
+    this.ctx.racers = this.racers; // để nhân vật tránh chen chúc nhau
     this.field = generateObstacles(this.rng, this.cfg);
     this.ctx.field = this.field;
     this.result = null;

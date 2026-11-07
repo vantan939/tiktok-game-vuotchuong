@@ -43,15 +43,25 @@ export function createRacer(user, { index = 0, rng = Math.random, cfg = CONFIG, 
   return resetRacer(racer, index, rng, cfg);
 }
 
+/** Ô xuất phát của nhân vật thứ index: hàng chẵn đủ số làn, hàng lẻ ít hơn một (xếp so le). */
+export function startSlot(index, lanes) {
+  let row = 0;
+  let i = index;
+  for (;;) {
+    const size = row % 2 ? Math.max(1, lanes - 1) : lanes;
+    if (i < size) return { row, col: i, size };
+    i -= size;
+    row++;
+  }
+}
+
 /** Đưa nhân vật về vạch xuất phát (giữ nguyên chỉ số). index quyết định làn và hàng đứng. */
 export function resetRacer(racer, index, rng = Math.random, cfg = CONFIG) {
-  const lane = index % cfg.lanes;
-  const row = Math.floor(index / cfg.lanes);
+  const { row, col, size } = startSlot(index, cfg.lanes);
   racer.dist = 0 - row * cfg.startRowGap; // hàng sau đứng lùi sau vạch xuất phát
-  // Vị trí làn hiện tại (số thực, trượt mượt). Hàng lẻ lệch nhẹ sang bên để đoàn xuất phát không xếp thẳng thành cột
-  const stagger = (row % 2 ? 1 : -1) * 0.27;
-  racer.lane = Math.min(cfg.lanes - 1.15, Math.max(0.15, lane + stagger));
-  racer.targetLane = lane;
+  // Hàng lẻ đứng lọt giữa các làn của hàng trước (lệch nửa làn) để không ai che khuất ai ở vạch xuất phát
+  racer.lane = row % 2 ? col + 0.5 : col;
+  racer.targetLane = col + (row % 2 && col >= size / 2 ? 1 : 0);
   racer.pending = null; // lệnh đổi làn đang chờ hết độ trễ phản ứng: { lane, delay }
   racer.wanderTimer = cfg.wanderInterval[0] + rng() * (cfg.wanderInterval[1] - cfg.wanderInterval[0]);
   racer.finished = false;
