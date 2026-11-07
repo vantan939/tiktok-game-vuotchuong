@@ -1,4 +1,5 @@
 import { STR } from '../strings.js';
+import { viewer } from '../core/viewer.js';
 import { GIFTS } from '../sources/DemoSource.js';
 
 // Panel debug nhỏ ở chế độ demo, ẩn/hiện bằng phím D. Là phần tử HTML nằm ngoài canvas.
@@ -47,7 +48,10 @@ export class DebugPanel {
     b.style.cssText = 'margin:0 4px 4px 0;padding:4px 8px;cursor:pointer';
     b.onclick = () => {
       const name = this.input.value.trim();
-      if (name) action(this.demo.userByName(name));
+      if (!name) return;
+      const user = this.demo.userByName(name);
+      viewer.userId = user.userId; // thao tác như ai thì camera đuổi theo người đó (góc người chơi)
+      action(user);
     };
     this.root.append(b);
   }
