@@ -9,11 +9,14 @@ export class RaceCamera {
     this.z0 = 0;
     this.focal = cfg.cameraMinFocal;
     this.last = 0; // vị trí người cuối đã làm mượt
+    this.backScale = cfg.cameraBackScale;
+    this.chase = false; // true: camera đuổi theo một nhân vật (góc nhìn thứ ba)
     this.ready = false;
   }
 
   /** Giá trị mục tiêu theo vị trí các nhân vật. */
   target(distances) {
+    if (this.chase) return { last: distances[0], focal: this.cfg.chaseFocal, back: this.cfg.chaseBackScale };
     const { cameraBackScale: sBack, cameraFarScale: sFar, cameraMinFocal } = this.cfg;
     let min = Infinity;
     let max = -Infinity;
@@ -24,7 +27,7 @@ export class RaceCamera {
     const spread = max - min;
     // spread = focal * (1/sFar - 1/sBack)
     const focal = Math.max(cameraMinFocal, spread / (1 / sFar - 1 / sBack));
-    return { last: min, focal };
+    return { last: min, focal, back: sBack };
   }
 
   /** Đặt camera ngay vào vị trí đúng, không làm mượt (dùng khi bắt đầu lượt). */
@@ -33,6 +36,7 @@ export class RaceCamera {
     const t = this.target(distances);
     this.last = t.last;
     this.focal = t.focal;
+    this.backScale = t.back;
     this.refresh();
     this.ready = true;
   }
@@ -44,11 +48,12 @@ export class RaceCamera {
     const a = 1 - Math.exp(-this.cfg.cameraSmooth * dt);
     this.last += (t.last - this.last) * a;
     this.focal += (t.focal - this.focal) * a;
+    this.backScale += (t.back - this.backScale) * a;
     this.refresh();
   }
 
   refresh() {
     // Người cuối nằm ở z = focal * (1/sBack - 1) phía trước mép dưới màn hình
-    this.z0 = this.last - this.focal * (1 / this.cfg.cameraBackScale - 1);
+    this.z0 = this.last - this.focal * (1 / this.backScale - 1);
   }
 }

@@ -231,10 +231,22 @@ export class RaceScene extends Phaser.Scene {
   }
 
   collectDists() {
-    // Camera bám người chơi thật (bot chỉ làm nền); chưa có ai thật thì ôm cả đoàn
-    const focus = this.racers.some((r) => !r.isBot) ? this.racers.filter((r) => !r.isBot) : this.racers;
-    this.dists.length = focus.length;
-    focus.forEach((r, i) => {
+    // Có người chơi thật: camera đuổi theo nhân vật của họ (góc nhìn thứ ba); chưa có ai thật thì ôm cả đoàn
+    const real = this.racers.filter((r) => !r.isBot);
+    this.camera.chase = real.length > 0;
+    if (real.length) {
+      let lead = real[0];
+      for (const r of real) if (r.dist > lead.dist) lead = r;
+      const cur = this.chaseTarget;
+      // Giữ người đang theo, chỉ đổi khi người khác vượt xa (tránh camera nhảy qua lại)
+      if (!cur || !real.includes(cur) || lead.dist - cur.dist > CONFIG.chaseSwitchGap) this.chaseTarget = lead;
+      this.dists.length = 1;
+      this.dists[0] = this.chaseTarget.dist;
+      return this.dists;
+    }
+    this.chaseTarget = null;
+    this.dists.length = this.racers.length;
+    this.racers.forEach((r, i) => {
       this.dists[i] = r.dist;
     });
     return this.dists;
