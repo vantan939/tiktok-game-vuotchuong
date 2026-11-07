@@ -10,7 +10,7 @@ import { SKINS } from '../entities/skins.js';
 import { DebugOverlay } from '../ui/DebugOverlay.js';
 import { createHudRoot } from '../ui/hud/root.js';
 import { Hud } from '../ui/hud/Hud.js';
-import { FloatTexts, GiftBanner, NameTags, RoundOverlay, Toasts } from '../ui/hud/Overlays.js';
+import { FloatTexts, GiftBanner, NameTags, PauseBadge, RoundOverlay, Toasts } from '../ui/hud/Overlays.js';
 import { buildHudModel } from '../systems/HudModel.js';
 import { isMock } from '../systems/mockData.js';
 import { applyMock, mockHudModel, seedMockLobby } from './mockMode.js';
@@ -72,15 +72,17 @@ export class RaceScene extends Phaser.Scene {
     this.hearts = new Hearts(this);
     this.rays = new SpeedRays(this);
     this.obstacleViews = new ObstacleViews(this, (x, y, s) => this.onHammerImpact(x, y, s));
-    this.debug = new DebugOverlay(this);
+    this.debug = new DebugOverlay(this, { enabled: !(this.registry.get('live')?.live) });
     this.resultFx = new ResultFx(this);
 
     // HUD và các lớp chữ là HTML/CSS đặt chồng lên canvas
-    const hudRoot = createHudRoot();
+    this.liveMode = this.registry.get('live') ?? { live: false, scale: 1 };
+    const hudRoot = createHudRoot(this.liveMode);
     this.nameTags = new NameTags(hudRoot, Math.max(4, CONFIG.topNamesShown));
     this.hud = new Hud(hudRoot);
     const net = this.registry.get('net');
     this.netDot = net && !mockOn ? new NetDot(hudRoot, net) : null; // chấm xanh/vàng/đỏ: tình trạng kết nối tới server
+    this.pauseBadge = new PauseBadge(hudRoot);
     this.floatTexts = new FloatTexts(hudRoot); // sau HUD để chữ nổi nằm trên các khung
     this.hudTimer = 0;
     this.fxDirector = new FxDirector(CONFIG);
@@ -151,13 +153,21 @@ export class RaceScene extends Phaser.Scene {
       if (e.evicted?.length) this.toasts.show({ text: STR.yieldSeat(e.evicted.map((p) => shortName(p.nickname)).join(', ')), kind: 'queue' });
       this.buildViews();
       this.mcDirector.onRound();
+      if (e.restart) this.pauseBadge.set(false);
     }
     else if (e.type === 'racer') this.swapView(e.added, e.removed);
     else if (e.type === 'hit') this.onRacerHit(e.racer);
     else if (e.type === 'boost') this.onBoost(e);
     else if (e.type === 'state') this.onStateChange(e.state);
+    else if (e.type === 'pause') this.onPause(e.paused);
     if (e.type === 'dodge' || e.type === 'hit' || e.type === 'boost') this.mc.say(this.mcDirector.onEvent(e, this.manager.now));
     if (e.type === 'dodge' || e.type === 'hit' || e.type === 'boost') this.playCues(this.fxDirector.handle(e, this.manager.now), e.racer);
+  }
+
+  // Streamer tạm dừng: hiện dải chữ và cho MC im; tiếp tục thì ẩn dải chữ
+  onPause(paused) {
+    this.pauseBadge.set(paused);
+    if (paused) this.mc.stop();
   }
 
   // Phím tắt âm thanh (M: tất cả, N: nhạc nền) và mở khóa âm thanh ở lần tương tác đầu tiên của trình duyệt
@@ -173,6 +183,8 @@ export class RaceScene extends Phaser.Scene {
       else if (key === musicKey) this.audio.toggleMusic();
       else if (key === CONFIG.mc.key) this.mc.toggle();
       else if (key === CONFIG.net.statusKey) this.netDot?.toggle();
+      else if (!this.mock && key === CONFIG.live.pauseKey) this.manager.togglePause(); // P: tạm dừng / tiếp tục
+      else if (!this.mock && key === CONFIG.live.restartKey) this.manager.restartRound(); // R: bắt đầu lại lượt
     });
     this.audio.ensure();
   }

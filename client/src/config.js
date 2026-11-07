@@ -172,6 +172,14 @@ export const CONFIG = {
   commandCooldownSeconds: 1,
   commandGateMaxEntries: 2000, // vượt số này thì dọn người đã hết cooldown
 
+  // Chế độ quay (?live=1) và phím tắt cho streamer
+  live: {
+    minScale: 0.25,
+    maxScale: 2,
+    pauseKey: 'p',          // tạm dừng / tiếp tục lượt đua
+    restartKey: 'r',        // bắt đầu lại lượt hiện tại (giữ nguyên người chơi)
+  },
+
   // Kết nối server
   serverUrl: 'ws://localhost:8080',
   net: {

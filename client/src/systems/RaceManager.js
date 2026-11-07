@@ -21,6 +21,7 @@ export class RaceManager {
     this.onEvent = onEvent ?? (() => {});
     this.listeners = []; // nơi khác muốn nghe sự kiện (vd. CloseCams)
 
+    this.paused = false; // streamer tạm dừng: đồng hồ game đứng yên
     this.state = 'wait';
     this.stateTime = 0; // giây kể từ khi vào trạng thái hiện tại
     this.now = 0; // đồng hồ game, chạy liên tục (búa dùng chung đồng hồ này)
@@ -63,6 +64,7 @@ export class RaceManager {
   }
 
   update(dt) {
+    if (this.paused) return;
     this.now += dt;
     this.stateTime += dt;
     switch (this.state) {
@@ -89,17 +91,30 @@ export class RaceManager {
     this.emit({ type: 'state', state, prev });
   }
 
-  // Dựng đoàn đua mới: người cũ ở lại, hàng đợi vào cho đủ, thiếu thì thêm bot
-  beginRound() {
-    this.round++;
-    const roster = this.shuffled(this.lobby.prepareRound());
+  /** Tạm dừng hoặc tiếp tục (phím P của streamer). Trả về true nếu đang tạm dừng. */
+  togglePause() {
+    this.paused = !this.paused;
+    this.emit({ type: 'pause', paused: this.paused });
+    return this.paused;
+  }
+
+  /** Bắt đầu lại lượt hiện tại từ đầu (phím R của streamer): cùng số lượt, giữ người chơi, đường chướng ngại mới, tiếp tục nếu đang tạm dừng. */
+  restartRound() {
+    this.paused = false;
+    this.beginRound(true);
+  }
+
+  // Dựng đoàn đua mới: người cũ ở lại, hàng đợi vào cho đủ, thiếu thì thêm bot. restart: giữ nguyên số lượt và hàng đợi
+  beginRound(restart = false) {
+    if (!restart) this.round++;
+    const roster = this.shuffled(restart ? this.lobby.currentRoster() : this.lobby.prepareRound());
     this.racers = roster.map((user, i) => this.spawnRacer(user, i));
     this.ctx.racers = this.racers; // để nhân vật tránh chen chúc nhau
     this.field = generateObstacles(this.rng, this.cfg);
     this.ctx.field = this.field;
     this.result = null;
     rankRacers(this.racers, this.ranking);
-    this.emit({ type: 'round', round: this.round, evicted: this.lobby.evicted });
+    this.emit({ type: 'round', round: this.round, evicted: restart ? [] : this.lobby.evicted, restart });
     this.setState('wait');
   }
 

@@ -9,10 +9,12 @@ import { EventBus } from './core/EventBus.js';
 import { DemoSource } from './sources/DemoSource.js';
 import { WebSocketSource } from './sources/WebSocketSource.js';
 import { NetStatus } from './systems/NetStatus.js';
+import { liveSize, parseLive } from './liveMode.js';
 import { DebugPanel } from './ui/DebugPanel.js';
 
 const params = new URLSearchParams(location.search);
 const bus = new EventBus();
+const mode = parseLive(location.search); // chế độ quay ?live=1
 const net = params.get('demo') === '1' ? null : new NetStatus(CONFIG.net, performance.now()); // chỉ có khi nhận sự kiện từ server
 
 // Chờ font Google (Baloo 2) tải xong, có kiểm tra dấu tiếng Việt; quá 4 giây thì dùng font dự phòng
@@ -31,11 +33,17 @@ async function loadFonts() {
 
 async function main() {
   applyTheme();
+  if (mode.live) {
+    // Quay: ẩn con trỏ, cố định kích thước khung game ở góc trên trái
+    document.body.classList.add('live');
+    const { width, height } = liveSize(mode);
+    Object.assign(document.getElementById('game').style, { width: `${width}px`, height: `${height}px` });
+  }
   await loadFonts();
 
   if (params.get('demo') === '1') {
     const demo = new DemoSource(bus);
-    new DebugPanel(demo);
+    if (!mode.live) new DebugPanel(demo); // quay thì ẩn panel debug
     // In luồng sự kiện ra console để kiểm tra
     bus.on('*', (e) => {
       const detail = e.text ?? e.likeCount ?? `${e.giftName} (${e.diamonds} kim cương)`;
@@ -52,15 +60,14 @@ async function main() {
     width: CONFIG.width,
     height: CONFIG.height,
     backgroundColor: CONFIG.backgroundColor,
-    fps: { target: CONFIG.targetFps },
-    // Co giãn giữ tỉ lệ 9:16, nền đen hai bên (từ CSS của body)
-    scale: {
-      mode: Phaser.Scale.FIT,
-      autoCenter: Phaser.Scale.CENTER_BOTH,
-    },
+    fps: mode.fps < 60 ? { target: mode.fps, limit: mode.fps } : { target: mode.fps }, // ?fps=30 giới hạn thật (nhẹ máy khi chạy cùng Live Studio)
+    // Thường: co giãn giữ tỉ lệ 9:16, nền đen hai bên. Quay: kích thước cố định 1080x1920 (nhân scale), không co theo cửa sổ
+    scale: mode.live
+      ? { mode: Phaser.Scale.NONE, zoom: mode.scale }
+      : { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
     scene: [BootScene, RaceScene],
     // Gắn EventBus trước khi scene đầu tiên chạy create()
-    callbacks: { preBoot: (game) => { game.registry.set('bus', bus); game.registry.set('net', net); } },
+    callbacks: { preBoot: (game) => { game.registry.set('bus', bus); game.registry.set('net', net); game.registry.set('live', mode); } },
   });
 }
 

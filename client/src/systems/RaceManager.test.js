@@ -307,3 +307,46 @@ test('joinMessage: đúng ba thông báo và cắt tên quá dài', () => {
   assert.equal(shortName('Nguyễn Thị Hồng Nhung Xinh Đẹp Quá Trời'), 'Nguyễn Thị Hồng N…');
   assert.equal(shortName('Ngắn'), 'Ngắn');
 });
+
+test('RaceManager: tạm dừng thì đồng hồ game đứng yên, tiếp tục thì chạy tiếp', () => {
+  const { manager, events } = setup();
+  manager.begin();
+  runUntil(manager, () => manager.state === 'race');
+  for (let i = 0; i < 30; i++) manager.update(1 / 30);
+  const dists = manager.racers.map((r) => r.dist);
+  const now = manager.now;
+  assert.equal(manager.togglePause(), true);
+  for (let i = 0; i < 90; i++) manager.update(1 / 30);
+  assert.equal(manager.now, now, 'đồng hồ đứng yên');
+  assert.deepEqual(manager.racers.map((r) => r.dist), dists, 'nhân vật đứng yên');
+  assert.equal(manager.state, 'race');
+  assert.equal(manager.togglePause(), false);
+  manager.update(1 / 30);
+  assert.ok(manager.now > now, 'tiếp tục chạy');
+  assert.deepEqual(events.filter((e) => e.type === 'pause').map((e) => e.paused), [true, false]);
+});
+
+test('RaceManager: bắt đầu lại lượt giữ số lượt, người chơi và hàng đợi, đưa mọi người về vạch xuất phát', () => {
+  const cfg = { ...SHORT, maxPlayers: 3, botFillTo: 3 };
+  const { lobby, manager, events } = setup(cfg);
+  manager.begin();
+  joinViaBus(manager, 5); // u0-u2 đua, u3-u4 chờ
+  runUntil(manager, () => manager.state === 'race');
+  for (let i = 0; i < 120; i++) manager.update(1 / 30);
+  const round = manager.round;
+  assert.ok(manager.racers.some((r) => r.dist > 20), 'đã chạy ra khỏi vạch');
+  const queueBefore = lobby.queue.map((p) => p.userId);
+  manager.togglePause();
+  manager.restartRound();
+  assert.equal(manager.paused, false, 'bắt đầu lại thì tiếp tục luôn');
+  assert.equal(manager.round, round, 'cùng số lượt');
+  assert.equal(manager.state, 'wait');
+  assert.deepEqual(manager.racers.map((r) => r.userId).sort(), ['u0', 'u1', 'u2']);
+  assert.deepEqual(lobby.queue.map((p) => p.userId), queueBefore, 'hàng đợi không đổi, không ai phải nhường chỗ');
+  assert.ok(manager.racers.every((r) => r.dist <= 0 && !r.finished));
+  const last = events.filter((e) => e.type === 'round').at(-1);
+  assert.equal(last.restart, true);
+  assert.deepEqual(last.evicted, []);
+  runUntil(manager, () => manager.state === 'result');
+  assert.equal(manager.round, round);
+});

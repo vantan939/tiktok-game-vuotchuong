@@ -59,6 +59,44 @@ Replay chờ client đầu tiên kết nối rồi mới phát (để không m�
 - **Mất kết nối thì game vẫn chạy** với bot, không đứng hình; người xem vào lại bình thường khi nối lại được.
 - **Lọc nickname** (`shared/names.js`): tên có từ nhạy cảm (tiếng Việt, tiếng Anh, kể cả viết lách như sh1t, d.u m4), đường dẫn quảng cáo, quá dài (trên 24 ký tự) hoặc không còn ký tự vẽ được thì thay bằng tên dự phòng dạng "Người chơi 4821" (cố định theo người dùng). Emoji, ký hiệu và chữ nước khác (font game chỉ vẽ chữ Latin có dấu tiếng Việt) bị bỏ khỏi tên. Danh sách từ nhạy cảm chỉ là mức cơ bản, sửa trong file đó nếu cần.
 
+## Quay cho TikTok Live Studio
+
+Chế độ quay: mở . Trang sẽ:
+
+- ẩn panel debug (và tắt phím B), ẩn con trỏ chuột;
+- cố định khung game đúng **1080x1920 px ở góc trên trái** cửa sổ, không co giãn theo cửa sổ (nên hình chụp luôn đầy đủ, không bị cắt hai bên);
+- tùy chọn thêm vào URL:  (thu nhỏ khung, từ 0.25 đến 2, dùng khi màn hình không đủ cao, ví dụ 0.5 ra khung 540x960) và  (giới hạn thật 30 khung hình/giây cho nhẹ máy khi chạy cùng Live Studio; 15 đến 60).
+
+### Thêm vào Live Studio
+
+> Các bước dưới đây dựa trên tên chức năng thường gặp của Live Studio; giao diện có thể khác theo phiên bản. Hãy kiểm tra bằng live thử (bên dưới) trước khi quay thật.
+
+1. Chạy  (server và client), điền  trong  nếu muốn nhận bình luận thật.
+2. Đặt khung hình của Live Studio là **dọc 9:16** (độ phân giải 1080x1920, hoặc 720x1280 nếu máy yếu).
+3. Thêm nguồn, chọn một trong hai cách:
+   - **Web source** (nguồn web/trình duyệt): địa chỉ , rộng 1080, cao 1920 (nếu có ô nhập kích thước). Đây là cách gọn nhất vì không cần mở cửa sổ trình duyệt.
+   - **Window capture** (chụp cửa sổ): mở Chrome hoặc Edge ở chế độ ứng dụng, không thanh địa chỉ, ví dụ , rồi chụp cửa sổ đó. Màn hình thường không đủ cao cho 1920 px nên dùng  rồi kéo khung nguồn giãn đầy khung dọc của Live Studio (hình sẽ bớt nét hơn một chút so với Web source).
+4. Kéo nguồn đầy khung dọc, không để lòi viền đen và không kéo ra ngoài khung.
+5. Bấm vào trang game một lần (hoặc nhấn một phím) để trình duyệt cho phát âm thanh và MC. Kiểm tra Live Studio có thu được tiếng game không; nếu không thì bật thu âm thanh hệ thống hoặc âm thanh của nguồn.
+
+### Kiểm tra hình ảnh khi live thử
+
+1. Bắt đầu một buổi live thử (hoặc xem bản xem trước của Live Studio) và mở bằng điện thoại để xem đúng như người xem.
+2. Kiểm tra: biểu ngữ tiêu đề phía trên, hai khung ĐANG ĐUA và THỜI GIAN, bảng TOP và các thẻ bên phải, thanh HÀNG ĐỢI và thẻ thể lệ ở dưới **đều hiện đủ, không bị cắt**. Lưu ý phần giao diện của chính TikTok (khung bình luận, nút quà, tên chủ phòng) phủ lên video ở phía dưới và bên phải, nếu che mất thanh hàng đợi thì dịch khung nguồn lên một chút trong Live Studio.
+3. Dùng  để có sẵn sự kiện giả khi chưa có người xem thật.
+4. Chấm tròn nhỏ ở góc trên phải là trạng thái kết nối (xanh/vàng/đỏ). Bấm  để ẩn nó trước khi quay chính thức.
+
+### Phím tắt cho streamer
+
+| Phím | Tác dụng |
+|---|---|
+|  | Tạm dừng / tiếp tục lượt đua (hiện dải chữ TẠM DỪNG, MC im) |
+|  | Bắt đầu lại lượt hiện tại: giữ số lượt, người chơi và hàng đợi, nhân vật về vạch xuất phát |
+|  /  /  | Tắt/bật tiếng chung / nhạc nền / MC |
+|  | Ẩn/hiện chấm trạng thái kết nối |
+
+Phím chỉ có tác dụng khi cửa sổ game đang được chọn (bấm vào cửa sổ trước), không có tác dụng khi gõ vào ô nhập.
+
 ## Giọng MC, âm thanh
 
 Xem `ASSETS.md` (mục Giọng MC, Âm thanh) và `.env.example` (`GENMAX_*`). Phím tắt: `M` tắt/bật tiếng, `N` tắt/bật nhạc, `V` tắt/bật MC.

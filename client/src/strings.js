@@ -34,6 +34,9 @@ export const STR = {
   joinQueued: (name) => `${name} vào hàng đợi`,
   joinDuplicate: (name) => `${name} đã tham gia rồi`,
 
+  paused: 'TẠM DỪNG',
+  pausedHint: 'Streamer sẽ tiếp tục ngay thôi',
+
   // Hết lượt, người ở lâu nhất nhường chỗ cho hàng đợi
   yieldSeat: (names) => `${names} nhường chỗ cho hàng đợi, gõ join để xếp hàng lại`,
 

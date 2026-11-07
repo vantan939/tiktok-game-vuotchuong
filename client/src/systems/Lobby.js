@@ -54,7 +54,7 @@ export class Lobby {
    * hết suất thì người ở lâu nhất nhường chỗ (this.evicted). Không ai chờ thì người cũ ở lại. Thiếu người thì thêm bot.
    */
   prepareRound() {
-    const { maxPlayers, botFillTo } = this.cfg;
+    const { maxPlayers } = this.cfg;
     const entering = Math.min(this.queue.length, maxPlayers);
     const need = entering - (maxPlayers - this.players.length);
     // Chỉ người đã đua ít nhất một lượt mới phải nhường chỗ (người vừa vào chưa được đua lần nào thì ở lại)
@@ -67,6 +67,16 @@ export class Lobby {
 
     for (const p of this.players) p.rounds = (p.rounds ?? 0) + 1; // lượt này họ sẽ đua
     // Hàng đợi chưa vào hết (chưa đủ người nhường chỗ) thì chờ lượt sau
+    return this.withBots();
+  }
+
+  /** Đoàn đua hiện tại để bắt đầu lại lượt (streamer bấm R): giữ người chơi, không đụng hàng đợi, bot tạo lại cho đủ. */
+  currentRoster() {
+    return this.withBots();
+  }
+
+  withBots() {
+    const { maxPlayers, botFillTo } = this.cfg;
     const roster = [...this.players];
     const taken = new Set(roster.map((p) => p.nickname));
     for (let n = Math.max(0, Math.min(botFillTo, maxPlayers) - roster.length); n > 0; n--) {

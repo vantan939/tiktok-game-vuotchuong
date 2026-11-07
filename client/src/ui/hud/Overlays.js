@@ -41,6 +41,19 @@ export class NameTags {
   }
 }
 
+/** Dải chữ "TẠM DỪNG" giữa màn hình khi streamer bấm phím tạm dừng. */
+export class PauseBadge {
+  constructor(parent) {
+    this.node = el('div', 'pausebadge is-hidden');
+    this.node.innerHTML = `${title(STR.paused)}<div class="pausebadge__sub">${STR.pausedHint}</div>`;
+    parent.append(this.node);
+  }
+
+  set(on) {
+    this.node.classList.toggle('is-hidden', !on);
+  }
+}
+
 /**
  * Chữ nổi ngắn bay lên từ đầu nhân vật ("Né hoàn hảo!", "Choáng!", "Bay vút!", tên người tặng quà).
  * Pool node cố định, mỗi chữ chạy một animation CSS rồi tự ẩn; không tạo node mới giữa trận.

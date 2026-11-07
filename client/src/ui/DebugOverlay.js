@@ -4,7 +4,7 @@ import { laneCenter, laneWidthPx, scaleAt, screenX, screenY } from '../systems/P
 
 // Chế độ debug (phím B): hiện dodgeSkill trên đầu từng nhân vật và vẽ vùng "nhìn trước".
 export class DebugOverlay {
-  constructor(scene) {
+  constructor(scene, { enabled = true } = {}) {
     this.scene = scene;
     this.on = false;
     this.g = scene.add.graphics().setDepth(900).setVisible(false);
@@ -13,7 +13,7 @@ export class DebugOverlay {
       .text(12, 12, '', { fontFamily: 'monospace', fontStyle: 'bold', fontSize: '30px', color: '#ffffff', backgroundColor: '#000000aa', padding: { x: 8, y: 4 } })
       .setDepth(902)
       .setVisible(false);
-    scene.input.keyboard.on('keydown-B', () => this.toggle());
+    if (enabled) scene.input.keyboard.on('keydown-B', () => this.toggle()); // chế độ quay (?live=1) tắt phím B
   }
 
   toggle() {

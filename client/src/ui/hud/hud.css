@@ -190,3 +190,9 @@
 .netdot--yellow { --dot: #ffc21a; animation: netdot-pulse 1s ease-in-out infinite; }
 .netdot--red { --dot: #ff4d5e; animation: netdot-pulse .6s ease-in-out infinite; }
 @keyframes netdot-pulse { 50% { opacity: .35; } }
+
+/* ---------- Dải chữ TẠM DỪNG ---------- */
+#hud .pausebadge { position: absolute; left: 0; right: 0; top: 820px; text-align: center; pointer-events: none; z-index: 40; }
+.pausebadge.is-hidden { display: none; }
+.pausebadge .title-text { font-size: 110px; --stroke-w: 22px; animation: pulse 1.2s ease-in-out infinite; }
+.pausebadge__sub { margin-top: 28px; font-size: 40px; color: #fff; text-shadow: var(--text-shadow); }
