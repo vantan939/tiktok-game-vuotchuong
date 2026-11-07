@@ -131,6 +131,7 @@ export const CONFIG = {
     enabled: true,
     music: true,
     sfx: true,
+    sampleRate: 48000,        // tần số lấy mẫu chung của mọi âm thanh trong game, khớp TikTok Live Studio (48 kHz)
     master: 0.8,
     musicVolume: 0.2,         // nhạc nền nhỏ để không lấn tiếng người dẫn
     sfxVolume: 0.55,

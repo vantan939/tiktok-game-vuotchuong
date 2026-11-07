@@ -27,7 +27,14 @@ export class AudioEngine {
     if (this.ctx) return this.ctx;
     const Ctx = typeof window !== 'undefined' && (window.AudioContext || window.webkitAudioContext);
     if (!Ctx) return null;
-    const ctx = new Ctx();
+    // Mọi âm thanh (nhạc, hiệu ứng, giọng MC) chạy chung một tần số lấy mẫu cố định cho khớp Live Studio / TikTok (48 kHz),
+    // không phụ thuộc loa của máy. File mp3 giọng genmax (44,1 kHz) được trình duyệt đổi sang tần số này khi phát.
+    let ctx;
+    try {
+      ctx = new Ctx({ sampleRate: this.cfg.sampleRate });
+    } catch {
+      ctx = new Ctx(); // trình duyệt không nhận tần số này thì dùng tần số mặc định của máy
+    }
     const comp = ctx.createDynamicsCompressor();
     comp.threshold.value = -18;
     comp.ratio.value = 6;
