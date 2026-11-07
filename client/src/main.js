@@ -8,10 +8,12 @@ import { RaceScene } from './scenes/RaceScene.js';
 import { EventBus } from './core/EventBus.js';
 import { DemoSource } from './sources/DemoSource.js';
 import { WebSocketSource } from './sources/WebSocketSource.js';
+import { NetStatus } from './systems/NetStatus.js';
 import { DebugPanel } from './ui/DebugPanel.js';
 
 const params = new URLSearchParams(location.search);
 const bus = new EventBus();
+const net = params.get('demo') === '1' ? null : new NetStatus(CONFIG.net, performance.now()); // chỉ có khi nhận sự kiện từ server
 
 // Chờ font Google (Baloo 2) tải xong, có kiểm tra dấu tiếng Việt; quá 4 giây thì dùng font dự phòng
 async function loadFonts() {
@@ -41,7 +43,7 @@ async function main() {
     });
     demo.start();
   } else {
-    new WebSocketSource(bus, params.get('server') ?? undefined).start(); // ?server=ws://host:cổng để trỏ tới server khác
+    new WebSocketSource(bus, params.get('server') ?? undefined, { net }).start(); // ?server=ws://host:cổng để trỏ tới server khác
   }
 
   new Phaser.Game({
@@ -58,7 +60,7 @@ async function main() {
     },
     scene: [BootScene, RaceScene],
     // Gắn EventBus trước khi scene đầu tiên chạy create()
-    callbacks: { preBoot: (game) => game.registry.set('bus', bus) },
+    callbacks: { preBoot: (game) => { game.registry.set('bus', bus); game.registry.set('net', net); } },
   });
 }
 

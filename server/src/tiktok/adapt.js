@@ -2,6 +2,8 @@
 // Thư viện không chính thức nên tên trường có thể khác giữa các phiên bản (comment/content, likeCount/count,
 // userId/id, uniqueId/displayId, giftDetails/gift...). Các hàm ở đây chấp nhận cả hai kiểu để chịu được thay đổi nhỏ.
 
+import { sanitizeNickname } from '../../../shared/names.js';
+
 const first = (...values) => values.find((v) => v !== undefined && v !== null && v !== '');
 const str = (v) => (v === undefined || v === null ? '' : String(v));
 
@@ -19,7 +21,7 @@ export function userOf(user) {
   const uniqueId = str(first(user.uniqueId, user.displayId));
   return {
     userId,
-    nickname: str(first(user.nickname, uniqueId)),
+    nickname: sanitizeNickname(str(first(user.nickname, uniqueId)), userId), // lọc từ nhạy cảm, tên dài, ký tự lạ
     avatarUrl: imageUrl(first(user.profilePicture, user.profilePictureMedium, user.avatarThumb, user.avatarMedium)),
   };
 }

@@ -215,24 +215,28 @@ test('TikTokLiveSource: mất kết nối thì thử lại với thời gian ch�
   const tm = fakeTimers();
   const { lib, made } = fakeConnector({ failFirst: 2 });
   const logs = [];
-  const src = new TikTokLiveSource({ username: 's', emit: () => {}, log: (m) => logs.push(m), loadConnector: async () => lib, setTimer: tm.setTimer, clearTimer: tm.clearTimer, now: () => tm.now });
+  const states = [];
+  const src = new TikTokLiveSource({ username: 's', emit: () => {}, onStatus: (st) => states.push(st), log: (m) => logs.push(m), loadConnector: async () => lib, setTimer: tm.setTimer, clearTimer: tm.clearTimer, now: () => tm.now });
   await src.start();
   assert.equal(made.length, 1);
   assert.ok(logs.some((l) => /kết nối thất bại/.test(l)));
-  tm.advance(5000);
+  tm.advance(2000);
   await Promise.resolve();
   await new Promise((r) => setImmediate(r));
-  assert.equal(made.length, 2, 'thử lại sau 5 giây');
-  tm.advance(10000); // lần sau chờ 10 giây
+  assert.equal(made.length, 2, 'thử lại sau 2 giây');
+  tm.advance(4000); // lần sau chờ 4 giây
   await new Promise((r) => setImmediate(r));
   assert.equal(made.length, 3);
   assert.ok(logs.some((l) => /đã kết nối/.test(l)));
   // bị ngắt sau khi đã kết nối: kết nối lại
+  assert.equal(states.at(-1), 'connected');
   made[2].fire('disconnected', { code: 1006, reason: 'mất mạng' });
+  assert.equal(states.at(-1), 'reconnecting', 'ngắt thì báo đang kết nối lại');
   assert.ok(logs.some((l) => /bị ngắt kết nối \(mã 1006\): mất mạng/.test(l)));
-  tm.advance(5000);
+  tm.advance(2000);
   await new Promise((r) => setImmediate(r));
   assert.equal(made.length, 4);
+  assert.equal(states.at(-1), 'connected', 'nối lại được thì xanh');
   src.stop();
 
   const tm2 = fakeTimers();
@@ -242,4 +246,34 @@ test('TikTokLiveSource: mất kết nối thì thử lại với thời gian ch�
   await src2.start();
   assert.ok(logs2.some((l) => /chưa live, thử lại sau 30 giây/.test(l)));
   src2.stop();
+});
+
+test('TikTokLiveSource: thời gian chờ kết nối lại tăng dần nhưng không quá 30 giây; thất bại nhiều lần thì báo mất kết nối', async () => {
+  const tm = fakeTimers();
+  const { lib, made } = fakeConnector({ failFirst: 99 });
+  const states = [];
+  const waits = [];
+  const src = new TikTokLiveSource({
+    username: 's',
+    emit: () => {},
+    onStatus: (st) => states.push(st),
+    log: (m) => {
+      const w = /sẽ kết nối lại sau (\d+) giây/.exec(m);
+      if (w) waits.push(Number(w[1]));
+    },
+    loadConnector: async () => lib,
+    setTimer: tm.setTimer,
+    clearTimer: tm.clearTimer,
+    now: () => tm.now,
+  });
+  await src.start();
+  for (let i = 0; i < 7; i++) {
+    tm.advance(30000);
+    await new Promise((r) => setImmediate(r));
+  }
+  assert.deepEqual(waits.slice(0, 7), [2, 4, 8, 16, 30, 30, 30]);
+  assert.ok(Math.max(...waits) <= 30);
+  assert.equal(states.at(-1), 'disconnected', 'thất bại liên tiếp thì đỏ');
+  assert.ok(made.length >= 7);
+  src.stop();
 });

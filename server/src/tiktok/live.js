@@ -16,11 +16,11 @@ const STATS_EVERY_MS = 60000;
  */
 export class TikTokLiveSource {
   constructor({
-    username, emit, log = console.log, signApiKey, loadConnector = () => import('tiktok-live-connector'),
-    likeWindowMs = 1000, memberDedupeMs = 300000, retryMinMs = 5000, retryMaxMs = 60000, offlineRetryMs = 30000,
-    now = () => Date.now(), setTimer = setTimeout, clearTimer = clearTimeout,
+    username, emit, onStatus = () => {}, log = console.log, signApiKey, loadConnector = () => import('tiktok-live-connector'),
+    likeWindowMs = 1000, memberDedupeMs = 300000, retryMinMs = 2000, retryMaxMs = 30000, offlineRetryMs = 30000,
+    now = () => Date.now(), setTimer = (fn, ms) => setTimeout(fn, ms), clearTimer = (t) => clearTimeout(t),
   } = {}) {
-    Object.assign(this, { username, emit, log, signApiKey, loadConnector, memberDedupeMs, retryMinMs, retryMaxMs, offlineRetryMs, now, setTimer, clearTimer });
+    Object.assign(this, { username, emit, onStatus, log, signApiKey, loadConnector, memberDedupeMs, retryMinMs, retryMaxMs, offlineRetryMs, now, setTimer, clearTimer });
     this.likes = new LikeAggregator((e) => this.send(e), { windowMs: likeWindowMs, setTimer, clearTimer });
     this.connection = null;
     this.stopped = false;
@@ -44,6 +44,7 @@ export class TikTokLiveSource {
     this.clearTimer(this.statsTimer);
     this.likes.flushAll();
     this.connection?.disconnect?.();
+    this.onStatus('disconnected', 'đã dừng');
     this.log('[tiktok] đã dừng');
   }
 
@@ -67,10 +68,12 @@ export class TikTokLiveSource {
     const connection = new TikTokLiveConnection(this.username, this.signApiKey ? { signApiKey: this.signApiKey } : {});
     this.connection = connection;
     this.attach(connection, WebcastEvent, ControlEvent);
+    this.onStatus('reconnecting', 'đang kết nối TikTok');
     this.log(`[tiktok] đang kết nối tới @${this.username}...`);
     try {
       const state = await connection.connect();
       this.failures = 0;
+      this.onStatus('connected', '');
       this.log(`[tiktok] đã kết nối @${this.username} (roomId ${state?.roomId ?? '?'})`);
     } catch (err) {
       this.onConnectFailed(err);
@@ -93,7 +96,10 @@ export class TikTokLiveSource {
     connection.on(ControlEvent.DISCONNECTED ?? 'disconnected', (info) => {
       this.log(`[tiktok] bị ngắt kết nối${info?.code ? ` (mã ${info.code})` : ''}${info?.reason ? `: ${info.reason}` : ''}`);
       this.likes.flushAll();
-      if (connection === this.connection) this.scheduleRetry();
+      if (connection === this.connection) {
+        this.onStatus('reconnecting', 'TikTok ngắt kết nối');
+        this.scheduleRetry();
+      }
     });
     connection.on(ControlEvent.ERROR ?? 'error', (err) => {
       this.log(`[tiktok] lỗi: ${err?.info ?? ''} ${err?.exception?.message ?? err?.message ?? ''}`.trim());
@@ -118,6 +124,9 @@ export class TikTokLiveSource {
     this.failures++;
     if (offline) this.log(`[tiktok] @${this.username} chưa live, thử lại sau ${Math.round(this.offlineRetryMs / 1000)} giây`);
     else this.log(`[tiktok] kết nối thất bại: ${err?.name ?? 'Error'}: ${err?.message ?? err}`);
+    // Mới thất bại một hai lần thì vẫn là "đang kết nối lại"; chưa live hoặc thất bại nhiều lần thì báo mất kết nối
+    if (offline) this.onStatus('disconnected', `@${this.username} chưa live`);
+    else this.onStatus(this.failures >= 3 ? 'disconnected' : 'reconnecting', this.failures >= 3 ? 'không kết nối được TikTok' : 'đang kết nối TikTok');
     this.scheduleRetry(offline ? this.offlineRetryMs : undefined);
   }
 

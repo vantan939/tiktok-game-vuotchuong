@@ -182,3 +182,11 @@
 @keyframes fade-out { to { opacity: 0; } }
 @keyframes count-pop { 0% { opacity: 0; transform: scale(1.7); } 18% { opacity: 1; transform: scale(1); } 100% { opacity: .85; transform: scale(.92); } }
 @keyframes go-out { 0% { opacity: 0; transform: scale(.5); } 20% { opacity: 1; transform: scale(1.1); } 100% { opacity: 0; transform: scale(1.5); } }
+
+/* ---------- Chấm trạng thái kết nối (góc trên phải) ---------- */
+#hud .netdot { position: absolute; right: 14px; top: 14px; width: 24px; height: 24px; border-radius: 50%; border: 3px solid rgba(255,255,255,.85); background: var(--dot, #35e06a); box-shadow: 0 0 10px var(--dot, #35e06a), 0 2px 4px rgba(0,0,40,.5); pointer-events: none; z-index: 50; }
+.netdot.is-hidden { display: none; }
+.netdot--green { --dot: #35e06a; }
+.netdot--yellow { --dot: #ffc21a; animation: netdot-pulse 1s ease-in-out infinite; }
+.netdot--red { --dot: #ff4d5e; animation: netdot-pulse .6s ease-in-out infinite; }
+@keyframes netdot-pulse { 50% { opacity: .35; } }

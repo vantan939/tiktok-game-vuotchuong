@@ -26,6 +26,7 @@ import { FxDirector } from '../systems/FxDirector.js';
 import { AudioEngine } from '../audio/AudioEngine.js';
 import { Mc } from '../audio/Mc.js';
 import { RemoteVoice } from '../audio/RemoteVoice.js';
+import { NetDot } from '../ui/hud/NetDot.js';
 import { McDirector } from '../systems/McDirector.js';
 import { shortName } from '../systems/JoinMessage.js';
 import { CommandRouter } from '../systems/CommandRouter.js';
@@ -78,6 +79,8 @@ export class RaceScene extends Phaser.Scene {
     const hudRoot = createHudRoot();
     this.nameTags = new NameTags(hudRoot, Math.max(4, CONFIG.topNamesShown));
     this.hud = new Hud(hudRoot);
+    const net = this.registry.get('net');
+    this.netDot = net && !mockOn ? new NetDot(hudRoot, net) : null; // chấm xanh/vàng/đỏ: tình trạng kết nối tới server
     this.floatTexts = new FloatTexts(hudRoot); // sau HUD để chữ nổi nằm trên các khung
     this.hudTimer = 0;
     this.fxDirector = new FxDirector(CONFIG);
@@ -169,6 +172,7 @@ export class RaceScene extends Phaser.Scene {
       if (key === muteKey) this.audio.toggleAll();
       else if (key === musicKey) this.audio.toggleMusic();
       else if (key === CONFIG.mc.key) this.mc.toggle();
+      else if (key === CONFIG.net.statusKey) this.netDot?.toggle();
     });
     this.audio.ensure();
   }
@@ -241,6 +245,7 @@ export class RaceScene extends Phaser.Scene {
     this.overlay.update(this.manager);
     this.updateHud(dt);
     this.tickCountdown();
+    this.netDot?.update(performance.now());
     if (!this.mock) this.mc.say(this.mcDirector.update(this.manager, this.manager.now));
     this.debug.setStatus(this.statusLine());
   }

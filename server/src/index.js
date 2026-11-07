@@ -36,8 +36,22 @@ const http = createServer(async (req, res) => {
 });
 const wss = new WebSocketServer({ server: http });
 
+// Trạng thái nguồn sự kiện, gửi cho client để hiện chấm xanh/vàng/đỏ. Phát lại mỗi 5 giây làm nhịp tim:
+// client im lặng quá lâu nghĩa là kết nối đã chết (ví dụ rút mạng) và tự nối lại.
+const HEARTBEAT_MS = 5000;
+let status = { type: 'status', state: 'disconnected', detail: 'chưa có nguồn sự kiện' };
+const sendAll = (message) => {
+  for (const client of wss.clients) if (client.readyState === 1) client.send(message);
+};
+function setStatus(state, detail = '') {
+  status = { type: 'status', state, detail };
+  sendAll(JSON.stringify(status));
+}
+setInterval(() => sendAll(JSON.stringify(status)), HEARTBEAT_MS).unref();
+
 wss.on('connection', (socket) => {
   console.log(`[server] client kết nối (${wss.clients.size} đang mở)`);
+  socket.send(JSON.stringify(status));
   socket.on('close', () => console.log(`[server] client ngắt (${wss.clients.size} đang mở)`));
 });
 
@@ -53,8 +67,7 @@ function broadcast(event) {
     return;
   }
   recorder?.record(event);
-  const message = JSON.stringify(event);
-  for (const client of wss.clients) if (client.readyState === 1) client.send(message);
+  sendAll(JSON.stringify(event));
 }
 
 const recordPath = argValue('--record');
@@ -66,20 +79,24 @@ if (typeof replayPath === 'string') {
   // Chế độ replay: phát lại sự kiện đã ghi, không cần live thật
   const { items, skipped } = await loadReplay(replayPath);
   const speed = Number(argValue('--speed')) || 1;
+  setStatus('connected', 'replay');
   console.log(`[replay] ${items.length} sự kiện từ ${replayPath}${skipped ? ` (bỏ ${skipped} sự kiện sai dạng)` : ''}, tốc độ x${speed}${args.includes('--loop') ? ', lặp lại' : ''}`);
   // Chờ client đầu tiên kết nối rồi mới phát, để không mất những sự kiện đầu
   wss.once('connection', () => {
     console.log('[replay] có client kết nối, bắt đầu phát');
+    setStatus('connected', 'replay');
     source = playReplay(items, broadcast, { speed, loop: args.includes('--loop'), onEnd: () => console.log('[replay] đã phát hết') });
   });
 } else if (process.env.TIKTOK_USERNAME?.trim()) {
   source = new TikTokLiveSource({
     username: process.env.TIKTOK_USERNAME.trim().replace(/^@/, ''),
     emit: broadcast,
+    onStatus: setStatus,
     signApiKey: process.env.EULER_API_KEY?.trim() || undefined,
   });
   source.start().catch((err) => console.error(`[tiktok] không khởi động được: ${err.message}`));
 } else {
+  setStatus('disconnected', 'chưa cấu hình TIKTOK_USERNAME');
   console.log('[tiktok] chưa có TIKTOK_USERNAME trong .env (hoặc dùng --replay file.json), server chỉ phát sự kiện từ client demo');
 }
 

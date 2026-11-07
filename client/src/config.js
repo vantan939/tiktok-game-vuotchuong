@@ -174,7 +174,13 @@ export const CONFIG = {
 
   // Kết nối server
   serverUrl: 'ws://localhost:8080',
-  reconnectSeconds: 3,
+  net: {
+    reconnectBaseMs: 1000,  // chờ 1, 2, 4, 8, 16, 30 giây... giữa các lần kết nối lại
+    reconnectMaxMs: 30000,  // tối đa 30 giây
+    redAfterMs: 10000,      // đứt kết nối quá bấy lâu thì chấm chuyển từ vàng sang đỏ
+    staleMs: 15000,         // đang mở mà không nhận được gì (kể cả nhịp tim của server) quá bấy lâu thì coi là chết và nối lại
+    statusKey: 't',         // phím tắt ẩn/hiện chấm trạng thái (ẩn khi quay)
+  },
 
   // Chế độ demo (?demo=1). Các khoảng [min, max] tính bằng giây
   demoUserCount: 40,

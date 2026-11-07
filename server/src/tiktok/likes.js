@@ -4,7 +4,7 @@
  * Người nghe nhận (event) qua emit. Có thể truyền setTimeout/clearTimeout giả để test.
  */
 export class LikeAggregator {
-  constructor(emit, { windowMs = 1000, setTimer = setTimeout, clearTimer = clearTimeout } = {}) {
+  constructor(emit, { windowMs = 1000, setTimer = (fn, ms) => setTimeout(fn, ms), clearTimer = (t) => clearTimeout(t) } = {}) {
     this.emit = emit;
     this.windowMs = windowMs;
     this.setTimer = setTimer;

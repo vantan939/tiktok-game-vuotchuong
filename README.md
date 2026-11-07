@@ -52,6 +52,13 @@ node server/src/index.js --record ghi.json        # nhận live thật và ghi l
 
 Replay chờ client đầu tiên kết nối rồi mới phát (để không mất sự kiện đầu). File là mảng `{ "t": mili giây, "event": GameEvent }` (định dạng `--record` ghi ra); cũng nhận mảng `GameEvent` thẳng. Sự kiện sai dạng bị bỏ và báo trong log. Có thể trỏ client tới server khác bằng `?server=ws://host:cổng`.
 
+## Độ ổn định
+
+- **Tự kết nối lại:** client nối lại server với thời gian chờ 1, 2, 4, 8, 16, 30 giây (tối đa 30 giây) và nối ngay khi mạng quay lại. Server cũng gửi nhịp tim mỗi 5 giây; quá 15 giây im lặng thì client coi là đã chết và nối lại, nên rút mạng rồi cắm lại, game tự khôi phục mà không cần tải lại trang. Server nối lại TikTok với thời gian chờ tăng dần tối đa 30 giây.
+- **Chấm trạng thái** ở góc trên phải (đưa chuột vào để xem chữ): xanh = đang nhận sự kiện, vàng = đang kết nối lại, đỏ = mất kết nối (đứt quá 10 giây, hoặc server báo chưa live / không nối được TikTok). Phím `T` ẩn hoặc hiện chấm, nên ẩn khi quay. Chế độ `?demo=1` không có chấm.
+- **Mất kết nối thì game vẫn chạy** với bot, không đứng hình; người xem vào lại bình thường khi nối lại được.
+- **Lọc nickname** (`shared/names.js`): tên có từ nhạy cảm (tiếng Việt, tiếng Anh, kể cả viết lách như sh1t, d.u m4), đường dẫn quảng cáo, quá dài (trên 24 ký tự) hoặc không còn ký tự vẽ được thì thay bằng tên dự phòng dạng "Người chơi 4821" (cố định theo người dùng). Emoji, ký hiệu và chữ nước khác (font game chỉ vẽ chữ Latin có dấu tiếng Việt) bị bỏ khỏi tên. Danh sách từ nhạy cảm chỉ là mức cơ bản, sửa trong file đó nếu cần.
+
 ## Giọng MC, âm thanh
 
 Xem `ASSETS.md` (mục Giọng MC, Âm thanh) và `.env.example` (`GENMAX_*`). Phím tắt: `M` tắt/bật tiếng, `N` tắt/bật nhạc, `V` tắt/bật MC.
