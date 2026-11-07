@@ -69,7 +69,8 @@ export const CONFIG = {
   dodgeSkillWinBonus: 0.02,
   reactionMin: 0.2,
   reactionMax: 0.6,
-  lookAheadSeconds: 1.5,
+  lookAheadSeconds: 2.5,     // nhìn trước chướng ngại bấy lâu: né sớm một đoạn cho đẹp mắt, không sát mới né
+  hammerLookAheadSeconds: 2, // búa phải canh nhịp nên chỉ quyết định khi đã gần hơn một chút (dự đoán xa dễ sai)
   boostDodgePenalty: 0.1,
   minHitChance: 0.1,
 
@@ -116,7 +117,7 @@ export const CONFIG = {
   jumpSeconds: 1,
   jumpClearFraction: 0.65,   // chỉ miễn nhiễm cầu gai khi độ cao nhảy đạt bấy nhiêu phần của đỉnh (chân đã cao hơn quả cầu)
   jumpHeight: 300,           // độ cao nhảy (px thiết kế tại s = 1, nhân với unit); phải cao hơn quả cầu gai (khoảng 200) để thấy rõ nhảy qua
-  dodgeLaneSmooth: 8,        // trượt sang làn khác nhanh hơn khi đang né
+  dodgeLaneSmooth: 5,        // trượt sang làn khác nhanh hơn khi đang né
   obstacleMinScale: 0.07,    // chướng ngại xa hơn mức này thì không vẽ
   obstaclePoolSize: 24,
 

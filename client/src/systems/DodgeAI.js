@@ -1,6 +1,8 @@
 import { CONFIG } from '../config.js';
 import { hammerLethalDuring, hitReach, spikeDist } from './Obstacles.js';
 
+const WAIT_SLOW_RANGE = 30; // bắt đầu giảm tốc để canh nhịp búa khi còn cách chỗ chờ bấy nhiêu đơn vị
+
 // Tự né thông minh. Logic thuần.
 // Nhìn trước lookAheadSeconds; gặp chướng ngại trên làn mình thì tung xác suất theo dodgeSkill
 // (thành công = kịp nhận ra), rồi chọn hành động: đổi làn > nhảy (cầu gai) > canh nhịp (búa).
@@ -59,6 +61,7 @@ export function perceive(r, ctx) {
     const o = field.list[i];
     if (o.dist - r.dist > ahead) break;
     if (o.lane !== r.targetLane || r.rolled.has(o.id)) continue;
+    if (o.type === 'hammer' && o.dist - r.dist > speed * cfg.hammerLookAheadSeconds) continue; // búa còn xa, chưa quyết định
     // Còn khiên tới lúc chạy qua hết chướng ngại này thì không cần né, cứ lao thẳng
     if (r.shield > (o.dist - r.dist + hitReach(o, cfg) + cfg.spikeRollAmp) / speed) continue;
     r.rolled.add(o.id);
@@ -121,5 +124,7 @@ export function waitControl(r, ctx) {
     return 1;
   }
   r.waitCap = o.dist - reach - 0.5;
-  return r.dist < r.waitCap - 6 ? 0.5 : 0.2;
+  const gap = r.waitCap - r.dist;
+  if (gap > WAIT_SLOW_RANGE) return 1; // còn xa vùng búa thì cứ chạy bình thường, chỉ giảm tốc khi áp sát
+  return gap > 6 ? 0.5 : 0.2;
 }
