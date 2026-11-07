@@ -48,7 +48,7 @@ test('tạo giọng: gửi đúng yêu cầu, hỏi trạng thái tới khi xong
   assert.equal(post.init.headers['xi-api-key'], 'KHOA');
   const body = JSON.parse(post.init.body);
   assert.deepEqual(body, {
-    text: 'Xuất phát!', provider: 'elevenlabs', model_id: 'eleven_multilingual_v2', language_code: 'vi', voice_settings: { speed: 1.1 },
+    text: 'Xuất phát!', provider: 'elevenlabs', model_id: 'eleven_flash_v2_5', language_code: 'vi', voice_settings: { speed: 1.1 },
   });
   assert.equal(fake.calls.filter((c) => c.url.includes('/v1/history/')).length, 2, 'một lần đang xử lý, một lần xong');
 });

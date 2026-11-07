@@ -11,7 +11,7 @@ export class TtsError extends Error {
 }
 
 // Model mặc định theo nhà cung cấp trong genmax (xem docs/api: text-to-speech, models)
-const DEFAULT_MODEL = { elevenlabs: 'eleven_multilingual_v2', minimax: 'speech-2.8-turbo', capcut: 'capcut' };
+const DEFAULT_MODEL = { elevenlabs: 'eleven_flash_v2_5', minimax: 'speech-2.8-turbo', capcut: 'capcut' };
 
 /** MiniMax dùng tên ngôn ngữ đầy đủ, còn ElevenLabs và CapCut dùng mã (vi, en...). */
 export function languageFor(provider, language) {
