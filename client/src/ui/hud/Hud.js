@@ -66,10 +66,6 @@ export class Hud {
     const giftCard = createFrame({ variant: 'purple', className: 'card', rect: { x: 14, y: 712, w: 266, h: 112 } });
     giftCard.append(el('div', 'card__icon', iconSvg('gift')), el('div', 'card__text txt', `${H.giftLine1}<br>${H.giftLine2}<br>${H.giftLine3}`));
 
-    // Dòng chỉ dẫn nhỏ dưới ba thẻ
-    const joinCard = createFrame({ variant: 'purple', className: 'card card--join', rect: { x: 14, y: 838, w: 266, h: 92 } });
-    joinCard.append(el('div', 'card__text txt', `${H.joinHint1} <em>join</em><br>${H.joinHint2}`));
-
     // Bảng xếp hạng TOP N (CONFIG.topShown)
     this.top10List = el('div', 'top10__list');
     this.top10List.style.height = `${TOP_ROWS * ROW_H}px`;
@@ -78,9 +74,14 @@ export class Hud {
     head.append(el('div', 'crown', iconSvg('crown')), el('div', 'top10__title', H.top(TOP_ROWS)));
     top10.append(head, this.top10List);
 
+    const autoY = 416 + 88 + TOP_ROWS * ROW_H + 14;
     // Thẻ nhắc luật ngay dưới bảng xếp hạng: nhân vật tự né, người xem chỉ cần tăng tốc
-    const autoCard = createFrame({ variant: 'purple', className: 'card card--hint', rect: { x: 730, y: 416 + 88 + TOP_ROWS * ROW_H + 14, w: 340, h: 104 } });
+    const autoCard = createFrame({ variant: 'purple', className: 'card card--hint', rect: { x: 730, y: autoY, w: 340, h: 104 } });
     autoCard.append(el('div', 'card__text txt', `${H.autoLine1}<br>${H.autoLine2} <em>${H.autoLine3}</em>`));
+
+    // Dòng chỉ dẫn gõ join, cùng cột bên phải với bảng xếp hạng
+    const joinCard = createFrame({ variant: 'purple', className: 'card card--join', rect: { x: 730, y: autoY + 104 + 12, w: 340, h: 92 } });
+    joinCard.append(el('div', 'card__text txt', `${H.joinHint1} <em>join</em> ${H.joinHint2}`));
     this.rows = new Map(); // userId -> phần tử hàng
 
     // Hàng đợi và thẻ thể lệ
