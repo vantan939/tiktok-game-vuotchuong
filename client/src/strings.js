@@ -58,6 +58,7 @@ export const STR = {
       () => 'Xin chào cả nhà! Gõ join để tham gia cuộc đua ngay thôi!',
     ],
     ready: [() => 'Chuẩn bị nào! Các tay đua vào vị trí!', () => 'Sẵn sàng chưa? Các tay đua vào vị trí nhé!'],
+    countdownMid: [() => 'Còn vài giây nữa là xuất phát, gõ join để vào đua nhé!'],
     countdown: [() => 'Ba! Hai! Một!'],
     go: [() => 'Xuất phát!', () => 'Chạy thôi!'],
     join: [(n) => `${n} vào đua rồi! Cố lên nào!`, (n) => `Chào mừng ${n} tham gia cuộc đua!`],

@@ -20,7 +20,7 @@ export class McDirector {
     this.trackLength = cfg.trackLength;
     this.rng = rng;
     this.lastAt = new Map(); // loại câu -> lần nói gần nhất (giây game)
-    this.round = { nearFinish: false, lastSeconds: false, leader: null, leaderSince: 0, announcedLeader: null };
+    this.round = { nearFinish: false, lastSeconds: false, leader: null, leaderSince: 0, announcedLeader: null, countedDown: false, countdownMid: false };
     this.lastSpoke = -Infinity; // lần gần nhất có câu nào được đưa ra (giây game)
     this.lastFiller = null;
     // Mọi câu đưa ra đều ghi nhận thời điểm, để biết MC đã im bao lâu
@@ -48,7 +48,7 @@ export class McDirector {
 
   /** Lượt mới: xoá các mốc trong lượt. */
   onRound() {
-    this.round = { nearFinish: false, lastSeconds: false, leader: null, leaderSince: 0, announcedLeader: null };
+    this.round = { nearFinish: false, lastSeconds: false, leader: null, leaderSince: 0, announcedLeader: null, countedDown: false, countdownMid: false };
   }
 
   /** Đổi trạng thái lượt. manager.result có tên người thắng khi vào 'result'. */
@@ -58,7 +58,7 @@ export class McDirector {
       return this.ready('welcome', now, gaps.welcome) ? [{ text: this.pick('welcome'), priority: PRIORITY.event }] : [];
     }
     if (state === 'countdown') {
-      return [{ text: this.pick('ready'), priority: PRIORITY.event }, { text: this.pick('countdown'), priority: PRIORITY.event }];
+      return [{ text: this.pick('ready'), priority: PRIORITY.event }]; // "Ba, hai, một" nói đúng lúc còn 3 giây (xem update)
     }
     if (state === 'race') return [{ text: this.pick('go'), priority: PRIORITY.key }];
     if (state === 'result' && manager.result) {
@@ -97,6 +97,7 @@ export class McDirector {
 
   /** Gọi mỗi frame khi đang đua: người dẫn đầu đổi, sắp về đích, còn 10 giây cuối. */
   update(manager, now) {
+    if (manager.state === 'countdown') return this.countdownLines(manager);
     if (manager.state !== 'race') return [];
     if (this.lastSpoke === -Infinity) this.lastSpoke = now; // bắt đầu tính thời gian im lặng từ lúc đua
     const out = [];
@@ -122,6 +123,21 @@ export class McDirector {
     // Im quá lâu thì nói xen một câu: lúc thì bình luận khoảng cách top 2, lúc thì câu chung
     if (!out.length && now - this.lastSpoke >= this.cfg.idleSeconds) out.push(this.filler(manager));
     return out;
+  }
+
+  // Đếm ngược dài: nhắc vào đua ở giữa, rồi đọc 'Ba, hai, một' đúng lúc còn 3 giây
+  countdownLines(manager) {
+    const r = this.round;
+    const left = manager.countdownValue;
+    if (left <= 3 && !r.countedDown) {
+      r.countedDown = true;
+      return [{ text: this.pick('countdown'), priority: PRIORITY.event }];
+    }
+    if (left <= 6 && left > 3 && !r.countdownMid) {
+      r.countdownMid = true;
+      return [{ text: this.pick('countdownMid'), priority: PRIORITY.chatter }];
+    }
+    return [];
   }
 
   filler(manager) {

@@ -10,7 +10,7 @@ export const CONFIG = {
   // Lượt đua
   roundSeconds: 180,
   waitSeconds: 2,           // nghỉ ngắn trước khi đếm ngược, để người xem thấy đoàn đua mới
-  countdownSeconds: 3,
+  countdownSeconds: 10,     // đếm ngược trước khi xuất phát; người xem còn kịp gõ join vào đua
   resultSeconds: 8,
   maxPlayers: 3,
   botFillTo: 3,             // thiếu người thật thì thêm bot cho đủ số này, để luôn có đoàn đua

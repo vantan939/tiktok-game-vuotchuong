@@ -21,7 +21,7 @@ test('trạng thái: chào ở lượt chờ (thưa), chuẩn bị + đếm ngư
   assert.match(texts(mc.onState('wait', {}, 0))[0], /Chào mừng/);
   assert.deepEqual(mc.onState('wait', {}, 30), [], 'chào lại quá sớm thì bỏ');
   assert.equal(mc.onState('wait', {}, 200).length, 1, 'đủ lâu thì chào lại');
-  assert.equal(mc.onState('countdown', {}, 1).length, 2);
+  assert.equal(mc.onState('countdown', {}, 1).length, 1, 'chỉ báo chuẩn bị; ba hai một đọc đúng lúc còn 3 giây');
   const go = mc.onState('race', {}, 5);
   assert.equal(go[0].priority, PRIORITY.key);
   const win = mc.onState('result', { result: { winner: bot('RainDev'), finished: true } }, 9);
@@ -112,4 +112,17 @@ test('bot trong top 3 cũng được bình luận khi né, dính; bot ngoài top
   assert.match(mc.onEvent({ type: 'dodge', racer: { isBot: true, rank: 2, nickname: 'RainDev' } }, 0)[0].text, /./);
   assert.match(mc.onEvent({ type: 'hit', racer: { isBot: true, rank: 3, nickname: 'Cherry' } }, 0)[0].text, /Cherry/);
   assert.deepEqual(mc.onEvent({ type: 'dodge', racer: { isBot: true, rank: 8, nickname: 'X' } }, 50), []);
+});
+
+test('đếm ngược dài: nhắc vào đua ở giữa, đọc ba hai một đúng lúc còn 3 giây, mỗi câu một lần', () => {
+  const mc = new McDirector(CONFIG, rng);
+  const at = (left) => mc.update({ state: 'countdown', countdownValue: left }, 0);
+  assert.deepEqual(at(10), []);
+  assert.deepEqual(at(7), [], 'chưa tới giữa');
+  assert.match(texts(at(6))[0], /gõ join/);
+  assert.deepEqual(at(5), [], 'chỉ một lần');
+  assert.match(texts(at(3))[0], /Ba! Hai! Một!/);
+  assert.deepEqual(at(2), []);
+  mc.onRound();
+  assert.match(texts(at(3))[0], /Ba! Hai! Một!/, 'lượt mới nói lại');
 });
