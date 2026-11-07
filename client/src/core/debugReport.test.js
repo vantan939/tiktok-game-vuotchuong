@@ -2,21 +2,18 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { DebugReporter, describeLobby } from './debugReport.js';
 
-test('describeLobby: liệt kê người thật đang đua, người chờ lượt sau (✓) và hàng đợi, bỏ bot', () => {
+test('describeLobby: liệt kê người thật đang đua và hàng đợi (✓ là người vào đua lượt kế), bỏ bot', () => {
   const racers = [
     { userId: 'a', nickname: 'Rain', isBot: false },
     { userId: 'b1', nickname: 'Bot1', isBot: true },
     { userId: 'b', nickname: 'Nam', isBot: false },
   ];
-  const lobby = {
-    players: [{ userId: 'a', nickname: 'Rain' }, { userId: 'b', nickname: 'Nam' }, { userId: 'c', nickname: 'Lan' }],
-    queue: [{ userId: 'd', nickname: 'Minh' }, { userId: 'e', nickname: 'Hà' }],
-  };
+  const lobby = { queue: ['Lan', 'Hà', 'Minh', 'Thu'].map((nickname, i) => ({ userId: 'q' + i, nickname })) };
   assert.equal(
     describeLobby({ round: 3, state: 'race', racers, lobby }),
-    'lượt 3 (race) | đang đua 2/3: Rain, Nam | chờ lượt sau (✓) 1: Lan | hàng đợi 2: Minh, Hà',
+    'lượt 3 (race) | đang đua 2/3: Rain, Nam | hàng đợi 4 (✓ = vào đua lượt kế): Lan✓, Hà✓, Minh✓, Thu',
   );
-  assert.match(describeLobby({ round: 1, state: 'wait', racers: [], lobby: { players: [], queue: [] } }), /đang đua 0\/3: - \| chờ lượt sau \(✓\) 0: - \| hàng đợi 0: -/);
+  assert.match(describeLobby({ round: 1, state: 'wait', racers: [], lobby: { queue: [] } }), /đang đua 0\/3: - \| hàng đợi 0 \(✓ = vào đua lượt kế\): -/);
 });
 
 test('DebugReporter: chỉ gửi khi nội dung đổi và đã quá khoảng nghỉ; sự kiện rời luôn gửi; không ném lỗi', () => {

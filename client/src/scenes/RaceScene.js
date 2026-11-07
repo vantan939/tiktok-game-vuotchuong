@@ -146,7 +146,7 @@ export class RaceScene extends Phaser.Scene {
 
   onJoin(user) {
     const result = this.manager.join(user);
-    this.debugReporter?.event(`join: ${user.nickname} (${user.userId}) -> ${result.status}${result.where ? ` (${result.where})` : ''}${result.late ? ', vào đua từ lượt sau' : ''}${result.queuePosition ? `, hàng đợi số ${result.queuePosition}` : ''}`);
+    this.debugReporter?.event(`join: ${user.nickname} (${user.userId}) -> ${result.status}${result.where ? ` (${result.where})` : ''}${result.queuePosition ? `, hàng đợi số ${result.queuePosition}` : ''}`);
     console.log(`[join] ${user.nickname} (${user.userId}): ${result.status}, đang đua ${this.lobby.players.length}/${CONFIG.maxPlayers} người thật, hàng đợi ${this.lobby.queue.length}`);
     this.toasts.show(joinMessage(result, user.nickname));
     this.refreshHud(); // cập nhật hàng đợi ngay, không chờ vòng lặp game (vòng lặp có thể bị trình duyệt làm chậm khi cửa sổ bị che)

@@ -30,7 +30,6 @@ export const STR = {
 
   // Thông báo tham gia
   joinRacing: (name) => `${name} vào đua`,
-  joinRacingNext: (name) => `${name} vào đua ở lượt sau`,
   joinQueued: (name, position) => (position ? `${name} vào hàng đợi (số ${position})` : `${name} vào hàng đợi`),
   // where: 'racing' (đã có suất đua) hoặc 'queued' (đang xếp hàng, kèm số thứ tự); thiếu thì chỉ báo chung
   joinDuplicate: (name, where, position) => {
@@ -42,8 +41,8 @@ export const STR = {
   paused: 'TẠM DỪNG',
   pausedHint: 'Streamer sẽ tiếp tục ngay thôi',
 
-  // Hết lượt, người ở lâu nhất nhường chỗ cho hàng đợi
-  yieldSeat: (names) => `${names} nhường chỗ cho hàng đợi, gõ join để xếp hàng lại`,
+  // Hết lượt: người chơi lượt trước chưa xếp hàng lại thì nhắc gõ join
+  yieldSeat: (names) => `${names} đã chơi xong, gõ join để chơi tiếp`,
 
   // Thông báo camera cận (lệnh s)
   camFull: (name, max) => `${name}: Đã đủ ${max} camera cận, thử lại sau`,

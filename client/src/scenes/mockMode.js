@@ -9,7 +9,7 @@ import { SKINS } from '../entities/skins.js';
 
 /** Đưa 10 người có tên vào lobby (là người thật) trước khi dựng lượt đua. */
 export function seedMockLobby(lobby) {
-  for (const t of MOCK.top) lobby.join({ userId: `mock_${t.name}`, nickname: t.name, avatarUrl: '' });
+  for (const t of MOCK.top) lobby.players.push({ userId: `mock_${t.name}`, nickname: t.name, avatarUrl: '', isBot: false });
 }
 
 /** Sau manager.begin(): đóng băng ở trạng thái đua, xếp nhân vật, chướng ngại và camera theo mockup. */

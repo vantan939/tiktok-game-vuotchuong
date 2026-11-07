@@ -83,14 +83,14 @@ test('s: không ảnh hưởng người khác, bật rồi tắt lại', () => {
   assert.deepEqual(cams.cams.map((x) => x.racer.userId), ['u2'], 'người 2 vẫn còn cửa sổ');
 });
 
-test('s: chưa join hoặc đang ở hàng đợi thì nhắc gõ join trước, không bật cửa sổ', () => {
+test('s: chưa join thì nhắc gõ join trước; đang chờ trong hàng đợi thì báo lượt sau; đều không bật cửa sổ', () => {
   const { manager, cams } = setup();
   const c = chatter(manager, cams);
   c.say(99, 's');
   assert.equal(c.log.at(-1).status, 'not-joined');
   for (let i = 0; i < 31; i++) c.say(i, 'join'); // u30 vào hàng đợi
   c.say(30, 's');
-  assert.equal(c.log.at(-1).status, 'not-joined');
+  assert.equal(c.log.at(-1).status, 'next-round', 'đang chờ trong hàng đợi, chưa có mặt ở lượt này');
   assert.equal(cams.cams.length, 0);
 });
 
@@ -141,6 +141,7 @@ test('s: hết lượt thì tự tắt hết, sang lượt mới bật lại đ�
   assert.equal(cams.cams.length, 0, 'tắt hết khi hết lượt');
   c.say(0, 's');
   assert.equal(c.log.at(-1).status, 'idle', 'màn kết quả không bật được');
+  c.say(0, 'join'); // chơi lượt trước xong phải gõ join lại để có mặt ở lượt sau
   runUntil(manager, () => manager.round === 2);
   c.say(0, 's');
   assert.equal(c.log.at(-1).status, 'on');

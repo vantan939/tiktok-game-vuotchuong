@@ -133,23 +133,22 @@ export class RaceManager {
   }
 
   /**
-   * Người xem gõ join. Chính sách khi lượt đang đua: người mới được giữ suất và vào đoàn đua từ LƯỢT SAU
-   * (late: true). Lý do: vào giữa lượt từ vạch xuất phát thì cả đoàn đã chạy xa, nhân vật mới
-   * nằm ngoài khung hình và camera phải zoom ra rất xa. Trước lúc đua (chờ, đếm ngược) và ở màn kết quả
-   * thì vào ngay: ở chờ/đếm ngược nhân vật thế chỗ một bot trên vạch xuất phát.
-   * Trả về { status: 'racing'|'queued'|'duplicate', late, queuePosition }.
+   * Người xem gõ join: luôn vào hàng đợi (kể cả khi đang đua, để chơi lượt sau nữa); lượt kế tiếp lấy từ đầu hàng đợi.
+   * Ngoại lệ: khi lượt chưa xuất phát (chờ, đếm ngược) mà còn suất trống thì vào đua ngay (thế chỗ một bot). Vào giữa lượt
+   * từ vạch xuất phát thì cả đoàn đã chạy xa, nhân vật mới ngoài khung hình, nên không cho.
+   * Trả về { status: 'racing' (vào ngay) | 'queued' | 'duplicate' (đã ở trong hàng đợi), late: false, queuePosition, where }.
    */
   join(user) {
     const status = this.lobby.join(user);
-    if (status === 'duplicate') return { status, late: false, queuePosition: this.lobby.queuePosition(user.userId), where: this.lobby.where(user.userId) };
-    if (status === 'queued') return { status, late: false, queuePosition: this.lobby.queuePosition(user.userId) };
-    if (this.state === 'wait' || this.state === 'countdown') this.seatBeforeRace(this.lobby.players.at(-1));
-    return { status, late: this.state === 'race', queuePosition: 0 };
+    if (status === 'duplicate') return { status, late: false, queuePosition: this.lobby.queuePosition(user.userId), where: 'queued' };
+    // Chưa xuất phát (chờ, đếm ngược) mà còn suất trống: vào đua luôn ở lượt này, thế chỗ một bot trên vạch xuất phát
+    if (this.state === 'wait' || this.state === 'countdown') for (const p of this.lobby.promote()) this.seatBeforeRace(p);
+    if (!this.lobby.inQueue(user.userId)) return { status: 'racing', late: false, queuePosition: 0 };
+    return { status: 'queued', late: false, queuePosition: this.lobby.queuePosition(user.userId) };
   }
 
   // Đưa người mới lên vạch xuất phát: thế chỗ bot cuối đoàn, hoặc thêm hàng mới nếu không còn bot
   seatBeforeRace(user) {
-    user.rounds = (user.rounds ?? 0) + 1; // vào trước giờ xuất phát: lượt này tính là họ đã đua
     let at = this.racers.length - 1;
     while (at >= 0 && !this.racers[at].isBot) at--;
     const racer = this.spawnRacer(user, at >= 0 ? 0 : this.racers.length);

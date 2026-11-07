@@ -36,78 +36,83 @@ function runUntil(manager, cond, maxSeconds = 2000, dt = 1 / 30) {
   assert.ok(cond(), 'điều kiện không đạt trong thời gian cho phép');
 }
 
-test('Lobby: join vào đoàn đua, không cho join hai lần', () => {
+test('Lobby: gõ join luôn vào hàng đợi, trùng khi đang chờ, đang đua gõ tiếp thì xếp hàng lại', () => {
   const lobby = new Lobby({ cfg: BIG, botNames: NAMES });
-  assert.equal(lobby.join(user(1)), 'racing', 'còn suất thì vào đoàn đua');
-  assert.equal(lobby.join(user(1)), 'duplicate');
+  assert.equal(lobby.join(user(1)), 'queued');
+  assert.equal(lobby.where('u1'), 'queued');
+  assert.equal(lobby.join(user(1)), 'duplicate', 'đang chờ mà gõ lại thì báo trùng');
   lobby.prepareRound();
-  assert.equal(lobby.join(user(1)), 'duplicate', 'đã có trong đoàn đua cũng không join lại');
+  assert.deepEqual(lobby.players.map((p) => p.userId), ['u1'], 'lượt kế tiếp thì vào đua');
+  assert.equal(lobby.inQueue('u1'), false, 'vào đua thì bị xóa khỏi hàng đợi');
+  assert.equal(lobby.where('u1'), 'racing');
+  assert.equal(lobby.join(user(1)), 'queued', 'đang đua gõ tiếp thì vào hàng đợi lại');
+  assert.equal(lobby.where('u1'), 'queued');
+  assert.equal(lobby.queuePosition('u1'), 1);
 });
 
 test('Lobby: thiếu người thì thêm bot cho đủ 30, không trùng tên người thật', () => {
-  const lobby = new Lobby({ botNames: ['A', 'B', 'C', 'Người1'] });
-  lobby.join({ userId: 'u1', nickname: 'A' });
+  const lobby = new Lobby({ cfg: BIG, botNames: ['A', 'B', 'C', 'Người1'] });
+  lobby.join(user(1)); // nickname "Người1" trùng một tên bot
   const roster = lobby.prepareRound();
-  assert.equal(roster.length, CONFIG.botFillTo);
+  assert.equal(roster.length, 30);
+  assert.equal(roster.filter((p) => p.nickname === 'Người1').length, 1, 'bot không lấy tên người thật');
   assert.equal(roster.filter((p) => !p.isBot).length, 1);
-  const names = roster.map((p) => p.nickname);
-  assert.equal(new Set(names).size, names.length, 'không trùng tên');
+  assert.equal(new Set(roster.map((p) => p.nickname)).size, 30, 'không trùng tên nào');
 });
 
-test('Lobby: không ai chờ thì người cũ ở lại; có hàng đợi thì vào lần lượt, người ở lâu nhất nhường chỗ', () => {
-  const lobby = new Lobby({ cfg: BIG, botNames: NAMES });
-  for (let i = 0; i < 35; i++) lobby.join(user(i));
-  let roster = lobby.prepareRound();
-  assert.equal(roster.length, 30);
-  assert.ok(roster.every((p) => !p.isBot));
-  assert.equal(lobby.queue.length, 5);
-  assert.deepEqual(lobby.evicted, [], 'lượt đầu chưa ai phải nhường');
-
-  // Lượt sau: 5 người đầu hàng đợi vào theo thứ tự, 5 người ở lâu nhất nhường chỗ
-  roster = lobby.prepareRound();
-  assert.equal(roster.length, 30);
-  assert.deepEqual(lobby.evicted.map((p) => p.userId), ['u0', 'u1', 'u2', 'u3', 'u4']);
-  assert.deepEqual(roster.slice(-5).map((p) => p.userId), ['u30', 'u31', 'u32', 'u33', 'u34'], 'vào đúng thứ tự hàng đợi');
-  assert.equal(lobby.queue.length, 0);
-
-  // Hàng đợi trống thì không ai phải nhường: người cũ ở lại
-  const again = lobby.prepareRound();
-  assert.deepEqual(again.map((p) => p.userId), roster.map((p) => p.userId));
-  assert.deepEqual(lobby.evicted, []);
-});
-
-test('Lobby: hàng đợi dài vào từng nhóm theo thứ tự qua các lượt, người nhường chỗ phải gõ join lại', () => {
+test('Lobby: mỗi lượt lấy tối đa maxPlayers người từ đầu hàng đợi đúng thứ tự, người chơi lượt trước phải gõ join lại', () => {
   const cfg = { ...BIG, maxPlayers: 3, botFillTo: 3 };
   const lobby = new Lobby({ cfg, botNames: NAMES });
-  for (let i = 0; i < 8; i++) lobby.join(user(i)); // u0-u2 đua, u3-u7 chờ
-  const ids = (r) => r.map((p) => p.userId);
-  assert.deepEqual(ids(lobby.prepareRound()), ['u0', 'u1', 'u2']);
-  assert.deepEqual(ids(lobby.prepareRound()), ['u3', 'u4', 'u5']);
-  assert.deepEqual(ids(lobby.prepareRound()), ['u5', 'u6', 'u7'], 'chỉ còn 2 người chờ nên 2 người ở lâu nhất nhường chỗ, u5 ở lại');
-  assert.equal(lobby.has('u0'), false, 'người đã nhường chỗ không còn trong danh sách');
-  assert.equal(lobby.join(user(0)), 'queued', 'gõ join lại thì xếp ở cuối hàng đợi');
-  assert.equal(lobby.queuePosition('u0'), 1);
+  for (let i = 0; i < 8; i++) lobby.join(user(i));
+  const ids = () => lobby.players.map((p) => p.userId);
+  lobby.prepareRound();
+  assert.deepEqual(ids(), ['u0', 'u1', 'u2']);
+  assert.deepEqual(lobby.queue.map((p) => p.userId), ['u3', 'u4', 'u5', 'u6', 'u7'], 'người vào đua bị xóa khỏi hàng đợi');
+  assert.deepEqual(lobby.evicted, []);
+  lobby.prepareRound();
+  assert.deepEqual(ids(), ['u3', 'u4', 'u5']);
+  assert.deepEqual(lobby.evicted.map((p) => p.userId), ['u0', 'u1', 'u2'], 'chưa gõ join lại nên không có mặt lượt này');
+  const roster = lobby.prepareRound();
+  assert.deepEqual(ids(), ['u6', 'u7']);
+  assert.equal(roster.length, 3, 'thiếu một người thì thêm bot');
+  assert.equal(roster.filter((p) => p.isBot).length, 1);
+  assert.equal(lobby.queue.length, 0);
 });
 
-test('Lobby: còn suất trống thì dùng trước, chỉ nhường đúng số chỗ còn thiếu', () => {
+test('Lobby: đang đua mà xếp hàng lại thì vào lượt sau theo đúng thứ tự trong hàng, không tính là bị loại', () => {
+  const cfg = { ...BIG, maxPlayers: 3, botFillTo: 3 };
+  const lobby = new Lobby({ cfg, botNames: NAMES });
+  for (let i = 0; i < 4; i++) lobby.join(user(i)); // u0-u2 đua, u3 chờ
+  lobby.prepareRound();
+  assert.equal(lobby.join(user(0)), 'queued'); // u0 đang đua gõ tiếp: xếp sau u3
+  assert.deepEqual(lobby.queue.map((p) => p.userId), ['u3', 'u0']);
+  lobby.prepareRound();
+  assert.deepEqual(lobby.players.map((p) => p.userId), ['u3', 'u0']);
+  assert.deepEqual(lobby.evicted.map((p) => p.userId), ['u1', 'u2'], 'chỉ u1 và u2 không quay lại');
+});
+
+test('Lobby: promote đưa người từ đầu hàng vào lượt hiện tại khi còn suất, bỏ qua người đang có mặt mà xếp hàng lại', () => {
   const cfg = { ...BIG, maxPlayers: 3, botFillTo: 3 };
   const lobby = new Lobby({ cfg, botNames: NAMES });
   lobby.join(user(0));
-  lobby.join(user(1)); // 2 người đua, còn 1 suất
-  lobby.players.forEach((p) => (p.rounds = 1)); // cả hai đã đua ít nhất một lượt
-  lobby.queue.push({ userId: 'q1', nickname: 'Q1', avatarUrl: '', isBot: false }, { userId: 'q2', nickname: 'Q2', avatarUrl: '', isBot: false });
-  const roster = lobby.prepareRound();
-  assert.deepEqual(lobby.evicted.map((p) => p.userId), ['u0'], 'chỉ nhường một chỗ');
-  assert.deepEqual(roster.map((p) => p.userId), ['u1', 'q1', 'q2']);
+  lobby.prepareRound(); // u0 đang đua
+  lobby.join(user(0)); // u0 xếp hàng lại
+  lobby.join(user(1));
+  lobby.join(user(2));
+  const taken = lobby.promote();
+  assert.deepEqual(taken.map((p) => p.userId), ['u1', 'u2'], 'u0 đã có mặt nên giữ nguyên trong hàng');
+  assert.deepEqual(lobby.players.map((p) => p.userId), ['u0', 'u1', 'u2']);
+  assert.deepEqual(lobby.queue.map((p) => p.userId), ['u0']);
 });
 
-test('Lobby: người mới vào thay chỗ bot ở lượt sau', () => {
+test('Lobby: người gõ join thay chỗ bot ở lượt kế, người không gõ lại thì không còn', () => {
   const lobby = new Lobby({ cfg: BIG, botNames: NAMES });
   lobby.join(user(1));
   assert.equal(lobby.prepareRound().filter((p) => p.isBot).length, 29);
   lobby.join(user(2));
   const roster = lobby.prepareRound();
-  assert.equal(roster.filter((p) => p.isBot).length, 28);
+  assert.equal(roster.filter((p) => p.isBot).length, 29);
+  assert.deepEqual(roster.filter((p) => !p.isBot).map((p) => p.userId), ['u2']);
   assert.equal(roster.length, 30);
 });
 
@@ -160,19 +165,18 @@ test('RaceManager: hết giờ thì xếp theo % quãng đường, người dẫ
   for (let i = 1; i < r.top.length; i++) assert.ok(r.top[i - 1].percent >= r.top[i].percent);
 });
 
-test('RaceManager: lượt mới đủ 30 người, người thật ở lại, hàng đợi vào khi có chỗ, thiếu thì bot', () => {
+test('RaceManager: lượt mới đủ 30 người, người chơi lượt trước phải gõ join lại, hàng đợi vào lượt mới, thiếu thì bot', () => {
   const { lobby, manager } = setup();
   for (let i = 0; i < 5; i++) lobby.join(user(i));
   manager.begin();
   assert.equal(manager.racers.length, 30);
   assert.equal(manager.racers.filter((r) => !r.isBot).length, 5);
 
-  lobby.join(user(99)); // vào hàng đợi giữa lúc đang chờ
+  lobby.join(user(99)); // vào hàng đợi giữa lúc đang chờ (còn suất nên vào đua luôn qua lobby.promote ở RaceManager.join, ở đây gọi thẳng lobby nên vẫn chờ)
+  lobby.join(user(0)); // u0 đang đua, xếp hàng lại để chơi tiếp
   runUntil(manager, () => manager.round === 2);
   assert.equal(manager.racers.length, 30);
-  assert.equal(manager.racers.filter((r) => !r.isBot).length, 6, 'người cũ ở lại, người mới vào thay bot');
-  for (let i = 0; i < 5; i++) assert.ok(manager.racers.some((r) => r.userId === `u${i}`));
-  assert.ok(manager.racers.some((r) => r.userId === 'u99'));
+  assert.deepEqual(manager.racers.filter((r) => !r.isBot).map((r) => r.userId).sort(), ['u0', 'u99'], 'chỉ người đã xếp hàng lại và người mới');
 });
 
 test('RaceManager: người thật thắng thì dodgeSkill tăng 0,02 ở lượt sau, bot thì không ghi', () => {
@@ -184,6 +188,7 @@ test('RaceManager: người thật thắng thì dodgeSkill tăng 0,02 ở lượ
   runUntil(manager, () => manager.state === 'result');
   assert.equal(manager.result.winner.userId, 'u1');
   assert.equal(lobby.statsFor('u1').dodgeSkill, Math.round((before + 0.02) * 100) / 100);
+  lobby.join(user(1)); // xếp hàng lại để chơi lượt sau
   runUntil(manager, () => manager.round === 2);
   assert.equal(manager.racers.find((r) => r.userId === 'u1').stats.dodgeSkill, lobby.statsFor('u1').dodgeSkill);
   assert.equal(lobby.stats.size, 1, 'chỉ lưu người thật');
@@ -231,59 +236,64 @@ test('Task 8: 45 lệnh join thì có 30 người đua và 15 người xếp hà
   assert.deepEqual(lobby.queue.map((p) => p.userId), Array.from({ length: 15 }, (_, i) => `u${i + 30}`), 'đúng thứ tự vào');
 });
 
-test('Task 8: hàng đợi chỉ lên đường ở lượt mới, vào lần lượt theo thứ tự, người ở lâu nhất nhường chỗ', () => {
+test('Task 8: hàng đợi lên đường ở lượt mới theo thứ tự; người chơi lượt trước phải gõ join lại', () => {
   const { lobby, manager } = setup();
   manager.begin();
-  joinViaBus(manager, 45); // 30 người đua, 15 người chờ
+  joinViaBus(manager, 45); // 30 người đua ngay (chưa xuất phát), 15 người chờ
   runUntil(manager, () => manager.round === 2);
-  // Lượt 2: 15 người đầu hàng đợi (u30 đến u44) lên đường, 15 người đã đua lâu nhất (u0 đến u14) nhường chỗ
   const ids = manager.racers.map((r) => r.userId);
   const range = (from, to) => Array.from({ length: to - from }, (_, i) => `u${from + i}`);
-  assert.ok(range(30, 45).every((id) => ids.includes(id)), 'u30 đến u44 vào đua');
-  assert.ok(range(0, 15).every((id) => !ids.includes(id)), 'u0 đến u14 đã nhường chỗ');
-  assert.ok(range(15, 30).every((id) => ids.includes(id)), 'u15 đến u29 ở lại');
-  assert.equal(lobby.queue.length, 0);
+  assert.ok(range(30, 45).every((id) => ids.includes(id)), 'u30 đến u44 (đầu hàng đợi) vào đua');
+  assert.ok(range(0, 30).every((id) => !ids.includes(id)), 'u0 đến u29 chưa gõ join lại nên không có mặt');
+  assert.equal(lobby.queue.length, 0, 'người vào đua đã bị xóa khỏi hàng đợi');
   assert.equal(manager.racers.length, 30);
+  assert.equal(manager.racers.filter((r) => r.isBot).length, 15, 'thiếu thì bot');
 });
 
-test('Task 8: hàng đợi vào đúng thứ tự khi có người chờ thêm giữa các lượt', () => {
+test('Task 8: 3 suất, 7 người: vào từng nhóm theo thứ tự qua các lượt, ai đang đua gõ lại thì chơi tiếp', () => {
   const { lobby, manager } = setup({ ...SHORT, maxPlayers: 3, botFillTo: 3 });
   manager.begin();
-  joinViaBus(manager, 7); // u0-u2 đua, u3-u6 chờ
+  joinViaBus(manager, 7); // u0-u2 đua ngay, u3-u6 chờ
+  assert.deepEqual(lobby.queue.map((p) => p.userId), ['u3', 'u4', 'u5', 'u6']);
+  joinViaBus(manager, 1, { start: 0 }); // u0 đang đua, gõ tiếp: xếp cuối hàng
+  assert.deepEqual(lobby.queue.map((p) => p.userId), ['u3', 'u4', 'u5', 'u6', 'u0']);
   runUntil(manager, () => manager.round === 2);
-  assert.deepEqual(manager.racers.map((r) => r.userId).sort(), ['u3', 'u4', 'u5']);
-  assert.deepEqual(lobby.queue.map((p) => p.userId), ['u6']);
+  assert.deepEqual(manager.racers.filter((r) => !r.isBot).map((r) => r.userId).sort(), ['u3', 'u4', 'u5']);
+  assert.deepEqual(lobby.queue.map((p) => p.userId), ['u6', 'u0']);
   runUntil(manager, () => manager.round === 3);
-  assert.deepEqual(manager.racers.map((r) => r.userId).sort(), ['u4', 'u5', 'u6'], 'u3 ở lâu nhất nhường chỗ cho u6');
+  assert.deepEqual(manager.racers.filter((r) => !r.isBot).map((r) => r.userId).sort(), ['u0', 'u6'], 'u0 quay lại chơi sau u6');
   assert.equal(lobby.queue.length, 0);
 });
 
-test('Task 8: join hai lần thì báo đã tham gia, không thêm người, kể cả người đang xếp hàng', () => {
+test('Task 8: gõ join hai lần khi đang chờ thì báo trùng; đang đua mà chưa xếp hàng thì gõ lại là vào hàng đợi', () => {
   const { lobby, manager } = setup();
   manager.begin();
-  joinViaBus(manager, 31);
-  const again = joinViaBus(manager, 1, { start: 0 })[0];
-  assert.equal(again.status, 'duplicate');
-  const queuedAgain = joinViaBus(manager, 1, { start: 30 })[0];
-  assert.equal(queuedAgain.status, 'duplicate');
-  assert.equal(lobby.queue.length, 1);
+  joinViaBus(manager, 31); // u0-u29 đua ngay, u30 chờ
+  const again = joinViaBus(manager, 1, { start: 30 })[0];
+  assert.equal(again.status, 'duplicate', 'u30 đang chờ');
+  assert.equal(again.where, 'queued');
+  assert.equal(again.queuePosition, 1);
+  const racingAgain = joinViaBus(manager, 1, { start: 0 })[0];
+  assert.equal(racingAgain.status, 'queued', 'u0 đang đua, gõ tiếp thì xếp hàng lại');
+  assert.equal(racingAgain.queuePosition, 2);
+  assert.equal(lobby.queue.length, 2);
   assert.equal(manager.racers.filter((r) => !r.isBot).length, 30);
 });
 
-test('Task 8: chính sách vào giữa lượt: giữ suất, vào đoàn đua từ lượt sau', () => {
+test('Task 8: gõ join giữa lượt đua thì vào hàng đợi (không chen vào đoàn đang chạy), lượt sau được vào', () => {
   const { lobby, manager } = setup();
   manager.begin();
   runUntil(manager, () => manager.state === 'race');
   const before = manager.racers.map((r) => r.userId);
   const [res] = joinViaBus(manager, 1);
-  assert.equal(res.status, 'racing');
-  assert.equal(res.late, true);
+  assert.equal(res.status, 'queued');
+  assert.equal(res.queuePosition, 1);
   assert.deepEqual(manager.racers.map((r) => r.userId), before, 'đoàn đua đang chạy không đổi');
-  assert.equal(joinMessage(res, 'A').text, 'A vào đua ở lượt sau');
+  assert.equal(joinMessage(res, 'A').text, 'A vào hàng đợi (số 1)');
 
   runUntil(manager, () => manager.round === 2);
   assert.ok(manager.racers.some((r) => r.userId === 'u0'), 'lượt sau có mặt');
-  assert.equal(lobby.queue.length, 0);
+  assert.equal(lobby.queue.length, 0, 'đã vào đua thì bị xóa khỏi hàng đợi');
 });
 
 test('Task 8: join trước lúc đua thì thế chỗ bot ngay trên vạch xuất phát', () => {

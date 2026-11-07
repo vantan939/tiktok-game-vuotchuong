@@ -4,13 +4,12 @@ import { serverHttpUrl } from './serverUrl.js';
 // Báo trạng thái game về terminal của server (npm run dev) để streamer xem khi quay, vì cửa sổ game không có Console.
 // Chỉ gửi khi nội dung đổi và không quá dày. Không bao giờ ném lỗi.
 
-/** Chuỗi mô tả ai đang đua, ai chờ lượt sau, ai trong hàng đợi (chỉ người thật, bỏ bot). */
+/** Chuỗi mô tả ai đang đua và ai trong hàng đợi (chỉ người thật, bỏ bot). ✓ là người sẽ vào đua ở lượt kế. */
 export function describeLobby({ round, state, racers, lobby }) {
-  const names = (list) => (list.length ? list.map((p) => p.nickname).join(', ') : '-');
-  const onTrack = new Set(racers.map((r) => r.userId));
-  const racing = racers.filter((r) => !r.isBot);
-  const late = lobby.players.filter((p) => !onTrack.has(p.userId));
-  return `lượt ${round} (${state}) | đang đua ${racing.length}/${CONFIG.maxPlayers}: ${names(racing)} | chờ lượt sau (✓) ${late.length}: ${names(late)} | hàng đợi ${lobby.queue.length}: ${names(lobby.queue)}`;
+  const names = (list) => (list.length ? list.join(', ') : '-');
+  const racing = racers.filter((r) => !r.isBot).map((r) => r.nickname);
+  const queued = lobby.queue.map((p, i) => (i < CONFIG.maxPlayers ? `${p.nickname}✓` : p.nickname));
+  return `lượt ${round} (${state}) | đang đua ${racing.length}/${CONFIG.maxPlayers}: ${names(racing)} | hàng đợi ${queued.length} (✓ = vào đua lượt kế): ${names(queued)}`;
 }
 
 export class DebugReporter {

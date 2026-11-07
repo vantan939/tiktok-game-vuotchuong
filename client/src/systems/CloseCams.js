@@ -23,7 +23,7 @@ export class CloseCams {
   press(user) {
     const m = this.manager;
     const racer = m.racerOf(user.userId);
-    if (!racer) return { status: m.lobby.players.some((p) => p.userId === user.userId) ? 'next-round' : 'not-joined' };
+    if (!racer) return { status: m.lobby.inQueue(user.userId) ? 'next-round' : 'not-joined' };
     if (m.state === 'result') return { status: 'idle' };
 
     const at = this.cams.findIndex((c) => c.racer === racer);
