@@ -105,3 +105,32 @@ test('route: tiếng được đưa qua bộ giới hạn đỉnh trước khi p
   assert.equal(failed, false);
   assert.equal(FakeAudio.all.at(-1).played, true);
 });
+
+test('chống rè: đo đỉnh file rồi hạ về targetPeak; file nhỏ hơn thì giữ nguyên; không đo được thì dùng unknownGain; chưa định tuyến được thì hạ bằng volume', async () => {
+  const routedWith = [];
+  const mk = (peak, route) => new RemoteVoice({
+    baseUrl: 'http://s', fetchFn: async () => ok({}), makeAudio: (u) => new FakeAudio(u), volume: 1,
+    analyze: async () => { if (peak === 'lỗi') throw new Error('x'); return peak; }, route, targetPeak: 0.8, unknownGain: 0.4,
+  });
+  // đỉnh 2.0 (vượt đỉnh số 6 dB): hạ còn 0.4; đã định tuyến thì volume giữ 1
+  const a = mk(2, (audio, gain) => { routedWith.push(gain); return true; });
+  a.speak('một', () => {}, () => {});
+  await tick();
+  assert.deepEqual(routedWith, [0.4]);
+  assert.equal(FakeAudio.all.at(-1).volume, 1);
+  // đỉnh 0.5 thì không khuếch đại
+  const b = mk(0.5, (audio, gain) => { routedWith.push(gain); return true; });
+  b.speak('hai', () => {}, () => {});
+  await tick();
+  assert.equal(routedWith.at(-1), 1);
+  // không định tuyến được: hạ bằng volume của phần tử
+  const c = mk(2, () => false);
+  c.speak('ba', () => {}, () => {});
+  await tick();
+  assert.equal(FakeAudio.all.at(-1).volume, 0.4);
+  // đo lỗi: dùng unknownGain
+  const d = mk('lỗi', () => false);
+  d.speak('bốn', () => {}, () => {});
+  await tick();
+  assert.equal(FakeAudio.all.at(-1).volume, 0.4);
+});

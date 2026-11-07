@@ -64,14 +64,37 @@ export class AudioEngine {
   }
 
   /** Đưa một phần tử <audio> (giọng MC) qua đường giảm + giới hạn đỉnh. Trả về false nếu chưa thể (khi đó phát bình thường). */
-  routeVoice(el) {
+  routeVoice(el, gain = 1) {
     const ctx = this.ensure();
     if (!ctx || ctx.state !== 'running' || !this.voiceGain) return false; // chưa mở khóa âm thanh: định tuyến lúc này sẽ im tiếng
     try {
-      ctx.createMediaElementSource(el).connect(this.voiceGain);
+      const g = ctx.createGain(); // hạ riêng từng câu để đỉnh về targetPeak (không vỡ tiếng)
+      g.gain.value = gain;
+      ctx.createMediaElementSource(el).connect(g);
+      g.connect(this.voiceGain);
       return true;
     } catch {
       return false;
+    }
+  }
+
+  /** Đỉnh biên độ lớn nhất (0 đến lớn hơn 1 nếu file vượt đỉnh) của một file âm thanh; null nếu không giải mã được. */
+  async peakOf(arrayBuffer) {
+    const ctx = this.ensure();
+    if (!ctx) return null;
+    try {
+      const buf = await ctx.decodeAudioData(arrayBuffer);
+      let peak = 0;
+      for (let c = 0; c < buf.numberOfChannels; c++) {
+        const d = buf.getChannelData(c);
+        for (let i = 0; i < d.length; i++) {
+          const v = d[i] < 0 ? -d[i] : d[i];
+          if (v > peak) peak = v;
+        }
+      }
+      return peak;
+    } catch {
+      return null;
     }
   }
 

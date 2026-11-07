@@ -137,7 +137,9 @@ export const CONFIG = {
     muteKey: 'm',
     musicKey: 'n',
     sfxMinGap: 0.07,          // cùng một tiếng không phát dày hơn mức này (giây)
-    voice: { gain: 0.45, limitDb: -10 }, // giọng MC: hệ số giảm trước bộ giới hạn đỉnh (chống vỡ tiếng/rè khi bật to) và ngưỡng giới hạn (dB)
+    // Giọng MC genmax: file mp3 gốc vượt đỉnh số 4 đến 8 dB (đo bằng ffmpeg) nên bị vỡ tiếng (rè) trên mọi loa. Mỗi câu được đo đỉnh rồi hạ về targetPeak (1 = đỉnh tối đa)
+    // trước khi phát; limitDb là bộ giới hạn đỉnh an toàn phía sau; unknownGain dùng khi không đo được đỉnh của câu đó. Cần to hơn thì tăng targetPeak (tối đa khoảng 0.9) hoặc gain
+    voice: { gain: 1, limitDb: -3, targetPeak: 0.8, unknownGain: 0.4 },
     maxVoices: 14,            // số tiếng chồng nhau tối đa
     musicBpm: 108,
   },
