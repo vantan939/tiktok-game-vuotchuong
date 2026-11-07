@@ -31,7 +31,7 @@ export const STR = {
   // Thông báo tham gia
   joinRacing: (name) => `${name} vào đua`,
   joinRacingNext: (name) => `${name} vào đua ở lượt sau`,
-  joinQueued: (name) => `${name} vào hàng đợi`,
+  joinQueued: (name, position) => (position ? `${name} vào hàng đợi (số ${position})` : `${name} vào hàng đợi`),
   joinDuplicate: (name) => `${name} đã tham gia rồi`,
 
   paused: 'TẠM DỪNG',

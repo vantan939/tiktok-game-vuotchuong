@@ -139,6 +139,7 @@ export class RaceScene extends Phaser.Scene {
 
   onJoin(user) {
     const result = this.manager.join(user);
+    console.log(`[join] ${user.nickname} (${user.userId}): ${result.status}, đang đua ${this.lobby.players.length}/${CONFIG.maxPlayers} người thật, hàng đợi ${this.lobby.queue.length}`);
     this.toasts.show(joinMessage(result, user.nickname));
     if (result.status === 'racing') this.mc.say(this.mcDirector.onJoin(user.nickname, this.manager.now));
   }

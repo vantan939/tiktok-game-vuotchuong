@@ -12,6 +12,6 @@ export function shortName(name, max = MAX_NAME_CHARS) {
 export function joinMessage(result, nickname) {
   const name = shortName(nickname);
   if (result.status === 'racing') return { text: result.late ? STR.joinRacingNext(name) : STR.joinRacing(name), kind: 'ok' };
-  if (result.status === 'queued') return { text: STR.joinQueued(name), kind: 'queue' };
+  if (result.status === 'queued') return { text: STR.joinQueued(name, result.queuePosition), kind: 'queue' };
   return { text: STR.joinDuplicate(name), kind: 'warn' };
 }

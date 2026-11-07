@@ -1,5 +1,6 @@
 import { fromChat, fromGift, fromLike, fromMember } from './adapt.js';
 import { LikeAggregator } from './likes.js';
+import { parseCommand } from '../../../shared/events.js';
 
 const STATS_EVERY_MS = 60000;
 
@@ -108,6 +109,8 @@ export class TikTokLiveSource {
 
   // like được gộp; join bỏ qua người vừa vào gần đây; chat và gift đi thẳng
   deliver(event) {
+    // Ghi log các lệnh người xem gõ để dễ kiểm tra khi live (bình luận khác không ghi)
+    if (event.type === 'chat' && parseCommand(event.text)) this.log(`[tiktok] lệnh '${parseCommand(event.text)}' từ ${event.nickname} (${event.userId})`);
     if (event.type === 'like') return this.likes.add(event);
     if (event.type === 'join') {
       const t = this.now();
