@@ -1,6 +1,11 @@
 import { CONFIG } from '../config.js';
 import { hammerPhaseAt, hitReach, spikeDist } from './Obstacles.js';
 
+/** Độ cao nhảy hiện tại, 0 (chạm đất) đến 1 (đỉnh). Cũng dùng để vẽ. */
+export function jumpArc(r, cfg = CONFIG) {
+  return r.jump > 0 ? Math.sin(Math.PI * (1 - r.jump / cfg.jumpSeconds)) : 0;
+}
+
 /**
  * Trả về chướng ngại đang va vào nhân vật, hoặc null. Choáng, khiên, nhảy qua cầu gai thì miễn nhiễm.
  * prevDist là vị trí bước trước: xét cả đoạn đường vừa chạy qua [prevDist, r.dist] để không bao giờ chui lọt
@@ -20,7 +25,7 @@ export function findHit(r, field, now, cfg = CONFIG, prevDist = r.dist) {
       if (hammerPhaseAt(o, now, cfg) !== 'impact') continue;
       if (hi > o.dist - reach && lo < o.dist + reach) return o;
     } else {
-      if (r.jump > 0) continue; // đang nhảy thì lướt qua cầu gai
+      if (jumpArc(r, cfg) >= cfg.jumpClearFraction) continue; // chân đã cao hơn quả cầu thì lướt qua (mới cất cánh hoặc sắp hạ cánh thì vẫn dính)
       const at = spikeDist(o, now, cfg);
       if (hi > at - reach && lo < at + reach) return o;
     }

@@ -5,6 +5,7 @@ import { SHADOW_Y } from '../entities/RacerView.js';
 import { drawRoad } from '../entities/roadDrawing.js';
 import { SKINS, TEX_H } from '../entities/skins.js';
 import { depthForDist, laneCenter, makeViewport, project } from '../systems/Projection.js';
+import { jumpArc } from '../systems/Collision.js';
 import { shortName } from '../systems/JoinMessage.js';
 import { createFrame, el } from './hud/Frame.js';
 
@@ -131,7 +132,7 @@ export class CloseCamPanel {
         hop = 0;
         wobble = Math.sin(clock * 22) * 9;
       } else if (r.jump > 0) {
-        hop = Math.sin(Math.PI * (1 - r.jump / CONFIG.jumpSeconds)) * CONFIG.jumpHeight * s * vp.unit;
+        hop = jumpArc(r) * CONFIG.jumpHeight * s * vp.unit;
       }
       sprite.root.setVisible(true).setPosition(x, y - hop).setScale(k).setAngle(wobble).setDepth(depthForDist(r.dist));
       sprite.shadow.y = SHADOW_Y + hop / k;

@@ -5,6 +5,7 @@ import { ObstacleField, hammerPhaseAt } from './Obstacles.js';
 import { createRacer } from './Racer.js';
 import { stepRacer } from './RacerAI.js';
 import { noticeChance, perceive } from './DodgeAI.js';
+import { findHit } from './Collision.js';
 
 function seeded(seed = 1) {
   let s = seed;
@@ -240,4 +241,26 @@ test('né hoàn hảo: báo đúng một lần sau khi chạy qua hết chướn
   }
   assert.ok(hit.hits >= 1);
   assert.deepEqual(dodged, []);
+});
+
+test('nhảy qua cầu gai đang lăn: không bao giờ dính ở bất kỳ pha lăn nào, mọi tốc độ', () => {
+  for (const speed of [33, 36, 40]) {
+    for (let k = 0; k < 24; k++) {
+      const phase = (k / 24) * 2 * Math.PI;
+      for (const start of [0, 0.7, 1.9]) { // lệch thời điểm bắt đầu để cầu ở các vị trí khác nhau lúc tới nơi
+        const f = new ObstacleField([{ ...spike(100, 0, 0), phase }, { ...spike(100, 1, 1), phase: phase + 1 }]);
+        const r = run(racer({ dist: 0, lane: 0, speed }), f, { seconds: 10, start });
+        assert.equal(r.hits, 0, `tốc độ ${speed}, pha ${phase.toFixed(2)}, bắt đầu ${start}`);
+        assert.ok(r.dist > 115, 'phải qua được');
+      }
+    }
+  }
+});
+
+test('nhảy: chân thấp (mới cất cánh hoặc sắp hạ cánh) thì vẫn dính cầu gai, đang cao thì lướt qua', () => {
+  const f = new ObstacleField([spike(100, 1, 0)]);
+  const at = (jump) => findHit({ dist: 100, lane: 1, stun: 0, shield: 0, jump }, f, 0);
+  assert.ok(at(CONFIG.jumpSeconds * 0.97), 'vừa rời đất');
+  assert.ok(at(CONFIG.jumpSeconds * 0.03), 'sắp chạm đất');
+  assert.equal(at(CONFIG.jumpSeconds * 0.5), null, 'đỉnh cú nhảy');
 });

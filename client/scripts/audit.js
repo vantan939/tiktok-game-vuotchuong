@@ -5,6 +5,7 @@ import { CONFIG } from '../src/config.js';
 import { Lobby } from '../src/systems/Lobby.js';
 import { RaceManager } from '../src/systems/RaceManager.js';
 import { hammerPhaseAt, hitReach, spikeDist } from '../src/systems/Obstacles.js';
+import { jumpArc } from '../src/systems/Collision.js';
 
 const rounds = Number(process.argv[2]) || 40;
 const fps = Number(process.argv[3]) || 60;
@@ -56,7 +57,7 @@ while (done < rounds) {
       if (Math.abs(r.dist - od) >= hitReach(o)) continue;
       if (r.shield > 0) stats.shielded++;
       else if (r.stun > 0) continue; // đang choáng: đứng yên ngay chỗ bị đẩy lùi
-      else if (o.type === 'spike' && r.jump > 0) stats.jumpOver++;
+      else if (o.type === 'spike' && jumpArc(r) >= CONFIG.jumpClearFraction) stats.jumpOver++;
       else if (o.type === 'hammer' && hammerPhaseAt(o, now) !== 'impact') continue; // búa đang nâng cao, chạy dưới được
       else if (o.type === 'spike') stats.silentSpike++;
       else stats.silentHammer++;

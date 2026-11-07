@@ -1,5 +1,5 @@
 import { CONFIG } from '../config.js';
-import { hammerLethalDuring, hitReach } from './Obstacles.js';
+import { hammerLethalDuring, hitReach, spikeDist } from './Obstacles.js';
 
 // Tự né thông minh. Logic thuần.
 // Nhìn trước lookAheadSeconds; gặp chướng ngại trên làn mình thì tung xác suất theo dodgeSkill
@@ -87,9 +87,9 @@ export function runPlan(r, dt, ctx) {
     r.evading = true;
     r.plan = null;
   } else if (p.kind === 'jump') {
-    // Bật nhảy sao cho đang lơ lửng đúng lúc băng qua cầu gai
+    // Bật nhảy sao cho đỉnh cú nhảy trùng với chỗ quả cầu sẽ lăn tới lúc đó (cầu đang lăn qua lại, không đứng yên)
     const lead = (nominalSpeed(r) * cfg.jumpSeconds) / 2;
-    if (p.o.dist - r.dist <= lead) {
+    if (spikeDist(p.o, ctx.now + cfg.jumpSeconds / 2, cfg) - r.dist <= lead) {
       r.dodging = p.o;
       r.jump = cfg.jumpSeconds;
       r.plan = null;
