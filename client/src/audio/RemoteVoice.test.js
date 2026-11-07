@@ -88,3 +88,20 @@ test('staticLines: chỉ lấy các câu không chèn tên, không trùng', () =
   assert.equal(new Set(lines).size, lines.length);
   assert.ok(lines.every((l) => !/undefined/.test(l)));
 });
+
+test('route: tiếng được đưa qua bộ giới hạn đỉnh trước khi phát; route lỗi thì vẫn phát bình thường', async () => {
+  const routed = [];
+  const mk = (route) => new RemoteVoice({ baseUrl: 'http://s', fetchFn: async () => ok({}), makeAudio: (u) => new FakeAudio(u), route });
+  const a = mk((audio) => routed.push(audio));
+  a.speak('Xin chào', () => {}, () => {});
+  await tick();
+  assert.equal(routed.length, 1);
+  assert.equal(routed[0].played, true);
+
+  const b = mk(() => { throw new Error('không định tuyến được'); });
+  let failed = false;
+  b.speak('Xin chào 2', () => {}, () => { failed = true; });
+  await tick();
+  assert.equal(failed, false);
+  assert.equal(FakeAudio.all.at(-1).played, true);
+});

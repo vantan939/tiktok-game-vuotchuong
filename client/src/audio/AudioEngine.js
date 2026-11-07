@@ -38,6 +38,18 @@ export class AudioEngine {
     this.musicGain.connect(this.master);
     this.master.connect(comp);
     comp.connect(ctx.destination);
+    // Đường riêng cho giọng MC: giảm bớt rồi qua bộ giới hạn đỉnh để không bị vỡ tiếng (rè) khi bật loa to / Live Studio khuếch đại thêm
+    const vcfg = this.cfg.voice;
+    this.voiceGain = ctx.createGain();
+    this.voiceGain.gain.value = vcfg.gain;
+    const limiter = ctx.createDynamicsCompressor();
+    limiter.threshold.value = vcfg.limitDb;
+    limiter.knee.value = 4;
+    limiter.ratio.value = 20;
+    limiter.attack.value = 0.002;
+    limiter.release.value = 0.12;
+    this.voiceGain.connect(limiter);
+    limiter.connect(ctx.destination);
     // Bộ đệm nhiễu trắng dùng chung cho tiếng gió, va chạm, chũm chọe
     this.noise = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
     const data = this.noise.getChannelData(0);
@@ -47,6 +59,18 @@ export class AudioEngine {
     this.nextStepAt = ctx.currentTime + 0.1;
     this.timer = setInterval(() => this.scheduleMusic(), TICK_MS);
     return ctx;
+  }
+
+  /** Đưa một phần tử <audio> (giọng MC) qua đường giảm + giới hạn đỉnh. Trả về false nếu chưa thể (khi đó phát bình thường). */
+  routeVoice(el) {
+    const ctx = this.ensure();
+    if (!ctx || ctx.state !== 'running' || !this.voiceGain) return false; // chưa mở khóa âm thanh: định tuyến lúc này sẽ im tiếng
+    try {
+      ctx.createMediaElementSource(el).connect(this.voiceGain);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   /** Gọi từ cử chỉ của người dùng để trình duyệt cho phát. */

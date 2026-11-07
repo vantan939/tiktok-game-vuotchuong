@@ -137,6 +137,7 @@ export const CONFIG = {
     muteKey: 'm',
     musicKey: 'n',
     sfxMinGap: 0.07,          // cùng một tiếng không phát dày hơn mức này (giây)
+    voice: { gain: 0.6, limitDb: -10 }, // giọng MC: hệ số giảm trước bộ giới hạn đỉnh (chống vỡ tiếng/rè khi bật to) và ngưỡng giới hạn (dB)
     maxVoices: 14,            // số tiếng chồng nhau tối đa
     musicBpm: 108,
   },

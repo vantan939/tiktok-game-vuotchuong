@@ -93,7 +93,7 @@ export class RaceScene extends Phaser.Scene {
     if (mockOn || params.get('mute') === '1') this.audio.enabled = false; // ?mock=1 và ?mute=1: im lặng
     // MC dẫn chương trình (giọng đọc của trình duyệt); tắt khi tắt tiếng chung (phím M), ?mc=0 hoặc ?mock=1
     this.mcDirector = new McDirector(CONFIG);
-    const remote = CONFIG.mc.provider === 'browser' ? null : new RemoteVoice({ baseUrl: serverHttpUrl(), volume: CONFIG.mc.volume, timeoutMs: CONFIG.mc.remoteTimeoutMs });
+    const remote = CONFIG.mc.provider === 'browser' ? null : new RemoteVoice({ baseUrl: serverHttpUrl(), volume: CONFIG.mc.volume, timeoutMs: CONFIG.mc.remoteTimeoutMs, route: (a) => this.audio.routeVoice(a) });
     this.mc = new Mc(CONFIG.mc, { isMuted: () => !this.audio.enabled, remote });
     if (!mockOn) this.mc.init(); // hỏi server có giọng genmax không và tạo sẵn các câu cố định
     if (mockOn || params.get('mc') === '0') this.mc.enabled = false;

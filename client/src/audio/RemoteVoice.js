@@ -3,12 +3,13 @@ const MAX_CACHED = 80;
 // Giọng MC lấy từ server (genmax): client gửi câu cần đọc, server trả mp3 (đã cache ở server). Khóa API không bao giờ ở client.
 // Câu cố định được nhờ server tạo sẵn lúc khởi động (prefetch) nên lúc live phát gần như ngay.
 export class RemoteVoice {
-  constructor({ baseUrl, volume = 1, timeoutMs = 8000, fetchFn = (...a) => globalThis.fetch(...a), makeAudio = (url) => new Audio(url) } = {}) {
+  constructor({ baseUrl, volume = 1, timeoutMs = 8000, fetchFn = (...a) => globalThis.fetch(...a), makeAudio = (url) => new Audio(url), route = null } = {}) {
     this.baseUrl = baseUrl;
     this.volume = volume;
     this.timeoutMs = timeoutMs;
     this.fetchFn = fetchFn;
     this.makeAudio = makeAudio;
+    this.route = route; // (audio) => boolean: đưa tiếng qua bộ giới hạn đỉnh, chống rè khi bật to
     this.enabled = false; // server đã cấu hình genmax (xác định ở init)
     this.token = 0; // mỗi câu mới tăng một đơn vị; kết quả của câu cũ bị bỏ
     this.audio = null;
@@ -68,6 +69,9 @@ export class RemoteVoice {
         if (token !== this.token) return; // đã bị câu khác thay thế trong lúc chờ
         const audio = this.makeAudio(url);
         audio.volume = this.volume;
+        try {
+          this.route?.(audio);
+        } catch { /* không định tuyến được thì phát bình thường */ }
         const finish = () => token === this.token && onDone();
         audio.onended = finish;
         audio.onerror = finish;
