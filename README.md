@@ -34,7 +34,7 @@ Server chuyển sự kiện TikTok sang kiểu chung `GameEvent` (`shared/events
 
 | TikTok | GameEvent | Ghi chú |
 |---|---|---|
-| `chat` | `{ type: 'chat', text }` | Client chỉ nhận lệnh `join` và `s`, bình luận khác bỏ qua |
+| `chat` | `{ type: 'chat', text }` | Client chỉ nhận lệnh `join`, bình luận khác bỏ qua |
 | `like` | `{ type: 'like', likeCount }` | Lần thả đầu của một người phát **ngay**; các lần sau trong cửa sổ 1 giây gom thành một sự kiện. TikTok tự gửi tim theo lô (khoảng 15 lần chạm mỗi lần) nên có độ trễ không tránh được ở phía TikTok |
 | `gift` | `{ type: 'gift', giftName, diamonds }` | Quà liên hoàn: sự kiện **đầu chuỗi** phát ngay với giá trị một quà (hiệu lực liền), giữa chuỗi bỏ qua, cuối chuỗi phát thêm một sự kiện `followUp: true` với tổng giá trị (kim cương mỗi quà x số lần) chỉ khi chuỗi dài đủ để lên bậc quà cao hơn; game không tính hai lần |
 | `member` | `{ type: 'join' }` | Người xem vào phòng live. **Không** tự cho vào đua: phải gõ `join` |

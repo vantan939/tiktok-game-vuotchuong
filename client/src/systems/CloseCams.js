@@ -1,53 +1,35 @@
 import { CONFIG } from '../config.js';
 
 /**
- * Camera cận riêng (lệnh s), logic thuần. Ai gõ s thì bật cửa sổ cận cảnh cho nhân vật của mình,
- * gõ lần nữa thì tắt; không ảnh hưởng người khác. Tối đa maxCloseCams cửa sổ cùng lúc.
- * Tự tắt sau closeCamSeconds và khi hết lượt.
+ * Camera cận tự động cho người chơi (logic thuần). Khán giả xem cảnh toàn đoàn như thường; mỗi người ĐANG CHƠI trong lượt
+ * (người thật, không phải bot) có một cửa sổ cận cảnh riêng bám nhân vật của mình, xếp theo thứ tự xuất phát,
+ * tối đa maxCloseCams cửa sổ. Không cần gõ lệnh. Hết lượt (màn kết quả) thì tắt hết, lượt mới tự bật lại.
  */
 export class CloseCams {
   constructor(manager, cfg = CONFIG) {
     this.manager = manager;
     this.cfg = cfg;
-    this.cams = []; // theo thứ tự bật: { racer, since }
+    this.cams = []; // { racer, since }
     manager.addListener((e) => {
       if ((e.type === 'state' && e.state === 'result') || e.type === 'round') this.clear();
     });
   }
 
-  /**
-   * Người xem gõ s. Trả về { status }:
-   * 'on' | 'off' | 'full' (đủ cửa sổ) | 'not-joined' (chưa join hoặc đang ở hàng đợi)
-   * | 'next-round' (đã giữ suất nhưng lượt này chưa có mặt) | 'idle' (đang ở màn kết quả).
-   */
-  press(user) {
-    const m = this.manager;
-    const racer = m.racerOf(user.userId);
-    if (!racer) return { status: m.lobby.inQueue(user.userId) ? 'next-round' : 'not-joined' };
-    if (m.state === 'result') return { status: 'idle' };
-
-    const at = this.cams.findIndex((c) => c.racer === racer);
-    if (at >= 0) {
-      this.cams.splice(at, 1);
-      return { status: 'off' };
-    }
-    if (this.cams.length >= this.cfg.maxCloseCams) return { status: 'full' };
-    this.cams.push({ racer, since: m.now });
-    return { status: 'on' };
-  }
-
-  /** Tắt các cửa sổ đã bật quá closeCamSeconds. */
+  /** Gọi mỗi khung hình: đồng bộ danh sách cửa sổ với những người thật đang có mặt (vào đua giữa chừng thì tự có cửa sổ). */
   update(now) {
-    const limit = this.cfg.closeCamSeconds;
-    if (limit > 0) this.cams = this.cams.filter((c) => now - c.since < limit);
+    const m = this.manager;
+    if (m.state === 'result') {
+      this.clear();
+      return;
+    }
+    const players = m.racers.filter((r) => !r.isBot).slice(0, this.cfg.maxCloseCams);
+    const same = players.length === this.cams.length && players.every((r, i) => this.cams[i].racer === r);
+    if (same) return;
+    // Giữ nguyên mốc thời gian của cửa sổ đã có
+    this.cams = players.map((racer) => this.cams.find((c) => c.racer === racer) ?? { racer, since: now });
   }
 
   clear() {
     this.cams = [];
-  }
-
-  /** Số giây còn lại trước khi tự tắt (Infinity nếu không giới hạn). */
-  secondsLeft(cam, now) {
-    return this.cfg.closeCamSeconds > 0 ? Math.max(0, this.cfg.closeCamSeconds - (now - cam.since)) : Infinity;
   }
 }

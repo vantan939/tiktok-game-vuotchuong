@@ -11,7 +11,7 @@ export class CommandRouter {
     bus.on('chat', (e) => this.route(e, e.text));
   }
 
-  /** handler({ command: 'join'|'s', user: { userId, nickname, avatarUrl } }) */
+  /** handler({ command: 'join', user: { userId, nickname, avatarUrl } }) */
   onCommand(handler) {
     this.handlers.push(handler);
   }

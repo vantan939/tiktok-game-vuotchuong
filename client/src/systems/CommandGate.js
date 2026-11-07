@@ -1,7 +1,7 @@
 import { CONFIG } from '../config.js';
 import { parseCommand } from '../../../shared/events.js';
 
-// Lọc bình luận: chỉ cho qua lệnh hợp lệ ('join', 's'), mỗi người tối đa 1 lệnh mỗi cooldown.
+// Lọc bình luận: chỉ cho qua lệnh hợp lệ ('join'), mỗi người tối đa 1 lệnh mỗi cooldown.
 // Logic thuần, thời gian truyền vào nên test được.
 export class CommandGate {
   constructor(cooldownSeconds = CONFIG.commandCooldownSeconds) {
@@ -9,7 +9,7 @@ export class CommandGate {
     this.lastAccepted = new Map(); // userId -> thời điểm lệnh được nhận gần nhất (ms)
   }
 
-  /** Trả về 'join' | 's' nếu nhận, null nếu bỏ qua (không phải lệnh hoặc đang cooldown). */
+  /** Trả về 'join' nếu nhận, null nếu bỏ qua (không phải lệnh hoặc đang cooldown). */
   accept(userId, text, nowMs) {
     const command = parseCommand(text);
     if (!command) return null;

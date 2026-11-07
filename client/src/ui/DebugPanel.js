@@ -24,7 +24,6 @@ export class DebugPanel {
 
     this.root.append(title, this.input, list);
     this.addButton(STR.debug.join, (u) => demo.chat(u, 'join'));
-    this.addButton(STR.debug.camera, (u) => demo.chat(u, 's'));
     this.addButton(STR.debug.like, (u) => demo.like(u, 5));
     this.addButton(STR.debug.gift, (u) => demo.gift(u, GIFTS[1]));
     this.addButton(STR.debug.midGift, (u) => demo.gift(u, GIFTS[4]));

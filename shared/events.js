@@ -26,10 +26,10 @@ export function normalizeText(text) {
     .trim();
 }
 
-/** Trả về 'join' | 's' nếu bình luận là lệnh hợp lệ, ngược lại null. */
+/** Trả về 'join' nếu bình luận là lệnh hợp lệ (chỉ có một lệnh), ngược lại null. */
 export function parseCommand(text) {
   const t = normalizeText(text);
-  return t === 'join' || t === 's' ? t : null;
+  return t === 'join' ? t : null;
 }
 
 /** Kiểm tra một object có đúng dạng GameEvent không. */

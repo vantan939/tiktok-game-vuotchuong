@@ -4,8 +4,6 @@ import { CONFIG } from '../config.js';
 import { Lobby } from './Lobby.js';
 import { RaceManager } from './RaceManager.js';
 import { CloseCams } from './CloseCams.js';
-import { CommandRouter } from './CommandRouter.js';
-import { EventBus } from '../core/EventBus.js';
 
 function seeded(seed = 1) {
   let s = seed;
@@ -16,35 +14,16 @@ function seeded(seed = 1) {
 }
 
 const NAMES = Array.from({ length: 60 }, (_, i) => `Bot${i}`);
-const SHORT = { ...CONFIG, maxPlayers: 30, botFillTo: 30, trackLength: 500, obstacleEndMargin: 100, roundSeconds: 60 };
+const SHORT = { ...CONFIG, maxPlayers: 5, botFillTo: 5, maxCloseCams: 3, trackLength: 500, obstacleEndMargin: 100, roundSeconds: 60 };
 
-function setup(cfg = SHORT) {
+function setup(cfg = SHORT, joins = 0) {
   const rng = seeded(4);
   const lobby = new Lobby({ cfg, rng, botNames: NAMES });
   const manager = new RaceManager(lobby, { cfg, rng, skinCount: 8 });
   const cams = new CloseCams(manager, cfg);
+  for (let i = 0; i < joins; i++) lobby.join({ userId: `u${i}`, nickname: `Người${i}`, avatarUrl: '' });
   manager.begin();
   return { lobby, manager, cams };
-}
-
-// Gõ lệnh qua đường thật: bình luận → EventBus → CommandRouter → join / s.
-// Mỗi lệnh cách nhau 10 giây (đồng hồ giả tính bằng ms) để không vướng chống spam.
-function chatter(manager, cams) {
-  const bus = new EventBus();
-  let t = 0;
-  const router = new CommandRouter(bus, () => t);
-  const log = [];
-  router.onCommand(({ command, user: u }) => {
-    if (command === 'join') log.push({ who: u.userId, cmd: 'join', ...manager.join(u) });
-    else if (command === 's') log.push({ who: u.userId, cmd: 's', ...cams.press(u) });
-  });
-  return {
-    log,
-    say(i, text) {
-      t += 10_000;
-      bus.emit({ type: 'chat', userId: `u${i}`, nickname: `Người${i}`, avatarUrl: '', text });
-    },
-  };
 }
 
 function runUntil(manager, cond, maxSeconds = 2000) {
@@ -52,97 +31,48 @@ function runUntil(manager, cond, maxSeconds = 2000) {
   assert.ok(cond());
 }
 
-test('s: 5 người gõ liên tiếp thì 4 người đầu có cửa sổ, người thứ 5 bị báo đầy; người đầu tắt thì người thứ 5 gõ lại được', () => {
-  const { manager, cams } = setup();
-  const c = chatter(manager, cams);
-  for (let i = 0; i < 5; i++) c.say(i, 'join');
-  for (let i = 0; i < 5; i++) c.say(i, 's');
-  const presses = c.log.filter((e) => e.cmd === 's').map((e) => e.status);
-  assert.deepEqual(presses, ['on', 'on', 'on', 'on', 'full']);
-  assert.deepEqual(cams.cams.map((x) => x.racer.userId), ['u0', 'u1', 'u2', 'u3']);
+const ids = (cams) => cams.cams.map((c) => c.racer.userId);
 
-  c.say(0, 's'); // người đầu tắt
-  assert.equal(c.log.at(-1).status, 'off');
-  assert.equal(cams.cams.length, 3);
-
-  c.say(4, 's'); // người thứ 5 gõ lại
-  assert.equal(c.log.at(-1).status, 'on');
-  assert.deepEqual(cams.cams.map((x) => x.racer.userId), ['u1', 'u2', 'u3', 'u4']);
+test('camera cận tự động: mỗi người thật đang chơi có một cửa sổ, bot thì không, không cần gõ lệnh', () => {
+  const { cams } = setup(SHORT, 2);
+  cams.update(0);
+  assert.deepEqual(ids(cams).sort(), ['u0', 'u1'], 'đúng hai người thật');
+  assert.ok(cams.cams.every((c) => !c.racer.isBot));
 });
 
-test('s: không ảnh hưởng người khác, bật rồi tắt lại', () => {
-  const { manager, cams } = setup();
-  const c = chatter(manager, cams);
-  c.say(1, 'join');
-  c.say(2, 'join');
-  c.say(1, 's');
-  assert.equal(cams.cams.length, 1);
-  c.say(2, 'S ');
+test('camera cận: không có người thật nào thì không có cửa sổ', () => {
+  const { cams } = setup(SHORT, 0);
+  cams.update(0);
+  assert.equal(cams.cams.length, 0);
+});
+
+test('camera cận: tối đa maxCloseCams cửa sổ dù có nhiều người chơi hơn', () => {
+  const { cams } = setup({ ...SHORT, maxCloseCams: 2 }, 4);
+  cams.update(0);
   assert.equal(cams.cams.length, 2);
-  c.say(1, 's');
-  assert.deepEqual(cams.cams.map((x) => x.racer.userId), ['u2'], 'người 2 vẫn còn cửa sổ');
 });
 
-test('s: chưa join thì nhắc gõ join trước; đang chờ trong hàng đợi thì báo lượt sau; đều không bật cửa sổ', () => {
-  const { manager, cams } = setup();
-  const c = chatter(manager, cams);
-  c.say(99, 's');
-  assert.equal(c.log.at(-1).status, 'not-joined');
-  for (let i = 0; i < 31; i++) c.say(i, 'join'); // u30 vào hàng đợi
-  c.say(30, 's');
-  assert.equal(c.log.at(-1).status, 'next-round', 'đang chờ trong hàng đợi, chưa có mặt ở lượt này');
-  assert.equal(cams.cams.length, 0);
+test('camera cận: người vào đua trước giờ xuất phát tự có cửa sổ; đổi người thì giữ nguyên mốc thời gian của người cũ', () => {
+  const { manager, cams } = setup(SHORT, 1);
+  cams.update(1);
+  const first = cams.cams[0];
+  assert.equal(first.since, 1);
+  manager.join({ userId: 'late', nickname: 'Muộn', avatarUrl: '' }); // lượt chưa xuất phát, còn suất: vào đua ngay
+  cams.update(5);
+  assert.equal(cams.cams.length, 2);
+  assert.equal(cams.cams.find((c) => c.racer === first.racer).since, 1, 'cửa sổ đã có giữ nguyên');
 });
 
-test('s: vào giữa lượt đua (chưa có mặt ở lượt này) thì báo lượt sau', () => {
-  const { manager, cams } = setup();
-  const c = chatter(manager, cams);
+test('camera cận: hết lượt thì tắt hết, lượt mới tự bật lại cho người đã gõ join lại', () => {
+  const { lobby, manager, cams } = setup(SHORT, 3);
   runUntil(manager, () => manager.state === 'race');
-  c.say(1, 'join');
-  c.say(1, 's');
-  assert.equal(c.log.at(-1).status, 'next-round');
-  assert.equal(cams.cams.length, 0);
-});
-
-test('s: tự tắt sau closeCamSeconds (chỉnh được trong config)', () => {
-  const cfg = { ...SHORT, closeCamSeconds: 5 };
-  const { manager, cams } = setup(cfg);
-  const c = chatter(manager, cams);
-  c.say(1, 'join');
-  c.say(1, 's');
-  assert.equal(cams.cams.length, 1);
-  assert.ok(Math.abs(cams.secondsLeft(cams.cams[0], manager.now) - 5) < 1e-9);
-  runUntil(manager, () => manager.now > 4.5);
   cams.update(manager.now);
-  assert.equal(cams.cams.length, 1);
-  runUntil(manager, () => manager.now > 5.5);
-  cams.update(manager.now);
-  assert.equal(cams.cams.length, 0);
-});
-
-test('s: closeCamSeconds = 0 thì không tự tắt', () => {
-  const cfg = { ...SHORT, closeCamSeconds: 0 };
-  const { manager, cams } = setup(cfg);
-  const c = chatter(manager, cams);
-  c.say(1, 'join');
-  c.say(1, 's');
-  cams.update(manager.now + 99999);
-  assert.equal(cams.cams.length, 1);
-  assert.equal(cams.secondsLeft(cams.cams[0], 0), Infinity);
-});
-
-test('s: hết lượt thì tự tắt hết, sang lượt mới bật lại được', () => {
-  const { manager, cams } = setup({ ...SHORT, closeCamSeconds: 0 });
-  const c = chatter(manager, cams);
-  for (let i = 0; i < 3; i++) c.say(i, 'join');
-  for (let i = 0; i < 3; i++) c.say(i, 's');
   assert.equal(cams.cams.length, 3);
   runUntil(manager, () => manager.state === 'result');
-  assert.equal(cams.cams.length, 0, 'tắt hết khi hết lượt');
-  c.say(0, 's');
-  assert.equal(c.log.at(-1).status, 'idle', 'màn kết quả không bật được');
-  c.say(0, 'join'); // chơi lượt trước xong phải gõ join lại để có mặt ở lượt sau
+  cams.update(manager.now);
+  assert.equal(cams.cams.length, 0, 'màn kết quả không có cửa sổ cận');
+  lobby.join({ userId: 'u1', nickname: 'Người1', avatarUrl: '' }); // chỉ u1 xếp hàng lại để chơi tiếp
   runUntil(manager, () => manager.round === 2);
-  c.say(0, 's');
-  assert.equal(c.log.at(-1).status, 'on');
+  cams.update(manager.now);
+  assert.deepEqual(ids(cams), ['u1'], 'chỉ người có mặt ở lượt mới');
 });

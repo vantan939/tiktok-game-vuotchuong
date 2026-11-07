@@ -64,12 +64,11 @@ export class CloseCamPanel {
     // Viền, vầng sáng, tên, đồng hồ (HTML)
     const frame = createFrame({ variant: 'clear', className: 'camframe', rect: { x, y: top, w, h } });
     const name = el('div', 'camframe__name');
-    const timer = el('div', 'camframe__time');
-    frame.append(name, timer);
+    frame.append(name);
     frame.style.display = 'none';
     hudParent.append(frame);
 
-    return { vp, content, roadG, obstacles, sprites, marker, frame, name, timer, cam: { z0: 0, focal: CONFIG.closeCamFocal }, last: 0, bound: null, shown: false };
+    return { vp, content, roadG, obstacles, sprites, marker, frame, name, cam: { z0: 0, focal: CONFIG.closeCamFocal }, last: 0, bound: null, shown: false };
   }
 
   /** cams là CloseCams; manager cho đoàn đua và chướng ngại. Gọi mỗi frame. */
@@ -81,7 +80,7 @@ export class CloseCamPanel {
         return;
       }
       this.setShown(win, true);
-      this.updateWindow(win, entry.racer, manager, dt, cams.secondsLeft(entry, manager.now));
+      this.updateWindow(win, entry.racer, manager, dt);
     });
   }
 
@@ -93,7 +92,7 @@ export class CloseCamPanel {
     if (!on) win.bound = null;
   }
 
-  updateWindow(win, target, manager, dt, secondsLeft) {
+  updateWindow(win, target, manager, dt) {
     // Camera bám nhân vật, mượt để khi bị đẩy lùi không giật
     if (win.bound !== target) {
       win.bound = target;
@@ -104,8 +103,6 @@ export class CloseCamPanel {
     const cam = win.cam;
     cam.focal = CONFIG.closeCamFocal;
     cam.z0 = win.last - cam.focal * (1 / CONFIG.closeCamBackScale - 1);
-    const timeText = Number.isFinite(secondsLeft) ? `${Math.ceil(secondsLeft)}s` : '';
-    if (win.timer.textContent !== timeText) win.timer.textContent = timeText;
 
     drawRoad(win.roadG, cam, win.vp, { maxSegments: ROAD_SEGMENTS, minScale: ROAD_MIN_SCALE });
     win.obstacles.update(manager.field, cam, manager.now);

@@ -9,7 +9,7 @@ export const STR = {
     racing: 'ĐANG ĐUA',
     time: 'THỜI GIAN',
     camTitle: 'Camera cận',
-    camHint: '(bình luận S)',
+    camHint: '(người chơi)',
     heartLine1: 'Thả tim =',
     heartLine2: 'Tăng tốc',
     giftLine1: 'Tặng quà =',
@@ -43,12 +43,6 @@ export const STR = {
 
   // Hết lượt: người chơi lượt trước chưa xếp hàng lại thì nhắc gõ join
   yieldSeat: (names) => `${names} đã chơi xong, gõ join để chơi tiếp`,
-
-  // Thông báo camera cận (lệnh s)
-  camFull: (name, max) => `${name}: Đã đủ ${max} camera cận, thử lại sau`,
-  camNotJoined: (name) => `${name}: hãy gõ join trước`,
-  camNextRound: (name) => `${name}: camera cận dùng được từ lượt sau`,
-  camIdle: (name) => `${name}: camera cận mở lại khi lượt mới bắt đầu`,
 
   // Thông báo quà lớn
   giftAnnounce: (name, gift) => `${name} tặng ${gift}, bay vút!`,
@@ -137,7 +131,6 @@ export const STR = {
     title: 'Debug (phím D để ẩn)',
     namePlaceholder: 'Tên người dùng bất kỳ',
     join: 'join',
-    camera: 's',
     like: 'Thả tim',
     gift: 'Quà nhỏ',
     midGift: 'Quà vừa',

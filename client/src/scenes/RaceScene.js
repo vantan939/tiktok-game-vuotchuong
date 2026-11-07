@@ -15,7 +15,6 @@ import { buildHudModel } from '../systems/HudModel.js';
 import { isMock } from '../systems/mockData.js';
 import { applyMock, mockHudModel, seedMockLobby } from './mockMode.js';
 import { joinMessage } from '../systems/JoinMessage.js';
-import { camMessage } from '../systems/CamMessage.js';
 import { CloseCams } from '../systems/CloseCams.js';
 import { CloseCamPanel } from '../ui/CloseCamPanel.js';
 import { LikeBoost } from '../systems/LikeBoost.js';
@@ -138,7 +137,7 @@ export class RaceScene extends Phaser.Scene {
     const bus = this.registry.get('bus');
     if (bus) {
       this.router = new CommandRouter(bus);
-      this.router.onCommand(({ command, user }) => (command === 'join' ? this.onJoin(user) : this.onCamCommand(user)));
+      this.router.onCommand(({ command, user }) => command === 'join' && this.onJoin(user));
       bus.on('like', (e) => this.likeBoost.handle(e)); // thả tim = tăng tốc
       bus.on('gift', (e) => this.giftBoost.handle(e)); // tặng quà = khiên + tăng tốc mạnh
     }
@@ -151,11 +150,6 @@ export class RaceScene extends Phaser.Scene {
     this.toasts.show(joinMessage(result, user.nickname));
     this.refreshHud(); // cập nhật hàng đợi ngay, không chờ vòng lặp game (vòng lặp có thể bị trình duyệt làm chậm khi cửa sổ bị che)
     if (result.status === 'racing') this.mc.say(this.mcDirector.onJoin(user.nickname, this.manager.now));
-  }
-
-  onCamCommand(user) {
-    const message = camMessage(this.closeCams.press(user), user.nickname);
-    if (message) this.toasts.show(message);
   }
 
   onGameEvent(e) {

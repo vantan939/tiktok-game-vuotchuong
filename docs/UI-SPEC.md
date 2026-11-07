@@ -78,9 +78,9 @@ Cột thẻ dọc bên trái, mép trái x 1.3% (≈ 14 px), rộng ~21.5% (≈ 
 - **Nội dung:**
   - Biểu tượng ổ khóa vàng (~54 px) ở trái trên.
   - Dòng 1: **Khóa nhân vật** — trắng, ~24 px.
-  - Dòng 2: **(bình luận S)** — vàng `#FFC21A`, ~24 px.
+  - Dòng 2: **(người chơi)** — vàng `#FFC21A`, ~24 px.
   - Công tắc dạng viên thuốc, rộng ~170 px, cao ~56 px, nền xanh lá `#22D14F`, chữ **ON** trắng đậm bên trái, nút tròn trắng bên phải. Trạng thái tắt: nền xám `#6B6B8A`, chữ **OFF**, nút ở trái.
-- **Ý nghĩa:** minh họa cho lệnh gõ "s" bật/tắt camera cận.
+- **Ý nghĩa:** thể hiện camera cận tự bật cho người đang chơi (không còn lệnh gõ s).
 - **Hiệu ứng:** công tắc trượt nút tròn (200 ms) khi đổi trạng thái; viền xanh lá phát sáng khi ON.
 
 ### 5.2 Thẻ "Thả tim"
@@ -182,5 +182,5 @@ HUD dựng bằng HTML/CSS đặt chồng lên canvas (chữ sắc nét, hiệu 
 - Ba thẻ bên trái rộng 266 (x 14 đến 280), chữ 30px, thêm thẻ nhỏ "Gõ join để tham gia" ngay dưới (y 838).
 - TOP 10 rộng 316 (x 754 đến 1070). Các cửa sổ camera cận cùng cột: x 754, rộng 316, cao 172.
 - Hàng đợi x 25 đến 737 (khoảng 66% bề ngang), thẻ thể lệ x 752 đến 1056.
-- Thẻ "Khóa nhân vật" đổi thành "Camera cận (bình luận S)" kèm nút hiển thị số camera, ví dụ `2/4` (theo CONTEXT.md).
+- Thẻ "Khóa nhân vật" đổi thành "Camera cận (người chơi)" kèm nút hiển thị số camera, ví dụ `2/3` (theo CONTEXT.md).
 - Thẻ quà ghi "Tặng quà = Tăng tốc cao độ!!" đúng như yêu cầu.

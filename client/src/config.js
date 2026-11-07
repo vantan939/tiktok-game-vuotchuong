@@ -50,9 +50,8 @@ export const CONFIG = {
   crowdRange: 14,           // hai nhân vật cùng làn và cách nhau dưới mức này (đơn vị) thì coi là chen nhau; tự đổi làn để tách ra
   laneChangeSmooth: 4,      // độ mượt khi trượt sang làn khác
 
-  // Camera cận (lệnh s)
-  maxCloseCams: 4,
-  closeCamSeconds: 30,      // tự tắt sau bấy lâu để không chiếm chỗ; 0 = không tự tắt
+  // Camera cận tự động cho người đang chơi (không cần gõ lệnh). Khán giả vẫn xem cảnh toàn đoàn
+  maxCloseCams: 3,          // tối đa bấy nhiêu cửa sổ cận cảnh, bằng số người chơi tối đa mỗi lượt
   closeCamWindow: { x: 730, y: 784, w: 340, h: 168, gap: 12 }, // cửa sổ đầu tiên (px khung 1080x1920), các cửa sổ sau xếp dọc xuống
   closeCamFocal: 55,        // nhỏ = zoom gần
   closeCamBackScale: 0.8,   // tỉ lệ phối cảnh của nhân vật được theo dõi
@@ -195,7 +194,6 @@ export const CONFIG = {
   demoFirstJoinSeconds: 1.5, // chờ game khởi động xong mới có người join đầu tiên
   demoJoinSpreadSeconds: 20,
   demoWarmupSeconds: 2,
-  demoSComment: [2, 5],
   demoLike: [0.3, 1],
   demoLikeMax: 15,
   demoGift: [4, 9],

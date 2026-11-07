@@ -105,16 +105,17 @@ test('dưới 10 giây cuối của lượt thì báo động (đỏ, nhấp nh�
 test('các số liệu khác của HUD: camera cận, top 10, hàng đợi', () => {
   const { lobby, manager, cams } = setup();
   for (let i = 0; i < 33; i++) manager.join({ userId: `u${i}`, nickname: `N${i}`, avatarUrl: '' });
-  cams.press({ userId: 'u1' });
+  cams.update(manager.now); // camera cận tự bật cho người đang chơi (tối đa maxCloseCams)
+  const withCam = cams.cams.map((c) => c.racer.userId);
   const model = buildHudModel(manager, lobby, cams, BIG);
-  assert.deepEqual(model.cams, { used: 1, max: 4 });
+  assert.deepEqual(model.cams, { used: BIG.maxCloseCams, max: BIG.maxCloseCams });
   assert.equal(model.top.length, 10);
   // Đưa u1 lên đầu bảng để chắc chắn nằm trong top 10, rồi kiểm tra dấu hiệu camera cận
   manager.racerOf('u1').dist = 9999;
   rankRacers(manager.racers, manager.ranking);
   const flagged = buildHudModel(manager, lobby, cams, BIG);
   assert.equal(flagged.top[0].id, 'u1');
-  assert.ok(flagged.top.every((e) => e.cam === (e.id === 'u1')), 'chỉ người bật camera cận có dấu hiệu');
+  assert.ok(flagged.top.every((e) => e.cam === withCam.includes(e.id)), 'chỉ người có camera cận mới có dấu hiệu');
   assert.equal(model.queueTotal, 3);
   assert.deepEqual(model.queueFirst.map((q) => q.id), ['u30', 'u31', 'u32']);
   assert.equal(model.queueBase, 30);

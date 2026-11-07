@@ -5,14 +5,14 @@ import { CommandRouter } from './CommandRouter.js';
 
 const user = { userId: 'u1', nickname: 'Lan', avatarUrl: '' };
 
-test('CommandRouter: bình luận join và s thành lệnh', () => {
+test('CommandRouter: chỉ bình luận join là lệnh, lệnh s cũ không còn', () => {
   const bus = new EventBus();
   const router = new CommandRouter(bus, () => 0);
   const got = [];
   router.onCommand((c) => got.push(c.command));
   bus.emit({ type: 'chat', ...user, text: 'JOIN' });
-  bus.emit({ type: 'chat', ...user, userId: 'u2', text: ' s ' });
-  assert.deepEqual(got, ['join', 's']);
+  bus.emit({ type: 'chat', ...user, userId: 'u2', text: ' s ' }); // lệnh s đã bỏ
+  assert.deepEqual(got, ['join']);
 });
 
 test('CommandRouter: người xem chỉ vào phòng live (sự kiện join) thì KHÔNG tự vào đua', () => {
