@@ -27,6 +27,7 @@ import { AudioEngine } from '../audio/AudioEngine.js';
 import { Mc } from '../audio/Mc.js';
 import { RemoteVoice } from '../audio/RemoteVoice.js';
 import { NetDot } from '../ui/hud/NetDot.js';
+import { reportError } from '../core/errorReport.js';
 import { McDirector } from '../systems/McDirector.js';
 import { shortName } from '../systems/JoinMessage.js';
 import { CommandRouter } from '../systems/CommandRouter.js';
@@ -243,7 +244,17 @@ export class RaceScene extends Phaser.Scene {
     return this.dists;
   }
 
-  update(_time, delta) {
+  // Phaser dừng hẳn vòng lặp nếu update ném lỗi (không đặt lịch khung hình kế): game đứng, HUD, MC, nhân vật đều im trong khi
+  // thông báo (do sự kiện WebSocket) vẫn hiện. Nên bắt lỗi ở đây, báo về server rồi chạy tiếp khung sau.
+  update(time, delta) {
+    try {
+      this.tick(time, delta);
+    } catch (err) {
+      reportError('game', err);
+    }
+  }
+
+  tick(_time, delta) {
     const dt = Math.min(delta / 1000, 0.05);
     const held = this.hold && this.manager.state === this.hold && this.manager.stateTime >= 3;
     if (!held && !this.mock) for (let i = 0; i < this.speed; i++) this.manager.update(dt);

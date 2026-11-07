@@ -83,3 +83,34 @@ export function createTtsHandler(tts, { log = console.log } = {}) {
     return true;
   };
 }
+
+/**
+ * POST /log { source, message, stack }: client báo lỗi JavaScript về terminal của server, vì cửa sổ game khi quay không có
+ * Console để xem. Chỉ nhận từ trang chạy trên máy này, giới hạn độ dài. Trả về true nếu đã xử lý.
+ */
+export function createClientLogHandler({ log = console.log } = {}) {
+  const clean = (v, max) => String(v ?? '').replace(/[\r\n\t]+/g, ' ').slice(0, max);
+  return async function handle(req, res) {
+    const url = new URL(req.url, 'http://localhost');
+    if (url.pathname !== '/log') return false;
+    const origin = allowOrigin(req);
+    if (origin === false) {
+      send(res, 403, 'Forbidden');
+      return true;
+    }
+    const cors = origin ? { 'Access-Control-Allow-Origin': origin, Vary: 'Origin' } : {};
+    if (req.method === 'OPTIONS') {
+      send(res, 204, '', { ...cors, 'Access-Control-Allow-Methods': 'POST', 'Access-Control-Allow-Headers': 'Content-Type' });
+      return true;
+    }
+    try {
+      if (req.method !== 'POST') throw new TtsError(405, 'Chỉ nhận POST');
+      const body = await readJson(req);
+      log(`[client] lỗi ${clean(body.source, 40)}: ${clean(body.message, 300)}${body.stack ? ` | ${clean(body.stack, 400)}` : ''}`);
+      send(res, 204, '', cors);
+    } catch (err) {
+      send(res, err instanceof TtsError ? err.status : 500, JSON.stringify({ error: 'Lỗi' }), { ...cors, 'Content-Type': 'application/json' });
+    }
+    return true;
+  };
+}

@@ -2,7 +2,7 @@ import { createServer } from 'node:http';
 import { fileURLToPath } from 'node:url';
 import { WebSocketServer } from 'ws';
 import { genmaxFromEnv } from './tts/genmax.js';
-import { createTtsHandler } from './tts/routes.js';
+import { createClientLogHandler, createTtsHandler } from './tts/routes.js';
 import { isValidEvent } from '../../shared/events.js';
 import { TikTokLiveSource } from './tiktok/live.js';
 import { createRecorder, loadReplay, playReplay } from './tiktok/replay.js';
@@ -27,10 +27,11 @@ const argValue = (name) => {
 // Giọng MC qua genmax: khóa chỉ nằm ở server, client gọi POST /tts. Cache mp3 ở server/.cache/tts
 const tts = genmaxFromEnv(process.env, { cacheDir: fileURLToPath(new URL('../.cache/tts', import.meta.url)) });
 const handleTts = createTtsHandler(tts);
+const handleClientLog = createClientLogHandler();
 
 // Một cổng cho cả WebSocket (sự kiện game) và HTTP (giọng nói)
 const http = createServer(async (req, res) => {
-  if (await handleTts(req, res)) return;
+  if (await handleTts(req, res) || await handleClientLog(req, res)) return;
   res.writeHead(404);
   res.end('Not found');
 });

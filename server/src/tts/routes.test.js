@@ -84,3 +84,29 @@ test('đường dẫn khác /tts không bị chặn bởi handler', async () => 
     assert.equal((await fetch(`${base}/khac`)).status, 404);
   });
 });
+
+test('POST /log: nhận báo lỗi từ client và in ra, bỏ ký tự xuống dòng, từ chối trang lạ', async () => {
+  const { createClientLogHandler } = await import('./routes.js');
+  const lines = [];
+  const handle = createClientLogHandler({ log: (l) => lines.push(l) });
+  const server = createServer(async (req, res) => {
+    if (!(await handle(req, res))) {
+      res.writeHead(404);
+      res.end();
+    }
+  });
+  await new Promise((r) => server.listen(0, r));
+  const base = `http://127.0.0.1:${server.address().port}`;
+  try {
+    const ok = await fetch(`${base}/log`, { method: 'POST', body: JSON.stringify({ source: 'game', message: 'Lỗi\ndòng hai', stack: 'a | b' }) });
+    assert.equal(ok.status, 204);
+    assert.equal(lines.length, 1);
+    assert.match(lines[0], /^\[client\] lỗi game: Lỗi dòng hai \| a \| b$/);
+    const foreign = await fetch(`${base}/log`, { method: 'POST', headers: { Origin: 'https://trang-la.example' }, body: '{}' });
+    assert.equal(foreign.status, 403);
+    assert.equal(lines.length, 1);
+    assert.equal((await fetch(`${base}/log`)).status, 405);
+  } finally {
+    await new Promise((r) => server.close(r));
+  }
+});

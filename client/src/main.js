@@ -10,6 +10,7 @@ import { DemoSource } from './sources/DemoSource.js';
 import { WebSocketSource } from './sources/WebSocketSource.js';
 import { NetStatus } from './systems/NetStatus.js';
 import { liveSize, parseLive } from './liveMode.js';
+import { installGlobalErrorReporting } from './core/errorReport.js';
 import { DebugPanel } from './ui/DebugPanel.js';
 
 const params = new URLSearchParams(location.search);
@@ -32,6 +33,7 @@ async function loadFonts() {
 }
 
 async function main() {
+  installGlobalErrorReporting();
   applyTheme();
   if (mode.live) {
     // Quay: ẩn con trỏ, cố định kích thước khung game ở góc trên trái
