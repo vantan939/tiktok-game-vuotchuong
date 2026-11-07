@@ -34,6 +34,9 @@ export const STR = {
   joinQueued: (name) => `${name} vào hàng đợi`,
   joinDuplicate: (name) => `${name} đã tham gia rồi`,
 
+  // Hết lượt, người ở lâu nhất nhường chỗ cho hàng đợi
+  yieldSeat: (names) => `${names} nhường chỗ cho hàng đợi, gõ join để xếp hàng lại`,
+
   // Thông báo camera cận (lệnh s)
   camFull: (name, max) => `${name}: Đã đủ ${max} camera cận, thử lại sau`,
   camNotJoined: (name) => `${name}: hãy gõ join trước`,

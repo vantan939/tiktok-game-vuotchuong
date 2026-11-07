@@ -99,7 +99,7 @@ export class RaceManager {
     this.ctx.field = this.field;
     this.result = null;
     rankRacers(this.racers, this.ranking);
-    this.emit({ type: 'round', round: this.round });
+    this.emit({ type: 'round', round: this.round, evicted: this.lobby.evicted });
     this.setState('wait');
   }
 
@@ -134,6 +134,7 @@ export class RaceManager {
 
   // Đưa người mới lên vạch xuất phát: thế chỗ bot cuối đoàn, hoặc thêm hàng mới nếu không còn bot
   seatBeforeRace(user) {
+    user.rounds = (user.rounds ?? 0) + 1; // vào trước giờ xuất phát: lượt này tính là họ đã đua
     let at = this.racers.length - 1;
     while (at >= 0 && !this.racers[at].isBot) at--;
     const racer = this.spawnRacer(user, at >= 0 ? 0 : this.racers.length);

@@ -145,6 +145,7 @@ export class RaceScene extends Phaser.Scene {
 
   onGameEvent(e) {
     if (e.type === 'round') {
+      if (e.evicted?.length) this.toasts.show({ text: STR.yieldSeat(e.evicted.map((p) => shortName(p.nickname)).join(', ')), kind: 'queue' });
       this.buildViews();
       this.mcDirector.onRound();
     }
