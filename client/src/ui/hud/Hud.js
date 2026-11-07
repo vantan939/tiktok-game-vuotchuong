@@ -77,6 +77,10 @@ export class Hud {
     const head = el('div', 'top10__head');
     head.append(el('div', 'crown', iconSvg('crown')), el('div', 'top10__title', H.top(TOP_ROWS)));
     top10.append(head, this.top10List);
+
+    // Thẻ nhắc luật ngay dưới bảng xếp hạng: nhân vật tự né, người xem chỉ cần tăng tốc
+    const autoCard = createFrame({ variant: 'purple', className: 'card card--hint', rect: { x: 730, y: 416 + 88 + TOP_ROWS * ROW_H + 14, w: 340, h: 104 } });
+    autoCard.append(el('div', 'card__text txt', `${H.autoLine1}<br>${H.autoLine2} <em>${H.autoLine3}</em>`));
     this.rows = new Map(); // userId -> phần tử hàng
 
     // Hàng đợi và thẻ thể lệ
@@ -96,7 +100,7 @@ export class Hud {
       el('div', 'rule__text', `${H.ruleRound(minutes)}<br>${H.ruleMax(CONFIG.maxPlayers)}`),
     );
 
-    parent.append(banner, racing, this.timeFrame, camCard, heartCard, giftCard, joinCard, top10, queue, rule);
+    parent.append(banner, racing, this.timeFrame, camCard, heartCard, giftCard, joinCard, top10, autoCard, queue, rule);
     this.queueKey = '';
   }
 
