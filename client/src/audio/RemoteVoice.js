@@ -11,6 +11,7 @@ export class RemoteVoice {
     this.makeAudio = makeAudio;
     this.route = route; // (audio) => boolean: đưa tiếng qua bộ giới hạn đỉnh, chống rè khi bật to
     this.enabled = false; // server đã cấu hình genmax (xác định ở init)
+    this.ready = false; // init đã xong (biết chắc có dùng giọng genmax hay không)
     this.token = 0; // mỗi câu mới tăng một đơn vị; kết quả của câu cũ bị bỏ
     this.audio = null;
     this.urls = new Map(); // câu -> blob URL đã tải
@@ -31,6 +32,7 @@ export class RemoteVoice {
     } catch {
       this.enabled = false; // server không chạy: dùng giọng trình duyệt
     }
+    this.ready = true;
     return this.enabled;
   }
 

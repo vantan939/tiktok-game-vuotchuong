@@ -146,6 +146,7 @@ export const CONFIG = {
   mc: {
     enabled: true,
     provider: 'auto',         // 'auto': dùng giọng genmax từ server nếu server có khóa trong .env, không thì giọng trình duyệt; 'browser': luôn dùng giọng trình duyệt
+    fallbackToBrowser: false, // giọng genmax lỗi một câu (hết hạn mức, mạng) thì bỏ qua câu đó; true: đọc bằng giọng trình duyệt (sẽ nghe thấy hai giọng khác nhau)
     remoteTimeoutMs: 8000,    // chờ server tạo giọng tối đa bấy lâu cho mỗi câu
     lang: 'vi',               // giọng trình duyệt: chọn giọng bắt đầu bằng mã này
     volume: 1,

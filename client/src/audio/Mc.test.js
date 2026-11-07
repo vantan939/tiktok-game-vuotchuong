@@ -107,3 +107,26 @@ test('Mc: chưa ai bấm vào trang thì thử phát âm thanh im lặng; đư�
     else delete globalThis.Audio;
   }
 });
+
+test('Mc: có giọng genmax thì chỉ dùng giọng đó: câu lỗi bị bỏ chứ không đọc bằng giọng trình duyệt; chưa biết server thì chờ', async () => {
+  const { Mc } = await import('./Mc.js');
+  const spoken = [];
+  const failers = [];
+  const remote = { enabled: true, ready: false, init: async () => {}, cancel() {}, speak: (text, done, fail) => { spoken.push(text); failers.push(fail); } };
+  const cfg = { enabled: true, maxQueue: 2, watchdogMs: 1e9, lang: 'vi', rate: 1, pitch: 1, volume: 1, fallbackToBrowser: false };
+  const mc = new Mc(cfg, { remote });
+  let browserUsed = 0;
+  mc.browserSpeak = (line, finish) => { browserUsed++; finish(); };
+  mc.say([{ text: 'sớm', priority: 2 }]);
+  assert.deepEqual(spoken, [], 'chưa biết server có genmax không thì chưa nói');
+  remote.ready = true;
+  mc.say([{ text: 'một', priority: 2 }, { text: 'hai', priority: 2 }]);
+  failers[0](); // genmax lỗi câu một (vd. hết hạn mức)
+  assert.equal(browserUsed, 0, 'không đọc bằng giọng trình duyệt');
+  assert.deepEqual(spoken, ['một', 'hai'], 'bỏ câu lỗi, nói tiếp câu kế bằng genmax');
+
+  cfg.fallbackToBrowser = true;
+  mc.say([{ text: 'ba', priority: 3 }]);
+  failers.at(-1)();
+  assert.equal(browserUsed, 1, 'bật fallbackToBrowser thì mới đọc bằng giọng trình duyệt');
+});

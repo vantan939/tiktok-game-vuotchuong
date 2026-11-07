@@ -114,6 +114,8 @@ export class Mc {
   /** Cho MC nói các câu { text, priority } (bỏ qua khi tắt, tắt tiếng, chưa có giọng hoặc trình duyệt chưa cho phát). */
   say(lines) {
     if (!this.enabled || this.isMuted()) return;
+    // Chưa biết server có giọng genmax không thì chờ, kẻo câu đầu đọc bằng giọng trình duyệt rồi sau đó đổi sang giọng genmax (hai giọng khác nhau)
+    if (this.remote && this.remote.ready === false) return;
     if (!this.voice && this.synth) this.pickVoice();
     if (!this.available) return;
     this.unstick();
@@ -167,7 +169,9 @@ export class Mc {
       const next = this.queue.next(performance.now());
       if (next) this.speak(next);
     };
-    if (this.remote?.enabled) this.remote.speak(line.text, finish, () => this.browserSpeak(line, finish));
+    // Đã có giọng genmax (khai báo trong .env) thì CHỈ dùng giọng đó: câu lỗi (hết hạn mức, mạng chậm) bị bỏ qua chứ không đọc bằng giọng trình duyệt,
+    // vì người xem sẽ nghe thấy hai giọng khác nhau. Muốn dự phòng bằng giọng trình duyệt thì đặt CONFIG.mc.fallbackToBrowser = true.
+    if (this.remote?.enabled) this.remote.speak(line.text, finish, () => (this.cfg.fallbackToBrowser ? this.browserSpeak(line, finish) : finish()));
     else this.browserSpeak(line, finish);
   }
 
