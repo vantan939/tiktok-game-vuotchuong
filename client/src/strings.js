@@ -17,7 +17,7 @@ export const STR = {
     giftLine3: 'cao độ!!',
     joinHint1: 'Gõ',
     joinHint2: 'để tham gia',
-    top10: 'TOP 10',
+    top: (n) => `TOP ${n}`,
     queue: 'HÀNG ĐỢI',
     queueCount: (n) => `(${n} người)`,
     queueEmpty: 'Chưa ai chờ, gõ join nhé',

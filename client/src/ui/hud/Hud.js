@@ -5,7 +5,7 @@ import { createBanner } from './Banner.js';
 import { createFrame, el } from './Frame.js';
 import { iconSvg } from './svgIcons.js';
 
-const TOP_ROWS = 10;
+const TOP_ROWS = CONFIG.topShown;
 const ROW_H = 46;
 
 const abs = (node, x, y) => {
@@ -70,11 +70,12 @@ export class Hud {
     const joinCard = createFrame({ variant: 'purple', className: 'card card--join', rect: { x: 14, y: 838, w: 266, h: 92 } });
     joinCard.append(el('div', 'card__text txt', `${H.joinHint1} <em>join</em><br>${H.joinHint2}`));
 
-    // TOP 10
+    // Bảng xếp hạng TOP N (CONFIG.topShown)
     this.top10List = el('div', 'top10__list');
-    const top10 = createFrame({ variant: 'blue', className: 'top10', rect: { x: 730, y: 416, w: 340, h: 556 } });
+    this.top10List.style.height = `${TOP_ROWS * ROW_H}px`;
+    const top10 = createFrame({ variant: 'blue', className: 'top10', rect: { x: 730, y: 416, w: 340, h: 88 + TOP_ROWS * ROW_H } });
     const head = el('div', 'top10__head');
-    head.append(el('div', 'crown', iconSvg('crown')), el('div', 'top10__title', H.top10));
+    head.append(el('div', 'crown', iconSvg('crown')), el('div', 'top10__title', H.top(TOP_ROWS)));
     top10.append(head, this.top10List);
     this.rows = new Map(); // userId -> phần tử hàng
 

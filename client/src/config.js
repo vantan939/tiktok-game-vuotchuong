@@ -12,9 +12,10 @@ export const CONFIG = {
   waitSeconds: 2,           // nghỉ ngắn trước khi đếm ngược, để người xem thấy đoàn đua mới
   countdownSeconds: 3,
   resultSeconds: 8,
-  maxPlayers: 30,
-  botFillTo: 30,            // thiếu người thật thì thêm bot cho đủ số này, để luôn có đoàn đua
+  maxPlayers: 5,
+  botFillTo: 5,             // thiếu người thật thì thêm bot cho đủ số này, để luôn có đoàn đua
   queueShown: 5,
+  topShown: 3,              // bảng xếp hạng hiển thị bấy nhiêu người đứng đầu (cũng là số người trong kết quả lượt)
   trackLength: 5500,
   lanes: 3,
 
@@ -51,7 +52,7 @@ export const CONFIG = {
   // Camera cận (lệnh s)
   maxCloseCams: 4,
   closeCamSeconds: 30,      // tự tắt sau bấy lâu để không chiếm chỗ; 0 = không tự tắt
-  closeCamWindow: { x: 730, y: 990, w: 340, h: 168, gap: 12 }, // cửa sổ đầu tiên (px khung 1080x1920), các cửa sổ sau xếp dọc xuống
+  closeCamWindow: { x: 730, y: 660, w: 340, h: 168, gap: 12 }, // cửa sổ đầu tiên (px khung 1080x1920), các cửa sổ sau xếp dọc xuống
   closeCamFocal: 55,        // nhỏ = zoom gần
   closeCamBackScale: 0.8,   // tỉ lệ phối cảnh của nhân vật được theo dõi
   closeCamHorizon: 0.3,     // chân trời ở bấy nhiêu phần chiều cao cửa sổ

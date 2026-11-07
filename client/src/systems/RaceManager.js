@@ -172,7 +172,7 @@ export class RaceManager {
       winner,
       finished, // true: về đích; false: hết giờ, thắng theo % quãng đường
       raceSeconds: finished ? winner.finishTime - this.raceStart : this.cfg.roundSeconds,
-      top: this.ranking.slice(0, 10).map((r) => ({ userId: r.userId, nickname: r.nickname, percent: progressPercent(r, this.cfg), finished: r.finished })),
+      top: this.ranking.slice(0, this.cfg.topShown).map((r) => ({ userId: r.userId, nickname: r.nickname, percent: progressPercent(r, this.cfg), finished: r.finished })),
     };
     if (!winner.isBot) this.lobby.recordWin(winner.userId);
     this.setState('result');

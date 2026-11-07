@@ -28,7 +28,7 @@ export function buildHudModel(manager, lobby, closeCams, cfg = CONFIG) {
     total: formatClock(manager.cfg.roundSeconds),
     low: isTimeLow(manager),
     cams: { used: closeCams.cams.length, max: cfg.maxCloseCams },
-    top: manager.ranking.slice(0, 10).map((r) => ({
+    top: manager.ranking.slice(0, cfg.topShown).map((r) => ({
       id: r.userId,
       name: r.nickname,
       avatarUrl: r.avatarUrl,

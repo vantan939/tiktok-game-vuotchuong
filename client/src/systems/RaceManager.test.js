@@ -18,7 +18,9 @@ function seeded(seed = 1) {
 const NAMES = Array.from({ length: 60 }, (_, i) => `Bot${i}`);
 const user = (i) => ({ userId: `u${i}`, nickname: `Người${i}`, avatarUrl: '' });
 // Đường ngắn để mỗi lượt kết thúc nhanh trong test
-const SHORT = { ...CONFIG, trackLength: 500, obstacleEndMargin: 100, roundSeconds: 60 };
+// Các test cũ kiểm tra luật theo quy mô 30 người, top 10; ghim lại để không phụ thuộc cấu hình hiện tại
+const BIG = { ...CONFIG, maxPlayers: 30, botFillTo: 30, topShown: 10 };
+const SHORT = { ...BIG, trackLength: 500, obstacleEndMargin: 100, roundSeconds: 60 };
 
 function setup(cfg = SHORT, seed = 3) {
   const rng = seeded(seed);
@@ -35,7 +37,7 @@ function runUntil(manager, cond, maxSeconds = 2000, dt = 1 / 30) {
 }
 
 test('Lobby: join vào đoàn đua, không cho join hai lần', () => {
-  const lobby = new Lobby({ botNames: NAMES });
+  const lobby = new Lobby({ cfg: BIG, botNames: NAMES });
   assert.equal(lobby.join(user(1)), 'racing', 'còn suất thì vào đoàn đua');
   assert.equal(lobby.join(user(1)), 'duplicate');
   lobby.prepareRound();
@@ -53,7 +55,7 @@ test('Lobby: thiếu người thì thêm bot cho đủ 30, không trùng tên ng
 });
 
 test('Lobby: người cũ ở lại, hàng đợi chỉ vào chỗ trống, tối đa 30 người thật', () => {
-  const lobby = new Lobby({ botNames: NAMES });
+  const lobby = new Lobby({ cfg: BIG, botNames: NAMES });
   for (let i = 0; i < 35; i++) lobby.join(user(i));
   let roster = lobby.prepareRound();
   assert.equal(roster.length, 30);
@@ -76,7 +78,7 @@ test('Lobby: người cũ ở lại, hàng đợi chỉ vào chỗ trống, tố
 });
 
 test('Lobby: người mới vào thay chỗ bot ở lượt sau', () => {
-  const lobby = new Lobby({ botNames: NAMES });
+  const lobby = new Lobby({ cfg: BIG, botNames: NAMES });
   lobby.join(user(1));
   assert.equal(lobby.prepareRound().filter((p) => p.isBot).length, 29);
   lobby.join(user(2));
