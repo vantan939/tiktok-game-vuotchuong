@@ -114,7 +114,6 @@ test('LikeBoost: tim của người đang đua tăng tốc nhân vật của ch�
   const mine = manager.racerOf('u1');
   const res = likeBoost.handle(like('u1'));
   assert.equal(res.racer, mine);
-  assert.equal(res.cheered, false);
   assert.ok(mine.boost > 0.9 && mine.boostMul === 1.6);
   assert.ok(manager.racers.filter((r) => r !== mine).every((r) => r.boost === 0), 'không ảnh hưởng người khác');
 });
@@ -139,25 +138,16 @@ test('LikeBoost: chưa đua (đếm ngược) thì chưa tính tim', () => {
   assert.equal(manager.racerOf('u1').boost, 0);
 });
 
-test('LikeBoost: người chưa có nhân vật (hàng đợi, chưa join) cổ vũ ngẫu nhiên một người thật đang đua', () => {
+test('LikeBoost: người chưa có nhân vật (hàng đợi, chưa join) thả tim thì không ai được tăng tốc', () => {
   const { manager, likeBoost } = startRace(3);
-  const seen = new Set();
-  for (let i = 0; i < 40; i++) {
-    const res = likeBoost.handle(like(`khan_gia_${i}`));
-    assert.equal(res.cheered, true);
-    assert.ok(!res.racer.isBot, 'ưu tiên người thật');
-    seen.add(res.racer.userId);
-  }
-  assert.ok(seen.size > 1, 'chọn ngẫu nhiên chứ không dồn vào một người');
-  assert.ok(manager.racers.filter((r) => r.isBot).every((r) => r.boost === 0));
+  for (let i = 0; i < 40; i++) assert.equal(likeBoost.handle(like(`khan_gia_${i}`)), null);
+  assert.ok(manager.racers.every((r) => r.boost === 0), 'không ảnh hưởng người nào');
 });
 
-test('LikeBoost: không có người thật nào thì cổ vũ một bot, đã về đích thì bỏ qua', () => {
-  const { manager, likeBoost } = startRace(0);
-  const res = likeBoost.handle(like('khan_gia'));
-  assert.ok(res.racer.isBot);
-  manager.racers.forEach((r) => (r.finished = true));
-  assert.equal(likeBoost.handle(like('khan_gia_2')), null);
+test('LikeBoost: nhân vật đã về đích thì tim không còn tác dụng', () => {
+  const { manager, likeBoost } = startRace();
+  manager.racerOf('u1').finished = true;
+  assert.equal(likeBoost.handle(like('u1')), null);
 });
 
 test('LikeBoost: phát sự kiện boost để hiển thị hiệu ứng', () => {

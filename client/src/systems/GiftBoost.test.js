@@ -194,17 +194,10 @@ test('GiftBoost: quà của người đang đua cho khiên và boost nhân vật
   assert.deepEqual(events[0].gift, { name: 'Sư tử', diamonds: 5000 });
 });
 
-test('GiftBoost: người chưa có nhân vật tặng quà thì cổ vũ ngẫu nhiên một người thật', () => {
+test('GiftBoost: người chưa có nhân vật tặng quà thì không ai được khiên hay tăng tốc', () => {
   const { manager, giftBoost } = setup(3);
-  const seen = new Set();
-  for (let i = 0; i < 40; i++) {
-    const res = giftBoost.handle(gift(`khan_gia_${i}`, 10));
-    assert.equal(res.cheered, true);
-    assert.ok(!res.racer.isBot);
-    seen.add(res.racer.userId);
-  }
-  assert.ok(seen.size > 1);
-  assert.ok(manager.racers.filter((r) => r.isBot).every((r) => r.shield === 0));
+  for (let i = 0; i < 40; i++) assert.equal(giftBoost.handle(gift(`khan_gia_${i}`, 10)), null);
+  assert.ok(manager.racers.every((r) => r.shield === 0 && r.boost === 0));
 });
 
 test('GiftBoost: nhận lúc chờ và đếm ngược (hiệu lực khi đua), bỏ qua ở màn kết quả', () => {

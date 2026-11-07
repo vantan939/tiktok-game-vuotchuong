@@ -1,5 +1,4 @@
 import { CONFIG } from '../config.js';
-import { pickCheerTarget } from './LikeBoost.js';
 import { applyBoost, applyShield } from './Racer.js';
 
 /** Bậc quà theo số kim cương: bậc cao nhất có minDiamonds <= diamonds (quà không rõ giá trị tính là bậc nhỏ). */
@@ -19,7 +18,7 @@ export function giveGift(racer, tier) {
 
 /**
  * Nhận sự kiện gift từ EventBus: khiên và tăng tốc cho nhân vật của chính người tặng.
- * Người chưa có nhân vật (hàng đợi, chưa join, vào lượt sau) thì quà cổ vũ ngẫu nhiên một người thật đang đua.
+ * Người chưa có nhân vật (hàng đợi, chưa join, vào lượt sau) thì quà không có tác dụng lên ai khác.
  * Nhận cả lúc chờ và đếm ngược (khiên và boost chỉ chạy khi đua nên không mất), bỏ qua ở màn kết quả.
  */
 export class GiftBoost {
@@ -28,13 +27,11 @@ export class GiftBoost {
     this.cfg = cfg;
   }
 
-  /** Trả về { racer, tier, cheered } nếu có tác dụng, ngược lại null. */
+  /** Trả về { racer, tier } nếu có tác dụng, ngược lại null. */
   handle(event) {
     const m = this.manager;
     if (m.state === 'result') return null;
-    let racer = m.racerOf(event.userId);
-    const cheered = !racer;
-    if (!racer) racer = pickCheerTarget(m);
+    const racer = m.racerOf(event.userId);
     if (!racer) return null;
 
     const tier = tierFor(event.diamonds, this.cfg);
@@ -47,8 +44,7 @@ export class GiftBoost {
       gift: { name: event.giftName, diamonds: event.diamonds },
       sender: event.userId,
       senderName: event.nickname,
-      cheered,
     });
-    return { racer, tier, cheered };
+    return { racer, tier };
   }
 }

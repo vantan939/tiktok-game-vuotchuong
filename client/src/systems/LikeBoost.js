@@ -24,8 +24,8 @@ export function giveLike(racer, taps, now, cfg = CONFIG) {
 }
 
 /**
- * Nhận sự kiện like từ EventBus: tăng tốc nhân vật của chính người thả. Người chưa có nhân vật trên đường
- * (hàng đợi, chưa join, vào lượt sau) thì cổ vũ ngẫu nhiên một người đang đua, ưu tiên người thật.
+ * Nhận sự kiện like từ EventBus: chỉ tăng tốc nhân vật của chính người thả. Người chưa có nhân vật trên đường
+ * (hàng đợi, chưa join, vào lượt sau) thì tim không có tác dụng.
  * Chỉ có tác dụng khi đang đua (đếm ngược thì chưa tính, tránh dồn boost trước giờ xuất phát).
  * Mỗi người thả tối đa một lần mỗi likeCooldownSeconds.
  */
@@ -36,29 +36,19 @@ export class LikeBoost {
     this.lastAt = new Map(); // userId -> lần thả gần nhất được tính (giây game)
   }
 
-  /** Trả về { racer, seconds, cheered } nếu có tác dụng, ngược lại null. */
+  /** Trả về { racer, seconds } nếu có tác dụng, ngược lại null. */
   handle(event) {
     const m = this.manager;
     if (m.state !== 'race') return null;
     const last = this.lastAt.get(event.userId);
     if (last !== undefined && m.now - last < this.cfg.likeCooldownSeconds) return null;
 
-    let racer = m.racerOf(event.userId);
-    const cheered = !racer;
-    if (!racer) racer = pickCheerTarget(m);
-    if (!racer) return null;
+    const racer = m.racerOf(event.userId);
+    if (!racer || racer.finished) return null;
 
     this.lastAt.set(event.userId, m.now);
     const seconds = giveLike(racer, event.likeCount ?? 1, m.now, this.cfg);
-    m.emit({ type: 'boost', source: 'like', racer, seconds, sender: event.userId, cheered });
-    return { racer, seconds, cheered };
+    m.emit({ type: 'boost', source: 'like', racer, seconds, sender: event.userId });
+    return { racer, seconds };
   }
-}
-
-/** Người được cổ vũ khi người gửi chưa có nhân vật: ngẫu nhiên trong số người thật chưa về đích, không có thì bot. */
-export function pickCheerTarget(manager) {
-  const running = manager.racers.filter((r) => !r.finished);
-  const real = running.filter((r) => !r.isBot);
-  const pool = real.length ? real : running;
-  return pool.length ? pool[Math.floor(manager.rng() * pool.length)] : null;
 }
