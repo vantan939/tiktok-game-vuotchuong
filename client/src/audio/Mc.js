@@ -110,10 +110,19 @@ export class Mc {
     if (!this.enabled || this.isMuted()) return;
     if (!this.voice && this.synth) this.pickVoice();
     if (!this.available) return;
+    this.unstick();
     if (typeof navigator !== 'undefined' && navigator.userActivation && !navigator.userActivation.hasBeenActive) return;
     for (const line of lines) {
       const action = this.queue.offer(line, performance.now());
       if (action === 'speak') this.speak(line);
+    }
+  }
+
+  // Phòng ngừa kẹt: nếu một câu không bao giờ báo xong (lỗi phát âm thanh, trình duyệt treo) thì bỏ để MC nói tiếp
+  unstick() {
+    const cur = this.queue.current;
+    if (cur && performance.now() - cur.at > this.cfg.watchdogMs) {
+      this.stop();
     }
   }
 

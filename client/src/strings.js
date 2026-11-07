@@ -72,6 +72,17 @@ export const STR = {
     win: [(n) => `${n} về nhất! Chúc mừng nhà vô địch!`, (n) => `Chiến thắng thuộc về ${n}! Xin chúc mừng!`],
     timeUp: [(n) => `Hết giờ! ${n} dẫn đầu và giành chiến thắng! Chúc mừng!`],
     next: [() => 'Lượt mới sắp bắt đầu, gõ join để vào đua nhé!'],
+    // Nói xen kẽ khi quá lâu chưa có gì để bình luận, cho không khí luôn sôi nổi
+    filler: [
+      () => 'Cuộc đua đang rất gay cấn!',
+      () => 'Chạy nhanh lên nào các tay đua!',
+      () => 'Thả tim để tăng tốc cho nhân vật của bạn nhé!',
+      () => 'Gõ join để vào cuộc đua nào!',
+      () => 'Nhân vật tự động né, bạn chỉ cần tăng tốc thôi!',
+      () => 'Ai sẽ là người về nhất đây?',
+      () => 'Hồi hộp quá, chưa biết ai thắng đây!',
+    ],
+    gap: [(a, b) => `${a} đang dẫn đầu, ${b} bám sát phía sau!`],
   },
 
   // Vòng lặp lượt đua

@@ -41,3 +41,31 @@ test('SpeechQueue: hàng đợi đầy thì bỏ câu thấp nhất; câu chờ 
   q3.offer(line('cũ', 2), 0);
   assert.equal(q3.next(60000), null, 'chờ quá lâu thì bỏ');
 });
+
+test('Mc: câu không báo xong (kẹt) bị bỏ sau watchdog để MC nói tiếp; câu xong bình thường thì nói câu kế', async () => {
+  const { Mc } = await import('./Mc.js');
+  const spoken = [];
+  const finishers = [];
+  const remote = {
+    enabled: true,
+    init: async () => {},
+    cancel() {},
+    speak(text, done) {
+      spoken.push(text);
+      finishers.push(done);
+    },
+  };
+  const cfg = { enabled: true, maxQueue: 2, watchdogMs: 20, lang: 'vi', rate: 1, pitch: 1, volume: 1 };
+  const mc = new Mc(cfg, { remote });
+  mc.say([{ text: 'một', priority: 2 }, { text: 'hai', priority: 2 }]);
+  assert.deepEqual(spoken, ['một']);
+  finishers[0](); // xong câu một thì tự nói câu hai
+  assert.deepEqual(spoken, ['một', 'hai']);
+  // câu hai kẹt: không báo xong. Câu phụ bị bỏ vì MC đang bận...
+  mc.say([{ text: 'phụ', priority: 1 }]);
+  assert.deepEqual(spoken, ['một', 'hai']);
+  // ...nhưng quá watchdog thì MC được giải phóng và nói tiếp
+  await new Promise((r) => setTimeout(r, 40));
+  mc.say([{ text: 'ba', priority: 1 }]);
+  assert.deepEqual(spoken, ['một', 'hai', 'ba']);
+});

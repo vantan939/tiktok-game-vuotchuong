@@ -63,7 +63,7 @@ function fakeManager({ state = 'race', ranking = [], raceTime = 0, roundSeconds 
 }
 
 test('update: xướng tên người dẫn đầu khi giữ vị trí đủ lâu, sắp về đích và 10 giây cuối chỉ báo một lần', () => {
-  const mc = new McDirector(CONFIG, rng);
+  const mc = new McDirector({ ...CONFIG, mc: { ...CONFIG.mc, idleSeconds: 1e9 } }, rng); // tắt câu xen kẽ để thử riêng phần này
   const a = { nickname: 'Lan', dist: 100 };
   const b = { nickname: 'Minh', dist: 90 };
   assert.deepEqual(mc.update(fakeManager({ ranking: [a, b] }), 0), [], 'mới dẫn đầu chưa nói');
@@ -79,4 +79,37 @@ test('update: xướng tên người dẫn đầu khi giữ vị trí đủ lâu
   assert.deepEqual(mc.update(fakeManager({ state: 'wait', ranking: [a] }), 30), [], 'không đua thì không nói');
   mc.onRound();
   assert.equal(texts(mc.update(fakeManager({ ranking: [near, a], raceTime: 175 }), 60)).filter((t) => /mười giây/.test(t)).length, 1, 'lượt mới báo lại được');
+});
+
+test('im quá lâu khi đang đua thì nói xen một câu, rồi im một lúc; không nói ngoài lúc đua', () => {
+  const mc = new McDirector(CONFIG, rng);
+  const idle = CONFIG.mc.idleSeconds;
+  const a = { nickname: 'Lan', dist: 100 };
+  const b = { nickname: 'Minh', dist: 90 };
+  const m = fakeManager({ ranking: [a, b] });
+  mc.update(m, 0);
+  assert.match(texts(mc.update(m, 2))[0], /Lan đang dẫn đầu/, 'xướng người dẫn đầu trước');
+  assert.deepEqual(mc.update(m, 2 + idle - 1), [], 'chưa đủ lâu thì im');
+  const filler = mc.update(m, 2 + idle + 0.1);
+  assert.equal(filler.length, 1);
+  assert.equal(filler[0].priority, PRIORITY.chatter);
+  assert.deepEqual(mc.update(m, 2 + idle + 0.1 + idle - 1), [], 'vừa nói xong thì im một lúc');
+  assert.deepEqual(mc.update(fakeManager({ state: 'wait', ranking: [a, b] }), 500), [], 'không đua thì không nói xen');
+});
+
+test('câu xen kẽ không lặp liền nhau và có đủ các loại', () => {
+  let i = 0;
+  const seq = [0.9, 0.5, 0.5, 0.5, 0.5, 0.5, 0.1, 0.9, 0.9, 0.9, 0.9, 0.9];
+  const mc = new McDirector(CONFIG, () => seq[i++ % seq.length]);
+  const lines = [];
+  for (let k = 0; k < 12; k++) lines.push(...mc.update(fakeManager({ ranking: [{ nickname: 'Lan', dist: 1 }] }), 100 + k * 100).map((l) => l.text));
+  assert.ok(lines.length >= 10);
+  for (let k = 1; k < lines.length; k++) assert.notEqual(lines[k], lines[k - 1]);
+});
+
+test('bot trong top 3 cũng được bình luận khi né, dính; bot ngoài top thì không', () => {
+  const mc = new McDirector(CONFIG, rng);
+  assert.match(mc.onEvent({ type: 'dodge', racer: { isBot: true, rank: 2, nickname: 'RainDev' } }, 0)[0].text, /./);
+  assert.match(mc.onEvent({ type: 'hit', racer: { isBot: true, rank: 3, nickname: 'Cherry' } }, 0)[0].text, /Cherry/);
+  assert.deepEqual(mc.onEvent({ type: 'dodge', racer: { isBot: true, rank: 8, nickname: 'X' } }, 50), []);
 });

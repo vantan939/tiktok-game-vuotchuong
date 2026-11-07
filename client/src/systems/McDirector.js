@@ -21,7 +21,17 @@ export class McDirector {
     this.rng = rng;
     this.lastAt = new Map(); // loại câu -> lần nói gần nhất (giây game)
     this.round = { nearFinish: false, lastSeconds: false, leader: null, leaderSince: 0, announcedLeader: null };
-    this.welcomed = -Infinity;
+    this.lastSpoke = -Infinity; // lần gần nhất có câu nào được đưa ra (giây game)
+    this.lastFiller = -1;
+    // Mọi câu đưa ra đều ghi nhận thời điểm, để biết MC đã im bao lâu
+    for (const [name, nowIndex] of [['onState', 2], ['onJoin', 1], ['onEvent', 1], ['update', 1]]) {
+      const original = this[name].bind(this);
+      this[name] = (...args) => {
+        const lines = original(...args);
+        if (lines.length) this.lastSpoke = args[nowIndex];
+        return lines;
+      };
+    }
   }
 
   pick(kind, ...args) {
@@ -73,7 +83,9 @@ export class McDirector {
       const g = spokenName(e.gift?.name, 20);
       return [{ text: this.pick(e.tier?.announce ? 'gift_large' : 'gift', n, g), priority: PRIORITY.event }];
     }
-    if (!real) return []; // chỉ bình luận chuyện của người thật, bot thì thôi
+    // Người thật luôn được bình luận; bot chỉ khi đang nằm trong top
+    const worthy = real || (e.racer.rank > 0 && e.racer.rank <= this.cfg.topRankCommented);
+    if (!worthy) return [];
     const n = spokenName(e.racer.nickname);
     if (e.type === 'dodge' && this.ready('dodge', now, gaps.dodge)) return [{ text: this.pick('dodge', n), priority: PRIORITY.chatter }];
     if (e.type === 'hit' && this.ready('hit', now, gaps.hit)) return [{ text: this.pick('hit', n), priority: PRIORITY.chatter }];
@@ -86,6 +98,7 @@ export class McDirector {
   /** Gọi mỗi frame khi đang đua: người dẫn đầu đổi, sắp về đích, còn 10 giây cuối. */
   update(manager, now) {
     if (manager.state !== 'race') return [];
+    if (this.lastSpoke === -Infinity) this.lastSpoke = now; // bắt đầu tính thời gian im lặng từ lúc đua
     const out = [];
     const lead = manager.ranking[0];
     const r = this.round;
@@ -106,6 +119,20 @@ export class McDirector {
       r.lastSeconds = true;
       out.push({ text: this.pick('lastSeconds'), priority: PRIORITY.event });
     }
+    // Im quá lâu thì nói xen một câu: lúc thì bình luận khoảng cách top 2, lúc thì câu chung
+    if (!out.length && now - this.lastSpoke >= this.cfg.idleSeconds) out.push(this.filler(manager));
     return out;
+  }
+
+  filler(manager) {
+    const [first, second] = manager.ranking;
+    if (first && second && this.rng() < 0.4) {
+      return { text: this.pick('gap', spokenName(first.nickname), spokenName(second.nickname)), priority: PRIORITY.chatter };
+    }
+    const list = STR.mc.filler;
+    let i = Math.floor(this.rng() * list.length);
+    if (i === this.lastFiller) i = (i + 1) % list.length; // không lặp một câu hai lần liền
+    this.lastFiller = i;
+    return { text: list[i](), priority: PRIORITY.chatter };
   }
 }
