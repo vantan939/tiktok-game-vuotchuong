@@ -138,15 +138,15 @@ test('hàng đợi trống thì không có ai', () => {
   assert.deepEqual(model.queueFirst, []);
 });
 
-test('cấu hình hiện tại: một lượt 3 người, bảng xếp hạng chỉ top 1, hàng đợi bắt đầu từ #4', () => {
+test('cấu hình hiện tại: một lượt 3 người, bảng xếp hạng top 3, hàng đợi bắt đầu từ #4', () => {
   assert.equal(CONFIG.maxPlayers, 3);
-  assert.equal(CONFIG.topShown, 1);
+  assert.equal(CONFIG.topShown, 3);
   const { lobby, manager } = setup(CONFIG);
   for (let i = 0; i < 8; i++) manager.join({ userId: `u${i}`, nickname: `N${i}`, avatarUrl: '' });
   const model = buildHudModel(manager, lobby);
   assert.equal(model.racing, 3);
   assert.equal(model.max, 3);
-  assert.equal(model.top.length, 1);
+  assert.equal(model.top.length, 3);
   assert.equal(model.queueTotal, 5);
   assert.equal(model.queueBase, 3);
 });

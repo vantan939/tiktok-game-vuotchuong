@@ -18,7 +18,7 @@ export const STR = {
     autoLine1: 'Nhân vật tự động né,',
     autoLine2: 'bạn chỉ cần',
     autoLine3: 'tăng tốc',
-    top: (n) => `TOP ${n}`,
+    top: () => 'BẢNG XẾP HẠNG',
     queue: 'HÀNG ĐỢI',
     queueCount: (n) => `(${n} người)`,
     queueEmpty: 'Chưa ai chờ, gõ join nhé',
